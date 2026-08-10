@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portfolio v2
 
-## Getting Started
+Personal portfolio of Damilare Osofisan. Successor to [damilareoo.xyz](https://www.damilareoo.xyz), rebuilt from the ground up.
 
-First, run the development server:
+## Direction
+
+Pure monochrome, two-skin system. Hierarchy comes from tonal value, weight, and size, never hue. Hairline borders separate surfaces instead of shadows. Set entirely in Suisse Int'l, with Suisse Int'l Mono for labels and meta.
+
+Full design spec: `docs/specs/2026-08-10-portfolio-v2-design.md`
+
+## Token system
+
+Semantic tokens only. Components never reference raw hex values; light and dark are variable swaps.
+
+| Token | Light | Dark |
+|---|---|---|
+| `--bg` | #F4F4F4 | #0A0A0A |
+| `--surface` | #FFFFFF | #141414 |
+| `--surface-2` | #F7F7F7 | #1C1C1C |
+| `--border` | #E9E9E9 | #262626 |
+| `--text-1` | #111111 | #F5F5F5 |
+| `--text-2` | #6F6F6F | #8A8A8A |
+| `--text-3` | #B0B0B0 | #4D4D4D |
+| `--fill-strong` | #111111 | #F5F5F5 |
+
+Dark mode inverts the strong fill: primary buttons become light pills with dark labels.
+
+## Stack
+
+| Tool | Purpose |
+|---|---|
+| Next.js (App Router) | Framework and routing |
+| Tailwind CSS v4 | Styling via CSS variable tokens |
+| TypeScript | Type safety |
+| next-themes | Light and dark mode switching |
+| Vercel | Hosting and deployment |
+
+## Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Status
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Foundation stage: token system, typography, theme switching, and a specimen page proving both modes. Home sections, case study pages, and interactions follow.
