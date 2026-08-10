@@ -10,8 +10,12 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+grab_url() {
+  grep -oE "https://[a-z0-9-]+\.vercel\.app" | grep -v "\-git\-" | tail -1
+}
+
 echo "── workshop (portfolio-v2)"
-WORKSHOP_URL=$(vercel deploy --prod --yes 2>/dev/null | tail -1)
+WORKSHOP_URL=$(vercel deploy --prod --yes 2>&1 | grab_url)
 echo "workshop deployment: $WORKSHOP_URL"
 
 echo "── portfolio (damilareoo)"
@@ -22,7 +26,7 @@ restore() {
   mv .vercel-workshop .vercel
 }
 trap restore EXIT
-PORTFOLIO_URL=$(vercel deploy --prod --yes 2>/dev/null | tail -1)
+PORTFOLIO_URL=$(vercel deploy --prod --yes 2>&1 | grab_url)
 echo "portfolio deployment: $PORTFOLIO_URL"
 
 echo
