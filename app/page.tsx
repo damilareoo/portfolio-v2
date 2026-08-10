@@ -1,164 +1,194 @@
-import { ThemeToggle } from "@/components/theme-toggle";
+import { Chip, Meta, SectionLabel, Sheet } from "@/components/ui";
+import { featured, index, site } from "@/data/site";
 
-const ladder = [
-  { token: "bg", cls: "bg-bg", light: "#F4F4F4", dark: "#0A0A0A" },
-  { token: "surface", cls: "bg-surface", light: "#FFFFFF", dark: "#141414" },
-  { token: "surface-2", cls: "bg-surface-2", light: "#F7F7F7", dark: "#1C1C1C" },
-  { token: "border", cls: "bg-line", light: "#E9E9E9", dark: "#262626" },
-  { token: "text-3", cls: "bg-ink-3", light: "#B0B0B0", dark: "#4D4D4D" },
-  { token: "text-2", cls: "bg-ink-2", light: "#6F6F6F", dark: "#8A8A8A" },
-  { token: "text-1", cls: "bg-ink", light: "#111111", dark: "#F5F5F5" },
-  { token: "fill-strong", cls: "bg-strong", light: "#111111", dark: "#F5F5F5" },
-];
-
-function Hex({ light, dark }: { light: string; dark: string }) {
+function ArrowUpRight() {
   return (
-    <span className="font-mono text-[11px] text-ink-3">
-      <span className="dark:hidden">{light}</span>
-      <span className="hidden dark:inline">{dark}</span>
-    </span>
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+      <path
+        d="M3.5 10.5 10.5 3.5M5 3.5h5.5V9"
+        stroke="currentColor"
+        strokeWidth="1.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
 export default function Home() {
   return (
-    <div className="flex min-h-dvh flex-col">
-      <header className="flex items-center justify-between border-b border-line bg-surface px-4 py-2.5 sm:px-6">
-        <span className="flex items-center gap-2 rounded-full border border-line px-3 py-1">
+    <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+      {/* Hero — the personal data sheet */}
+      <div className="mb-4 flex items-center gap-1.5">
+        <Chip variant="solid">Portfolio</Chip>
+        <Chip>2026</Chip>
+      </div>
+
+      <Sheet className="flex flex-col p-6 sm:p-10">
+        <div className="flex items-start justify-between gap-6">
+          <h1 className="text-[clamp(56px,9vw,120px)] font-medium leading-[0.95] tracking-[-0.03em]">
+            Damilare
+          </h1>
+          <span
+            aria-hidden
+            className="mt-2 flex size-16 shrink-0 items-center justify-center rounded-2xl bg-strong text-[28px] font-medium tracking-tight text-on-strong sm:size-20 sm:text-[36px]"
+          >
+            d.
+          </span>
+        </div>
+        <p className="mt-6 max-w-md text-[15px] leading-relaxed text-ink-2">
+          Designer and builder creating 0–1 experiences. I design products, build
+          what makes them work, and ship them.
+        </p>
+
+        <div className="mt-10 grid grid-cols-2 gap-x-8 gap-y-6 border-t border-line pt-8 sm:mt-12 sm:grid-cols-4">
+          <Meta label="Based in" value="Lagos, Nigeria" />
+          <Meta
+            label="Currently"
+            value={
+              <>
+                <a
+                  href="https://chessever.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline decoration-ink-3 underline-offset-4 transition-colors hover:decoration-ink"
+                >
+                  ChessEver
+                </a>
+                {" · "}
+                <a
+                  href="https://hex.inc"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline decoration-ink-3 underline-offset-4 transition-colors hover:decoration-ink"
+                >
+                  Hex
+                </a>
+              </>
+            }
+          />
+          <Meta label="Focus" value="0–1 products" />
+          <Meta
+            label="Contact"
+            value={
+              <a
+                href={`mailto:${site.email}`}
+                className="underline decoration-ink-3 underline-offset-4 transition-colors hover:decoration-ink"
+              >
+                Email
+              </a>
+            }
+          />
+        </div>
+
+        <div className="mt-10 flex items-center justify-between border-t border-line pt-5 sm:mt-14">
           <span className="text-[13px] font-medium tracking-tight">damilareoo</span>
-          <span className="rounded-full bg-surface-2 px-1.5 py-px font-mono text-[9px] uppercase tracking-wider text-ink-2">
-            v2
-          </span>
-        </span>
-        <ThemeToggle />
-      </header>
-
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
-        <div className="mb-4 flex items-center gap-1.5">
-          <span className="rounded-full bg-strong px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-on-strong">
-            Foundation
-          </span>
-          <span className="rounded-full border border-line px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-ink-2">
-            Tokens 001
-          </span>
+          <span className="text-[13px] text-ink-3">www.damilareoo.xyz</span>
         </div>
+      </Sheet>
 
-        <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
-          {/* The sheet — quotes the invoice document */}
-          <section className="flex flex-col rounded-2xl border border-line bg-surface p-6 sm:p-10">
-            <div className="flex items-start justify-between gap-6">
-              <h1 className="text-[clamp(56px,9vw,120px)] font-medium leading-[0.95] tracking-[-0.03em]">
-                Damilare
-              </h1>
-              <span
-                aria-hidden
-                className="mt-2 flex size-16 shrink-0 items-center justify-center rounded-2xl bg-strong text-[28px] font-medium tracking-tight text-on-strong sm:size-20 sm:text-[36px]"
-              >
-                d.
-              </span>
-            </div>
-
-            <div className="mt-12 grid grid-cols-2 gap-x-8 gap-y-6 sm:mt-16">
-              <div>
-                <p className="text-[13px] text-ink-2">Based in</p>
-                <p className="mt-1 text-[15px] font-medium">Lagos, Nigeria</p>
-              </div>
-              <div>
-                <p className="text-[13px] text-ink-2">Currently</p>
-                <p className="mt-1 text-[15px] font-medium">Product Designer, Endgame</p>
-              </div>
-            </div>
-
-            <div className="mt-8 border-t border-line pt-8">
-              <div className="grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-4">
-                <div>
-                  <p className="text-[13px] text-ink-2">Focus</p>
-                  <p className="mt-1 text-[15px] font-medium">Interfaces</p>
-                </div>
-                <div>
-                  <p className="text-[13px] text-ink-2">Site no</p>
-                  <p className="mt-1 text-[15px] font-medium">#DO-002</p>
-                </div>
-                <div className="col-span-2">
-                  <p className="text-[13px] text-ink-2">Status</p>
-                  <div className="mt-2.5 space-y-2">
-                    <div className="h-2 w-4/5 rounded-full bg-line" />
-                    <div className="h-2 w-3/5 rounded-full bg-line" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-16 flex flex-1 items-end sm:mt-24">
-              <div className="flex w-full items-center justify-between border-t border-line pt-5">
-                <span className="text-[13px] font-medium tracking-tight">damilareoo</span>
-                <span className="text-[13px] text-ink-3">www.damilareoo.xyz</span>
-              </div>
-            </div>
-          </section>
-
-          {/* The panel — quotes the create-invoice card */}
-          <aside className="rounded-2xl border border-line bg-surface p-6 sm:p-7">
-            <h2 className="text-[17px] font-medium tracking-tight">Specimen</h2>
-
-            <div className="mt-4 flex gap-5 border-b border-line pb-3 text-[13px]">
-              <span className="relative font-medium after:absolute after:-bottom-[13px] after:left-0 after:h-px after:w-full after:bg-ink">
-                Values
-              </span>
-              <span className="text-ink-3">Type</span>
-              <span className="text-ink-3">Controls</span>
-            </div>
-
-            <p className="mt-5 font-mono text-[10px] uppercase tracking-wider text-ink-3">
-              Value ladder
+      {/* Featured — the cascading strip */}
+      <section id="work" className="mt-16 sm:mt-24">
+        <div className="grid gap-10 lg:grid-cols-[1fr_1.4fr]">
+          <div className="lg:sticky lg:top-10 lg:self-start">
+            <SectionLabel>Featured</SectionLabel>
+            <h2 className="mt-3 text-[28px] font-medium leading-tight tracking-tight sm:text-[32px]">
+              Selected work
+            </h2>
+            <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-ink-2">
+              Projects I keep coming back to. Each one is getting a full
+              deep-dive page.
             </p>
-            <ul className="mt-3 space-y-2">
-              {ladder.map((s) => (
-                <li key={s.token} className="flex items-center gap-3">
-                  <span className={`size-5 rounded-md border border-line ${s.cls}`} />
-                  <span className="flex-1 font-mono text-[11px] text-ink-2">--{s.token}</span>
-                  <Hex light={s.light} dark={s.dark} />
-                </li>
-              ))}
-            </ul>
+          </div>
 
-            <p className="mt-7 font-mono text-[10px] uppercase tracking-wider text-ink-3">Type</p>
-            <div className="mt-3 space-y-1.5">
-              <p className="text-[15px] font-medium">Primary — Suisse Medium</p>
-              <p className="text-[14px] text-ink-2">Secondary — Suisse Regular</p>
-              <p className="text-[13px] text-ink-3">Tertiary — placeholders, meta</p>
-            </div>
-
-            <p className="mt-7 font-mono text-[10px] uppercase tracking-wider text-ink-3">
-              Controls
-            </p>
-            <div className="mt-3">
-              <label htmlFor="specimen-input" className="text-[13px] text-ink-2">
-                Input
-              </label>
-              <input
-                id="specimen-input"
-                placeholder="Type something"
-                className="mt-1.5 h-10 w-full rounded-lg border border-line bg-surface px-3 text-[14px] placeholder:text-ink-3 focus:outline-none focus-visible:border-ink"
-              />
-            </div>
-            <div className="mt-5 flex items-center justify-end gap-2 border-t border-line pt-5">
-              <button
-                type="button"
-                className="rounded-full border border-line px-4 py-2 text-[13px] font-medium text-ink-2 transition-colors hover:text-ink"
+          <div className="flex flex-col gap-4">
+            {featured.map((p, i) => (
+              <a
+                key={p.slug}
+                href={p.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`group flex w-full items-center gap-5 rounded-2xl border border-line bg-surface p-5 transition-transform duration-200 hover:-translate-y-0.5 sm:w-[85%] ${
+                  i % 2 === 1 ? "sm:self-end" : "sm:self-start"
+                }`}
               >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="rounded-full bg-strong px-4 py-2 text-[13px] font-medium text-on-strong transition-opacity hover:opacity-90"
-              >
-                Save and continue
-              </button>
-            </div>
-          </aside>
+                <span
+                  aria-hidden
+                  className={`flex size-16 shrink-0 items-center justify-center rounded-xl text-[22px] font-medium tracking-tight sm:size-20 ${
+                    i % 2 === 1
+                      ? "border border-line bg-surface-2 text-ink"
+                      : "bg-strong text-on-strong"
+                  }`}
+                >
+                  {p.mark}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-2 text-[16px] font-medium tracking-tight">
+                    {p.title}
+                    <span className="text-ink-3 transition-colors group-hover:text-ink">
+                      <ArrowUpRight />
+                    </span>
+                  </span>
+                  <span className="mt-1 block text-[14px] leading-relaxed text-ink-2">
+                    {p.oneLiner}
+                  </span>
+                </span>
+                <span className="hidden font-mono text-[10px] uppercase tracking-wider text-ink-3 sm:block">
+                  00{i + 1}
+                </span>
+              </a>
+            ))}
+          </div>
         </div>
-      </main>
-    </div>
+      </section>
+
+      {/* Index — everything else */}
+      <section className="mt-16 sm:mt-24">
+        <SectionLabel>Index</SectionLabel>
+        <ul className="mt-4">
+          {index.map((p, i) => (
+            <li key={p.title}>
+              <a
+                href={p.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-baseline gap-4 border-t border-line py-4 transition-colors last:border-b hover:bg-surface sm:gap-6 sm:px-3"
+              >
+                <span className="font-mono text-[11px] text-ink-3">
+                  0{i + 1}
+                </span>
+                <span className="flex-1 text-[15px] font-medium tracking-tight">
+                  {p.title}
+                </span>
+                <span className="hidden text-[14px] text-ink-2 sm:block">
+                  {p.description}
+                </span>
+                <span className="text-ink-3 transition-colors group-hover:text-ink">
+                  <ArrowUpRight />
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* Background */}
+      <section className="mt-16 pb-8 sm:mt-24">
+        <SectionLabel>Background</SectionLabel>
+        <div className="mt-4 grid gap-6 sm:grid-cols-2 sm:gap-10">
+          <p className="text-[15px] leading-relaxed text-ink-2">
+            Most recently I&apos;ve been focused on designing brands, systems,
+            and products that feel intuitive and delightful. I believe in work
+            that not only looks exceptional but solves real problems — every
+            detail matters, from the initial spark to the final polish.
+          </p>
+          <p className="text-[15px] leading-relaxed text-ink-2">
+            When I&apos;m not designing or coding, you&apos;ll find me playing
+            basketball, exploring new music, and experimenting with playful
+            side projects.
+          </p>
+        </div>
+      </section>
+    </main>
   );
 }

@@ -44,6 +44,10 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Versioning
+
+Every change ships with an entry in `data/changelog.ts`, rendered at `/changelog`. Each entry records the immutable Vercel deployment URL of that version, so every version of the site stays viewable forever. Versions are also tagged in git (`v0.1.0`, `v0.2.0`, ...).
+
 ## Status
 
-Foundation stage: token system, typography, theme switching, and a specimen page proving both modes. Home sections, case study pages, and interactions follow.
+v0.2.0: home (hero sheet, featured strip, project index, background, footer), living design system at `/system`, changelog at `/changelog`. Case study pages, the easter egg, and interaction polish follow.
