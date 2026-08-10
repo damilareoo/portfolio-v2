@@ -10,6 +10,18 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.3.0",
+    date: "2026-08-10",
+    title: "Split-layout portfolio, second link",
+    notes: [
+      "Home rebuilt as a split layout: profile window plus an independently scrolling playground",
+      "Playground tile grid with entrance stagger, hover reveals, and slots for real artwork",
+      "Live Lagos clock, copy-email pill",
+      "Portfolio now ships to its own link; System and Changelog stay on the workshop link",
+    ],
+    deployment: "https://portfolio-v2-sigiek1dr-damilares-projects-fc682e5f.vercel.app",
+  },
+  {
     version: "0.2.0",
     date: "2026-08-10",
     title: "Home, design system page, changelog",

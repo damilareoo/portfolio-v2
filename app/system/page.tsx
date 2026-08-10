@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Chip, SectionLabel, Sheet } from "@/components/ui";
+import { SiteFooter } from "@/components/site-footer";
 
 export const metadata: Metadata = {
   title: "System — Damilare Osofisan",
@@ -28,6 +29,7 @@ function Hex({ light, dark }: { light: string; dark: string }) {
 
 export default function SystemPage() {
   return (
+    <>
     <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="mb-4 flex items-center gap-1.5">
         <Chip variant="solid">System</Chip>
@@ -129,5 +131,7 @@ export default function SystemPage() {
         </Sheet>
       </div>
     </main>
+    <SiteFooter />
+    </>
   );
 }

@@ -44,10 +44,19 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Two links, one codebase
+
+| Deployment | Vercel project | Purpose |
+|---|---|---|
+| Portfolio | `damilareoo` | The public face: split-layout home with profile and playground. `NEXT_PUBLIC_SITE_MODE=portfolio` hides workshop chrome. |
+| Workshop | `portfolio-v2` | The build log: same home plus `/system` and `/changelog`. |
+
+Deploy both with `scripts/deploy.sh`.
+
 ## Versioning
 
 Every change ships with an entry in `data/changelog.ts`, rendered at `/changelog`. Each entry records the immutable Vercel deployment URL of that version, so every version of the site stays viewable forever. Versions are also tagged in git (`v0.1.0`, `v0.2.0`, ...).
 
 ## Status
 
-v0.2.0: home (hero sheet, featured strip, project index, background, footer), living design system at `/system`, changelog at `/changelog`. Case study pages, the easter egg, and interaction polish follow.
+v0.3.0: split-layout home (profile window plus independently scrolling playground with tile grid, live Lagos clock, copy-email), shipped to a dedicated portfolio link. Real playground artwork, case study pages, and the easter egg follow.

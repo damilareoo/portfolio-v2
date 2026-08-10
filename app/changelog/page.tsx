@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Chip, SectionLabel, Sheet } from "@/components/ui";
+import { SiteFooter } from "@/components/site-footer";
 import { changelog } from "@/data/changelog";
 
 export const metadata: Metadata = {
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
 
 export default function ChangelogPage() {
   return (
+    <>
     <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="mb-4 flex items-center gap-1.5">
         <Chip variant="solid">Changelog</Chip>
@@ -66,5 +68,7 @@ export default function ChangelogPage() {
         </p>
       </div>
     </main>
+    <SiteFooter />
+    </>
   );
 }
