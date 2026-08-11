@@ -20,6 +20,7 @@ export const changelog: ChangelogEntry[] = [
       "Every type size converted from px to rem so the type dial reaches all of it",
       "Fixed a stale-closure bug where setting two dials at once dropped one",
     ],
+    deployment: "https://portfolio-v2-1af5f6xdg-damilares-projects-fc682e5f.vercel.app",
   },
   {
     version: "0.3.0",
