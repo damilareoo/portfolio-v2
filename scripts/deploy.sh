@@ -29,5 +29,11 @@ trap restore EXIT
 PORTFOLIO_URL=$(vercel deploy --prod --yes 2>&1 | grab_url)
 echo "portfolio deployment: $PORTFOLIO_URL"
 
+# The clean alias does not follow --prod on its own; point it at this build.
+until vercel alias set "$PORTFOLIO_URL" damilareoo-xyz.vercel.app 2>&1 | grep -q Success; do
+  sleep 5
+done
+echo "portfolio alias:      https://damilareoo-xyz.vercel.app"
+
 echo
 echo "Record in data/changelog.ts: $WORKSHOP_URL"
