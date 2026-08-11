@@ -21,7 +21,7 @@ export function LiveClock() {
   }, []);
 
   return (
-    <span className="font-mono text-[10px] uppercase tracking-wider text-ink-3 tabular-nums">
+    <span className="font-mono text-[0.625rem] uppercase tracking-wider text-ink-3 tabular-nums">
       Lagos {time ?? "--:--:--"}
     </span>
   );

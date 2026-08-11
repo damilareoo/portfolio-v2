@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { isPortfolio } from "@/lib/site-mode";
+import { SettingsProvider, settingsScript } from "@/lib/settings";
 import "./globals.css";
 
 const suisse = localFont({
@@ -44,16 +45,21 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${suisse.variable} ${suisseMono.variable} h-full`}
       suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: settingsScript }} />
+      </head>
       <body className="min-h-full flex flex-col font-sans">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {isPortfolio ? (
-            children
-          ) : (
-            <>
-              <SiteHeader />
-              <div className="flex-1">{children}</div>
-            </>
-          )}
+          <SettingsProvider>
+            {isPortfolio ? (
+              children
+            ) : (
+              <>
+                <SiteHeader />
+                <div className="flex-1">{children}</div>
+              </>
+            )}
+          </SettingsProvider>
         </ThemeProvider>
       </body>
     </html>

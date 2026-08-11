@@ -20,7 +20,7 @@ const ladder = [
 
 function Hex({ light, dark }: { light: string; dark: string }) {
   return (
-    <span className="font-mono text-[11px] text-ink-3">
+    <span className="font-mono text-[0.6875rem] text-ink-3">
       <span className="dark:hidden">{light}</span>
       <span className="hidden dark:inline">{dark}</span>
     </span>
@@ -38,8 +38,8 @@ export default function SystemPage() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         <Sheet className="p-6 sm:p-7">
-          <h1 className="text-[17px] font-medium tracking-tight">Values</h1>
-          <p className="mt-1 text-[13px] text-ink-2">
+          <h1 className="text-[1.0625rem] font-medium tracking-tight">Values</h1>
+          <p className="mt-1 text-[0.8125rem] text-ink-2">
             The full ladder. Hierarchy comes from tonal value, never hue.
           </p>
 
@@ -50,7 +50,7 @@ export default function SystemPage() {
             {ladder.map((s) => (
               <li key={s.token} className="flex items-center gap-3">
                 <span className={`size-5 rounded-md border border-line ${s.cls}`} />
-                <span className="flex-1 font-mono text-[11px] text-ink-2">--{s.token}</span>
+                <span className="flex-1 font-mono text-[0.6875rem] text-ink-2">--{s.token}</span>
                 <Hex light={s.light} dark={s.dark} />
               </li>
             ))}
@@ -59,10 +59,10 @@ export default function SystemPage() {
           <div className="mt-7">
             <SectionLabel>Type</SectionLabel>
             <div className="mt-3 space-y-1.5">
-              <p className="text-[15px] font-medium">Primary — Suisse Medium</p>
-              <p className="text-[14px] text-ink-2">Secondary — Suisse Regular</p>
-              <p className="text-[13px] text-ink-3">Tertiary — placeholders, meta</p>
-              <p className="font-mono text-[11px] uppercase tracking-wider text-ink-3">
+              <p className="text-[0.9375rem] font-medium">Primary — Suisse Medium</p>
+              <p className="text-[0.875rem] text-ink-2">Secondary — Suisse Regular</p>
+              <p className="text-[0.8125rem] text-ink-3">Tertiary — placeholders, meta</p>
+              <p className="font-mono text-[0.6875rem] uppercase tracking-wider text-ink-3">
                 Mono — labels, hex, indices
               </p>
             </div>
@@ -70,8 +70,8 @@ export default function SystemPage() {
         </Sheet>
 
         <Sheet className="p-6 sm:p-7">
-          <h2 className="text-[17px] font-medium tracking-tight">Primitives</h2>
-          <p className="mt-1 text-[13px] text-ink-2">
+          <h2 className="text-[1.0625rem] font-medium tracking-tight">Primitives</h2>
+          <p className="mt-1 text-[0.8125rem] text-ink-2">
             Every surface on the site is built from these.
           </p>
 
@@ -89,13 +89,13 @@ export default function SystemPage() {
             <div className="mt-3 flex items-center gap-2">
               <button
                 type="button"
-                className="rounded-full border border-line px-4 py-2 text-[13px] font-medium text-ink-2 transition-colors hover:text-ink"
+                className="rounded-full border border-line px-4 py-2 text-[0.8125rem] font-medium text-ink-2 transition-colors hover:text-ink"
               >
                 Ghost
               </button>
               <button
                 type="button"
-                className="rounded-full bg-strong px-4 py-2 text-[13px] font-medium text-on-strong transition-opacity hover:opacity-90"
+                className="rounded-full bg-strong px-4 py-2 text-[0.8125rem] font-medium text-on-strong transition-opacity hover:opacity-90"
               >
                 Primary
               </button>
@@ -107,7 +107,7 @@ export default function SystemPage() {
             <input
               placeholder="Type something"
               aria-label="Specimen input"
-              className="mt-3 h-10 w-full rounded-lg border border-line bg-surface px-3 text-[14px] placeholder:text-ink-3 focus:outline-none focus-visible:border-ink"
+              className="mt-3 h-10 w-full rounded-lg border border-line bg-surface px-3 text-[0.875rem] placeholder:text-ink-3 focus:outline-none focus-visible:border-ink"
             />
           </div>
 
@@ -120,12 +120,36 @@ export default function SystemPage() {
           </div>
 
           <div className="mt-7">
+            <SectionLabel>Dials</SectionLabel>
+            <p className="mt-3 text-[0.8125rem] leading-relaxed text-ink-2">
+              The settings rail on the home page rewrites these live. Density
+              drives spacing and radii; type scale moves the root font size,
+              which every rem-based size inherits.
+            </p>
+            <ul className="mt-3 space-y-2">
+              {[
+                { token: "--pg-gap", v: "10 / 16 / 24px" },
+                { token: "--pad", v: "14 / 20 / 28px" },
+                { token: "--radius-window", v: "12 / 16 / 20px" },
+                { token: "--radius-tile", v: "8 / 12 / 16px" },
+                { token: "--type-scale", v: "0.9 / 1 / 1.12" },
+              ].map((t) => (
+                <li key={t.token} className="flex items-baseline justify-between gap-3">
+                  <span className="font-mono text-[0.6875rem] text-ink-2">{t.token}</span>
+                  <span className="font-mono text-[0.6875rem] text-ink-3">{t.v}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="mt-7">
             <SectionLabel>Rules</SectionLabel>
-            <ul className="mt-3 space-y-1.5 text-[13px] leading-relaxed text-ink-2">
+            <ul className="mt-3 space-y-1.5 text-[0.8125rem] leading-relaxed text-ink-2">
               <li>Semantic tokens only — components never touch raw hex.</li>
               <li>Hairlines separate surfaces. No shadows.</li>
               <li>Dark mode inverts the strong fill.</li>
-              <li>Radii: 16 sheets, 12 tiles, 8 inputs, full pills.</li>
+              <li>Type sizes are rem, never px, so the type dial reaches them.</li>
+              <li>Spacing and radii read from dial tokens, not fixed values.</li>
             </ul>
           </div>
         </Sheet>

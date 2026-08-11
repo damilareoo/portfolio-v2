@@ -14,7 +14,7 @@ export function Chip({
   }[variant];
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider ${styles}`}
+      className={`inline-flex items-center rounded-full px-2.5 py-1 font-mono text-[0.625rem] uppercase tracking-wider ${styles}`}
     >
       {children}
     </span>
@@ -23,7 +23,7 @@ export function Chip({
 
 export function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <p className="font-mono text-[10px] uppercase tracking-wider text-ink-3">{children}</p>
+    <p className="font-mono text-[0.625rem] uppercase tracking-wider text-ink-3">{children}</p>
   );
 }
 
@@ -44,8 +44,8 @@ export function Sheet({
 export function Meta({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div>
-      <p className="text-[13px] text-ink-2">{label}</p>
-      <p className="mt-1 text-[15px] font-medium">{value}</p>
+      <p className="text-[0.8125rem] text-ink-2">{label}</p>
+      <p className="mt-1 text-[0.9375rem] font-medium">{value}</p>
     </div>
   );
 }

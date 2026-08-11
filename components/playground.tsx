@@ -25,7 +25,7 @@ function TileFace({ tile }: { tile: Tile }) {
   return (
     <span
       aria-hidden
-      className={`flex h-full w-full items-center justify-center text-[56px] font-medium tracking-tight transition-transform duration-300 group-hover:scale-[1.06] ${
+      className={`flex h-full w-full items-center justify-center text-[3.5rem] font-medium tracking-tight transition-transform duration-300 group-hover:scale-[1.06] ${
         tile.tone === "strong" ? "text-on-strong" : "text-ink"
       }`}
     >
@@ -37,7 +37,7 @@ function TileFace({ tile }: { tile: Tile }) {
 export function Playground({ tiles }: { tiles: Tile[] }) {
   return (
     <MotionConfig reducedMotion="user">
-      <div className="columns-1 gap-4 sm:columns-2">
+      <div className="columns-1 [column-gap:var(--pg-gap)] sm:columns-2 xl:columns-3">
         {tiles.map((tile, i) => (
           <motion.a
             key={tile.slug}
@@ -48,16 +48,16 @@ export function Playground({ tiles }: { tiles: Tile[] }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.06 * i, duration: 0.45, ease: [0.21, 0.47, 0.32, 0.98] }}
             whileHover={{ y: -3 }}
-            className={`group relative mb-4 block overflow-hidden rounded-xl border border-line break-inside-avoid ${
+            className={`group relative mb-[var(--pg-gap)] block overflow-hidden rounded-[var(--radius-tile)] border border-line break-inside-avoid ${
               aspectCls[tile.aspect]
             } ${tile.tone === "strong" ? "bg-strong" : "bg-surface-2"}`}
           >
             <TileFace tile={tile} />
             <span className="pointer-events-none absolute bottom-3 left-3 flex max-w-[calc(100%-24px)] items-center gap-2 rounded-full border border-line bg-surface py-1.5 pl-3 pr-2.5 transition-all duration-200 sm:translate-y-1 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100">
-              <span className="truncate text-[12px] font-medium tracking-tight text-ink">
+              <span className="truncate text-[0.75rem] font-medium tracking-tight text-ink">
                 {tile.title}
               </span>
-              <span className="shrink-0 font-mono text-[9px] uppercase tracking-wider text-ink-3">
+              <span className="shrink-0 font-mono text-[0.5625rem] uppercase tracking-wider text-ink-3">
                 {tile.meta}
               </span>
             </span>

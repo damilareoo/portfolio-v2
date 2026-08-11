@@ -29,8 +29,8 @@ export function CopyEmail({ email }: { email: string }) {
       onClick={copy}
       className="flex w-full items-center justify-between gap-3 rounded-full border border-line px-4 py-2.5 transition-colors hover:border-ink-3"
     >
-      <span className="truncate font-mono text-[11px] text-ink-2">{email}</span>
-      <span className="shrink-0 font-mono text-[10px] uppercase tracking-wider text-ink-3">
+      <span className="truncate font-mono text-[0.6875rem] text-ink-2">{email}</span>
+      <span className="shrink-0 font-mono text-[0.625rem] uppercase tracking-wider text-ink-3">
         {copied ? "Copied" : "Copy"}
       </span>
     </button>

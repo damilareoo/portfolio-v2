@@ -57,6 +57,18 @@ Deploy both with `scripts/deploy.sh`.
 
 Every change ships with an entry in `data/changelog.ts`, rendered at `/changelog`. Each entry records the immutable Vercel deployment URL of that version, so every version of the site stays viewable forever. Versions are also tagged in git (`v0.1.0`, `v0.2.0`, ...).
 
+## DialKit
+
+The settings rail on the home page is not a preferences panel. Each control rewrites the design tokens the page is drawn from, live, and the choice persists across visits.
+
+| Dial | Writes | Values |
+|---|---|---|
+| Theme | `.dark` class | Light, Dark, Auto |
+| Type | `--type-scale` → root font size | 0.9, 1, 1.12 |
+| Density | `--pg-gap`, `--pad`, `--radius-window`, `--radius-tile` | S, M, L |
+
+Two rules keep it working: type sizes are always `rem` so the type dial reaches them, and spacing and radii read from dial tokens rather than fixed values. A pre-paint script in the document head applies saved values before first render, so nothing flashes at its default.
+
 ## Status
 
-v0.3.0: split-layout home (profile window plus independently scrolling playground with tile grid, live Lagos clock, copy-email), shipped to a dedicated portfolio link. Real playground artwork, case study pages, and the easter egg follow.
+v0.4.0: three-rail home (profile record, playground, settings) with a working DialKit. Real playground artwork, case study pages, and the easter egg follow.

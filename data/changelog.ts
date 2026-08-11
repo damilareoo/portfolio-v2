@@ -10,6 +10,18 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.4.0",
+    date: "2026-08-11",
+    title: "Three rails and a working DialKit",
+    notes: [
+      "Home restructured into three rails: profile record, playground, settings",
+      "DialKit ships as typographic text controls — theme, type scale, density",
+      "Dials rewrite real design tokens live and persist across visits",
+      "Every type size converted from px to rem so the type dial reaches all of it",
+      "Fixed a stale-closure bug where setting two dials at once dropped one",
+    ],
+  },
+  {
     version: "0.3.0",
     date: "2026-08-10",
     title: "Split-layout portfolio, second link",

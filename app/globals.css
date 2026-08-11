@@ -3,6 +3,13 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
+  /* Tuned live by the DialKit — see lib/settings.tsx */
+  --type-scale: 1;
+  --pg-gap: 16px;
+  --pad: 20px;
+  --radius-window: 16px;
+  --radius-tile: 12px;
+
   --bg: #f4f4f4;
   --surface: #ffffff;
   --surface-2: #f7f7f7;
@@ -42,6 +49,8 @@
 
 html {
   background: var(--bg);
+  /* Every rem-based size on the site scales from this one dial. */
+  font-size: calc(16px * var(--type-scale));
 }
 
 body {
