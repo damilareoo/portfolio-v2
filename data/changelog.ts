@@ -10,6 +10,20 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.5.0",
+    date: "2026-08-13",
+    title: "The home selects, the archive holds everything",
+    notes: [
+      "Design language locked as Handled — see docs/specs/2026-08-13-design-language.md",
+      "Work is now tiered: selected, project, index, in one model at data/work.ts",
+      "Home centre rail carries selected work only, with room, instead of seven peers",
+      "New /work archive with discipline filters, tiered sections, and honest last-updated",
+      "New /work/[slug] case pages — they say the write-up is unfinished rather than padding it",
+      "Playground entrance animation removed: nothing on the site moves unless touched",
+    ],
+    deployment: "https://portfolio-v2-bvi921xxm-damilares-projects-fc682e5f.vercel.app",
+  },
+  {
     version: "0.4.0",
     date: "2026-08-11",
     title: "Three rails and a working DialKit",

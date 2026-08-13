@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 import { CopyEmail } from "@/components/copy-email";
 import { DialKit } from "@/components/dial-kit";
 import { LiveClock } from "@/components/live-clock";
-import { Playground } from "@/components/playground";
-import { tiles } from "@/data/playground";
+import { SelectedWork } from "@/components/selected-work";
+import { selected } from "@/data/work";
 import { site } from "@/data/site";
 import { changelog } from "@/data/changelog";
 import { isPortfolio } from "@/lib/site-mode";
@@ -132,18 +132,18 @@ export default function Home() {
         </div>
       </Window>
 
-      {/* Center — the work */}
+      {/* Center — the argument, not the archive */}
       <Window
-        label="Playground"
+        label="Selected"
         right={
           <span className="font-mono text-[0.625rem] uppercase tracking-wider text-ink-3">
-            {String(tiles.length).padStart(3, "0")} pieces
+            {String(selected.length).padStart(2, "0")} pieces
           </span>
         }
         className="lg:min-h-0"
         bodyClassName="lg:overflow-y-auto"
       >
-        <Playground tiles={tiles} />
+        <SelectedWork />
       </Window>
 
       {/* Right rail — the dials */}

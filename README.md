@@ -6,7 +6,16 @@ Personal portfolio of Damilare Osofisan. Successor to [damilareoo.xyz](https://w
 
 Pure monochrome, two-skin system. Hierarchy comes from tonal value, weight, and size, never hue. Hairline borders separate surfaces instead of shadows. Set entirely in Suisse Int'l, with Suisse Int'l Mono for labels and meta.
 
-Full design spec: `docs/specs/2026-08-10-portfolio-v2-design.md`
+The design language is **Handled**: every surface admits to being an object with weight, an edge you can take hold of, and a memory of where you left it. Four laws govern it, the last one load-bearing:
+
+1. If it looks like an edge, it drags.
+2. If it looks like a card, it lifts.
+3. If it changes, it remembers.
+4. Nothing moves unless touched — no ambient motion, no autoplay, no scroll-triggered reveals.
+
+Law 4 is what lets monochrome restraint and playfulness coexist: the site is quiet in a screenshot and alive in use, and every motion on the page was caused by the visitor.
+
+Specs: `docs/specs/2026-08-13-design-language.md` (language, structure, feel) and `docs/specs/2026-08-10-portfolio-v2-design.md` (tokens, typography, stack).
 
 ## Token system
 
@@ -48,8 +57,8 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | Deployment | Vercel project | Purpose |
 |---|---|---|
-| Portfolio | `damilareoo` | The public face: split-layout home with profile and playground. `NEXT_PUBLIC_SITE_MODE=portfolio` hides workshop chrome. |
-| Workshop | `portfolio-v2` | The build log: same home plus `/system` and `/changelog`. |
+| Portfolio | `damilareoo` | The public face: three-rail home, `/work` archive, case pages. `NEXT_PUBLIC_SITE_MODE=portfolio` hides workshop chrome. |
+| Workshop | `portfolio-v2` | The build log: the same site plus `/system` and `/changelog`. |
 
 Deploy both with `scripts/deploy.sh`.
 
@@ -69,6 +78,18 @@ The settings rail on the home page is not a preferences panel. Each control rewr
 
 Two rules keep it working: type sizes are always `rem` so the type dial reaches them, and spacing and radii read from dial tokens rather than fixed values. A pre-paint script in the document head applies saved values before first render, so nothing flashes at its default.
 
+## Work model
+
+One model in `data/work.ts`, tiered by how much room a piece earns.
+
+| Tier | Gets | Lives |
+|---|---|---|
+| `selected` | A `/work/[slug]` case page and room on the home rail | Home centre rail and `/work` |
+| `project` | Tile plus one line, links out to the live thing | `/work` |
+| `index` | Text only: title, tags, year | `/work` |
+
+Selected work without written sections says so plainly on its case page instead of padding — the site does not pretend to depth it lacks.
+
 ## Status
 
-v0.4.0: three-rail home (profile record, playground, settings) with a working DialKit. Real playground artwork, case study pages, and the easter egg follow.
+v0.5.0: work tiering, a `/work` archive with discipline filters, and case pages. Next: living counters (global dial count on Upstash, Spotify now-playing, build honesty), then the handling layer — divider drag, tile reorder, reset — then the mobile pass.
