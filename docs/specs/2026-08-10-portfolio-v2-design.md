@@ -1,5 +1,7 @@
 # Portfolio v2 — Design Spec
 
+> Partially superseded by `2026-08-13-design-language.md`, which replaces the Structure and Build order sections below. The token system, typography, and stack here still stand.
+
 Date: 2026-08-10
 Replaces: damilareoo.xyz (portfolio-v1). New repo, new Vercel project. Old site stays live until v2 is ready.
 
