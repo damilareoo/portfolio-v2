@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { useSettings, type Step } from "@/lib/settings";
+import { useDialTurns } from "@/lib/dial-turns";
 
 type Option<T extends string> = { value: T; label: string; className?: string };
 
@@ -50,8 +51,18 @@ export function DialKit() {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
   const { density, typeScale, setDensity, setTypeScale } = useSettings();
+  const { record } = useDialTurns();
 
   useEffect(() => setMounted(true), []);
+
+  /* Every dial reports its turn. Re-selecting the current value is not a turn —
+     the counter measures change, not clicks. */
+  function turning<T extends string>(current: T | undefined, apply: (v: T) => void) {
+    return (value: T) => {
+      apply(value);
+      if (mounted && value !== current) record();
+    };
+  }
 
   const steps: Option<Step>[] = [
     { value: "s", label: "S" },
@@ -64,7 +75,7 @@ export function DialKit() {
       <DialRow
         label="Theme"
         value={mounted ? (theme as "light" | "dark" | "system") : undefined}
-        onChange={setTheme}
+        onChange={turning(mounted ? (theme as "light" | "dark" | "system") : undefined, setTheme)}
         options={[
           { value: "light", label: "Light" },
           { value: "dark", label: "Dark" },
@@ -74,7 +85,7 @@ export function DialKit() {
       <DialRow
         label="Type"
         value={mounted ? typeScale : undefined}
-        onChange={setTypeScale}
+        onChange={turning(mounted ? typeScale : undefined, setTypeScale)}
         options={[
           { value: "s", label: "Aa", className: "text-[0.625rem]" },
           { value: "m", label: "Aa", className: "text-[0.8125rem]" },
@@ -84,7 +95,7 @@ export function DialKit() {
       <DialRow
         label="Density"
         value={mounted ? density : undefined}
-        onChange={setDensity}
+        onChange={turning(mounted ? density : undefined, setDensity)}
         options={steps}
       />
     </div>

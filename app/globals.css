@@ -70,6 +70,18 @@ body {
   outline-offset: 2px;
 }
 
+/* A counter rolls only when the visitor turned it — see lib/dial-turns.tsx. */
+@keyframes digit-roll {
+  from {
+    transform: translateY(0.3em);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -10,6 +10,22 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.6.0",
+    date: "2026-08-14",
+    title: "The site starts reporting on itself",
+    notes: [
+      "Dials turned is now a shared count on Upstash Redis — the DialKit stops being a solo instrument",
+      "Every visitor who plays with the dials leaves a trace the next visitor sees",
+      "Re-selecting the value you are already on is not a turn: the counter measures change, not clicks",
+      "Spotify now-playing carried over from portfolio-v1",
+      "Build chip prints the commit the page was built from",
+      "Counters never poll and never climb on their own — the shared number moves when you move it",
+      "Rate limited to 60 turns a minute per visitor, so one person cannot define everyone's number",
+      "No store configured degrades to a local count labelled 'by you' rather than a zero",
+    ],
+    deployment: "https://portfolio-v2-q3522fgpt-damilares-projects-fc682e5f.vercel.app",
+  },
+  {
     version: "0.5.0",
     date: "2026-08-13",
     title: "The home selects, the archive holds everything",

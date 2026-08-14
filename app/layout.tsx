@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { isPortfolio } from "@/lib/site-mode";
 import { SettingsProvider, settingsScript } from "@/lib/settings";
+import { DialTurnsProvider } from "@/lib/dial-turns";
 import "./globals.css";
 
 const suisse = localFont({
@@ -51,14 +52,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col font-sans">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <SettingsProvider>
-            {isPortfolio ? (
-              children
-            ) : (
-              <>
-                <SiteHeader />
-                <div className="flex-1">{children}</div>
-              </>
-            )}
+            <DialTurnsProvider>
+              {isPortfolio ? (
+                children
+              ) : (
+                <>
+                  <SiteHeader />
+                  <div className="flex-1">{children}</div>
+                </>
+              )}
+            </DialTurnsProvider>
           </SettingsProvider>
         </ThemeProvider>
       </body>

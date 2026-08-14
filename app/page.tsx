@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Counters } from "@/components/counters";
 import { CopyEmail } from "@/components/copy-email";
 import { DialKit } from "@/components/dial-kit";
 import { LiveClock } from "@/components/live-clock";
@@ -157,12 +158,7 @@ export default function Home() {
           </p>
 
           <div className="mt-6 lg:mt-auto">
-            <div className="border-t border-line pt-3">
-              <span className="font-mono text-[0.625rem] uppercase tracking-wider text-ink-3">
-                Build
-              </span>
-              <p className="mt-1.5 font-mono text-[0.6875rem] text-ink-2">v{version}</p>
-            </div>
+            <Counters version={version} commit={process.env.VERCEL_GIT_COMMIT_SHA} />
           </div>
         </div>
       </Window>

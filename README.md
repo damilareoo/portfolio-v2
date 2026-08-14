@@ -90,6 +90,22 @@ One model in `data/work.ts`, tiered by how much room a piece earns.
 
 Selected work without written sections says so plainly on its case page instead of padding — the site does not pretend to depth it lacks.
 
+## Counters
+
+The site reports on itself with real data, so it is never identical twice.
+
+| Counter | Source | Behaviour |
+|---|---|---|
+| Dials turned | Upstash Redis, shared by every visitor | Read once on mount; moves only when you turn a dial |
+| Now playing | Spotify, refreshed every 30s | Text swaps with no animation |
+| Build | `VERCEL_GIT_COMMIT_SHA` at build time | Version and short commit |
+
+Law 4 governs all three: the dial count never polls and never climbs on its own, and the roll animation fires only for a turn the visitor caused. Spotify is the one thing on the page that changes without them, so it changes as text and never as motion.
+
+Counters degrade rather than fail. With no store configured, `lib/counters.ts` returns null everywhere and the rail shows a local count labelled "by you". A counter that has never been read renders placeholder digits at `--text-3`, not a zero.
+
+Environment: `KV_REST_API_URL` and `KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_*`), plus `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, and `SPOTIFY_REFRESH_TOKEN`. Both Vercel projects share one Redis store so the two faces show one number.
+
 ## Status
 
-v0.5.0: work tiering, a `/work` archive with discipline filters, and case pages. Next: living counters (global dial count on Upstash, Spotify now-playing, build honesty), then the handling layer — divider drag, tile reorder, reset — then the mobile pass.
+v0.6.0: living counters — a shared dial count, Spotify now-playing, and build honesty. Next: the handling layer (divider drag, tile reorder, reset), then the mobile pass. Tile artwork is still placeholder letterforms.
