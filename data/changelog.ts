@@ -32,6 +32,7 @@ export const changelog: ChangelogEntry[] = [
       "Manifest sniffs image type from the file bytes, so a JPEG saved as .png no longer reports the wrong size",
       "Elsewhere restored from v1: LinkedIn, v0, Layers, Substack, and Contra",
     ],
+    deployment: "https://portfolio-v2-kz0dz9rpg-damilares-projects-fc682e5f.vercel.app",
   },
   {
     version: "1.0.0",
