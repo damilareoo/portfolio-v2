@@ -70,15 +70,33 @@ function webpSize(fd) {
   return null;
 }
 
+/** GIF puts width and height at bytes 6..9, little-endian, in every version. */
+function gifSize(fd) {
+  const buf = Buffer.alloc(10);
+  readSync(fd, buf, 0, 10, 0);
+  if (buf.toString("ascii", 0, 3) !== "GIF") return null;
+  return { width: buf.readUInt16LE(6), height: buf.readUInt16LE(8) };
+}
+
+/**
+ * Sniffed from the bytes, not the extension — files arrive misnamed often
+ * enough (a JPEG saved as .png) that trusting the suffix silently produces
+ * wrong dimensions, and a wrong dimension is a layout shift.
+ */
 function dimensions(file) {
-  const ext = extname(file).toLowerCase();
   const fd = openSync(file, "r");
   try {
     const bytes = statSync(file).size;
-    if (ext === ".png") return pngSize(fd);
-    if (ext === ".jpg" || ext === ".jpeg") return jpegSize(fd, Math.min(bytes, 1 << 20));
-    if (ext === ".webp") return webpSize(fd);
-    return null; // avif and gif fall back to a declared ratio below
+    const magic = Buffer.alloc(12);
+    readSync(fd, magic, 0, 12, 0);
+
+    if (magic.toString("hex", 0, 8) === "89504e470d0a1a0a") return pngSize(fd);
+    if (magic[0] === 0xff && magic[1] === 0xd8) return jpegSize(fd, Math.min(bytes, 1 << 20));
+    if (magic.toString("ascii", 0, 4) === "RIFF" && magic.toString("ascii", 8, 12) === "WEBP") {
+      return webpSize(fd);
+    }
+    if (magic.toString("ascii", 0, 3) === "GIF") return gifSize(fd);
+    return null; // avif falls back to the declared ratio below
   } catch {
     return null;
   } finally {

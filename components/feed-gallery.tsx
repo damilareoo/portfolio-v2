@@ -207,33 +207,40 @@ export function FeedGallery({ items, lastUpdated }: { items: Asset[]; lastUpdate
         </div>
       </div>
 
-      {/* Columns, not a row grid — mixed aspect ratios pack without cropping. */}
-      <div className="columns-1 gap-[var(--pg-gap)] sm:columns-2 lg:columns-3">
+      {/* A dense wall, tight gutters — the frames are the page, and captions
+          stay out of the grid so nothing interrupts the rhythm. */}
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
         {shown.map((item, i) => (
-          <Reveal key={item.src} index={i} className="mb-[var(--pg-gap)] break-inside-avoid">
+          <Reveal key={item.src} index={i}>
             <button
               type="button"
               onClick={(event) => {
                 openerRef.current = event.currentTarget;
                 setOpen(items.indexOf(item));
               }}
+              title={`${item.title}${readableDate(item.date) ? ` — ${readableDate(item.date)}` : ""}`}
               className="group block w-full text-left"
             >
-              <span className="relative block overflow-hidden rounded-[var(--radius-tile)] border border-line bg-surface-2 transition-[transform,border-color] duration-[120ms] ease-out group-hover:scale-[1.015] group-hover:border-ink-3">
+              <span className="relative block aspect-[4/3] overflow-hidden bg-surface-2">
                 <Image
                   src={item.src}
                   alt={item.title}
-                  width={item.width}
-                  height={item.height}
-                  sizes="(min-width: 1024px) 32vw, (min-width: 640px) 46vw, 92vw"
-                  className="h-auto w-full"
+                  fill
+                  sizes="(min-width: 1024px) 33vw, 50vw"
+                  className="object-cover transition-transform duration-[220ms] ease-out group-hover:scale-[1.02]"
                 />
-              </span>
-              <span className="mt-2 flex items-baseline justify-between gap-3">
-                <span className="truncate text-[0.8125rem] text-ink-2 transition-colors group-hover:text-ink">
-                  {item.title}
+                {/* The caption arrives on hover, over the frame, so the grid
+                    itself never carries text. */}
+                <span className="absolute inset-x-0 bottom-0 flex items-baseline justify-between gap-3 bg-gradient-to-t from-black/70 to-transparent px-2.5 pb-2 pt-8 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                  <span className="truncate font-mono text-[0.5625rem] uppercase tracking-[0.08em] text-white">
+                    {item.title}
+                  </span>
+                  {readableDate(item.date) && (
+                    <span className="shrink-0 font-mono text-[0.5rem] uppercase tracking-[0.08em] text-white/70">
+                      {readableDate(item.date)}
+                    </span>
+                  )}
                 </span>
-                {readableDate(item.date) && <Label>{readableDate(item.date)}</Label>}
               </span>
             </button>
           </Reveal>

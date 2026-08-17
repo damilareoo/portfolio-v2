@@ -25,12 +25,14 @@ Four, and the nav names all four.
 
 | Route | Holds |
 |---|---|
-| `/` | The argument — lockup, selected work, the dated work list |
-| `/work` | The archive, tiered and filterable |
+| `/` | Everything about the work — lockup, selected cards, the dated work list |
 | `/feed` | The gallery |
-| `/about` | The record about the person, and the colophon |
+| `/about` | The record about the person |
+| `/colophon` | How the site is made, and the instruments |
 
-`/system` and `/changelog` stay live and stay out of the nav; the colophon links to both.
+`/work/[slug]` survives as a case page, reached from a selected card. `/system` and `/changelog` stay live and stay out of the nav; the colophon links to both.
+
+There is no archive surface. With selected work and the dated list both on the home page, `/work` held a filtered restatement of a page the visitor had already read — a nav entry has to earn itself, and that one was paying for a duplicate.
 
 ## Token system
 
@@ -130,6 +132,10 @@ A case page is a sticky metadata rail beside a column of typed blocks:
 
 Blocks without a `src` consume the project's assets in filename order, so dropping files into `public/work/<slug>` fills a reel without editing data.
 
+## The colophon
+
+Nothing on `/colophon` is a screenshot of the system. Token rows read their own live computed value — so the page cannot drift out of date with the stylesheet — and copy the hex on click. Type specimens are set, not shown: pick a weight, drag the size. The dials and the shared counters live here too.
+
 ## The value field
 
 The colophon carries one instrument beyond the dials. Its scatter plots eight named landmarks on **weight × contrast**; the cursor blends the nearest of them by inverse-distance weighting and writes the result into `--body-weight`, `--text-2`, `--text-3`, and `--border`. Click commits. The blend holds across client-side navigation and resets on refresh.
@@ -148,7 +154,18 @@ The site reports on itself with real data, so it is never identical twice.
 
 Law 4 governs all three: the dial count never polls and never climbs on its own, and the roll animation fires only for a turn the visitor caused.
 
-Now-playing is the halftone disc. Album artwork is converted to grayscale and rendered as an ordered-dither dot field, which is what lets real artwork onto a site with no accent hue — dithering discards the colour rather than suppressing it, and what survives is the one thing the palette trades in. The cursor displaces the dots with distance falloff and they settle on a spring; the frame loop runs only while the pointer is inside or dots are still moving, then stops itself. Nothing playing is a normal answer: the dots flatten to an even grid.
+Now-playing is the halftone disc, sitting in the home layout beside the work list. Album artwork is converted to grayscale and rendered as an ordered-dither dot field, which is what lets real artwork onto a site with no accent hue — dithering discards the colour rather than suppressing it, and what survives is the one thing the palette trades in.
+
+| State | Disc |
+|---|---|
+| Silent | The dots hold the Spotify mark, rasterised into the same value grid the artwork uses |
+| Playing | The dots migrate into the dithered album artwork, and back when it stops |
+| Pointer inside | Dots displace with distance falloff and settle on a spring |
+| Click | A ripple travels outward as a ring, striking dots as the front passes them |
+
+The mark is drawn rather than shipped as an image, so it inherits the dot field exactly — it is not placed on the disc, it is what the disc is made of.
+
+The frame loop runs while the pointer is inside, while dots are settling, while a value migration is in flight, or while a ripple is alive, and stops itself the moment all four are false.
 
 Artwork is proxied through `/api/now-playing/art` so the canvas stays same-origin and `getImageData` keeps working. That route allowlists the Spotify CDN hosts — without it, it would be an open proxy.
 
@@ -158,6 +175,6 @@ Environment: `KV_REST_API_URL` and `KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_*
 
 ## Status
 
-v1.0.0: the surface set is complete — Index, Work, Feed, and About, with the colophon, the halftone disc, and the value field.
+v1.1.0: four surfaces — Home, Feed, About, Colophon — matched to the supplied design, with copy and artwork carried over from portfolio-v1.
 
-Outstanding: `public/` is still empty, so every frame renders as a labelled placeholder until artwork is dropped in and `pnpm manifest` is run. `palette` is unpopulated on every `WorkItem`, so no value strips render yet. The handling layer from the 2026-08-13 spec — divider drag, tile reorder, reset — is still unbuilt.
+Outstanding: the feed and the work thumbnails are populated with captures of the live products and of portfolio-v1, which stand in until real artwork is dropped into `public/feed` and `public/work/<slug>`. ChessEver and Sylvan case pages carry the v1 write-ups and one hero image each; the rest of their reels are still labelled empty frames. The handling layer from the 2026-08-13 spec — divider drag, tile reorder, reset — is still unbuilt.

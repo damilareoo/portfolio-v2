@@ -9,6 +9,132 @@ export type Asset = {
   height: number;
 };
 
-export const feedAssets: Asset[] = [];
+export const feedAssets: Asset[] = [
+  {
+    "src": "/feed/2025-07-pixel-soccer.png",
+    "title": "Pixel soccer",
+    "date": "2025-07",
+    "width": 1400,
+    "height": 1000
+  },
+  {
+    "src": "/feed/2025-08-experiments-index.png",
+    "title": "Experiments index",
+    "date": "2025-08",
+    "width": 1400,
+    "height": 1000
+  },
+  {
+    "src": "/feed/2025-09-hitmans-library.png",
+    "title": "Hitmans library",
+    "date": "2025-09",
+    "width": 1400,
+    "height": 1000
+  },
+  {
+    "src": "/feed/2025-10-damilares-skills.png",
+    "title": "Damilares skills",
+    "date": "2025-10",
+    "width": 1400,
+    "height": 1000
+  },
+  {
+    "src": "/feed/2025-11-sylvan-signal-mark.gif",
+    "title": "Sylvan signal mark",
+    "date": "2025-11",
+    "width": 1920,
+    "height": 1080
+  },
+  {
+    "src": "/feed/2025-11-sylvan-site.png",
+    "title": "Sylvan site",
+    "date": "2025-11",
+    "width": 1400,
+    "height": 1000
+  },
+  {
+    "src": "/feed/2025-12-chessever-case.png",
+    "title": "Chessever case",
+    "date": "2025-12",
+    "width": 1400,
+    "height": 1000
+  },
+  {
+    "src": "/feed/2025-12-sylvan-case.png",
+    "title": "Sylvan case",
+    "date": "2025-12",
+    "width": 1400,
+    "height": 1000
+  },
+  {
+    "src": "/feed/2026-01-portfolio-v1.png",
+    "title": "Portfolio v1",
+    "date": "2026-01",
+    "width": 1400,
+    "height": 1000
+  },
+  {
+    "src": "/feed/2026-02-chessever-app.jpg",
+    "title": "Chessever app",
+    "date": "2026-02",
+    "height": 4320,
+    "width": 7680
+  }
+];
 
-export const workAssets: Record<string, Asset[]> = {};
+export const workAssets: Record<string, Asset[]> = {
+  "chessever": [
+    {
+      "src": "/work/chessever/01-featured.jpg",
+      "title": "Featured",
+      "date": null,
+      "height": 4320,
+      "width": 7680
+    }
+  ],
+  "damilares-skills": [
+    {
+      "src": "/work/damilares-skills/01-site.png",
+      "title": "Site",
+      "date": null,
+      "width": 1400,
+      "height": 1000
+    }
+  ],
+  "hitmans-library": [
+    {
+      "src": "/work/hitmans-library/01-site.png",
+      "title": "Site",
+      "date": null,
+      "width": 1400,
+      "height": 1000
+    }
+  ],
+  "pixel-soccer": [
+    {
+      "src": "/work/pixel-soccer/01-site.png",
+      "title": "Site",
+      "date": null,
+      "width": 1400,
+      "height": 1000
+    }
+  ],
+  "sylvan": [
+    {
+      "src": "/work/sylvan/01-featured.gif",
+      "title": "Featured",
+      "date": null,
+      "width": 1920,
+      "height": 1080
+    }
+  ],
+  "workbench": [
+    {
+      "src": "/work/workbench/01-site.png",
+      "title": "Site",
+      "date": null,
+      "width": 1400,
+      "height": 1000
+    }
+  ]
+};

@@ -13,55 +13,131 @@ type NowPlaying = {
   durationMs?: number;
 };
 
-const SIZE = 128; // css px
-const GRID = 24; // dots across the disc
+const SIZE = 300; // canvas units; CSS scales it
+const GRID = 32; // dots across
 const CELL = SIZE / GRID;
 const RADIUS = SIZE / 2;
+const SUPER = 4; // supersampling when rasterising the mark
 
-/* The tile feel spec, applied to a particle: stiffness 400, damping 32.
-   Ratio 0.8 — underdamped enough to feel physical, settled in ~250ms. */
+/* The tile feel spec, applied to a particle: stiffness 400, damping 32. */
 const STIFFNESS = 400;
 const DAMPING = 32;
-const PUSH_RADIUS = 46;
-const PUSH_STRENGTH = 26;
+const PUSH_RADIUS = 78;
+const PUSH_STRENGTH = 30;
 
-type Dot = { x: number; y: number; ox: number; oy: number; vx: number; vy: number; v: number };
+/* The ripple is a travelling ring, not a flash: dots are struck as the front
+   passes them, so the disc reads as a surface with something moving across it. */
+const RIPPLE_SPEED = 320; // units per second
+const RIPPLE_WIDTH = 26;
+const RIPPLE_STRENGTH = 340;
+const RIPPLE_LIFE = 1.3; // seconds
 
-/** Cells inside the circle, each carrying a luminance that the artwork fills in. */
+type Dot = {
+  x: number;
+  y: number;
+  ox: number;
+  oy: number;
+  vx: number;
+  vy: number;
+  /** Current ink value, and the value it is travelling toward. */
+  v: number;
+  tv: number;
+};
+
+type Ripple = { x: number; y: number; born: number };
+
 function buildDots(): Dot[] {
   const dots: Dot[] = [];
   for (let row = 0; row < GRID; row++) {
     for (let col = 0; col < GRID; col++) {
       const x = (col + 0.5) * CELL;
       const y = (row + 0.5) * CELL;
-      const dx = x - RADIUS;
-      const dy = y - RADIUS;
-      if (Math.sqrt(dx * dx + dy * dy) > RADIUS - CELL * 0.35) continue;
-      dots.push({ x, y, ox: 0, oy: 0, vx: 0, vy: 0, v: 0.42 });
+      if (Math.hypot(x - RADIUS, y - RADIUS) > RADIUS - CELL * 0.35) continue;
+      dots.push({ x, y, ox: 0, oy: 0, vx: 0, vy: 0, v: 0, tv: 0 });
     }
   }
   return dots;
 }
 
 /**
- * No artwork is not an error state — the disc flattens to an even grid.
- * Exactly 0.5 so the light/dark inversion leaves the resting disc identical in
- * both skins: silence should not look like a different object.
+ * The Spotify mark, rasterised into the same value grid the artwork uses.
+ *
+ * Drawing it rather than shipping an image means it inherits the dot field
+ * exactly: the mark is not placed on the disc, it is what the disc is made of.
  */
-const SILENT_VALUE = 0.5;
+function markValues(): number[] {
+  const s = GRID * SUPER;
+  const canvas = document.createElement("canvas");
+  canvas.width = s;
+  canvas.height = s;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return new Array(GRID * GRID).fill(0.5);
 
-function flatten(dots: Dot[]) {
-  for (const dot of dots) dot.v = SILENT_VALUE;
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, s, s);
+
+  // The body.
+  ctx.fillStyle = "#fff";
+  ctx.beginPath();
+  ctx.arc(s / 2, s / 2, s * 0.46, 0, Math.PI * 2);
+  ctx.fill();
+
+  // The three waves, cut back out of it.
+  ctx.strokeStyle = "#000";
+  ctx.lineCap = "round";
+  const waves: [number, number, number][] = [
+    [0.72, 0.4, 0.082],
+    [0.82, 0.36, 0.07],
+    [0.92, 0.32, 0.058],
+  ];
+  for (const [cy, r, width] of waves) {
+    ctx.lineWidth = s * width;
+    ctx.beginPath();
+    ctx.arc(s / 2, s * cy, s * r, (215 * Math.PI) / 180, (325 * Math.PI) / 180);
+    ctx.stroke();
+  }
+
+  const pixels = ctx.getImageData(0, 0, s, s).data;
+  const values: number[] = [];
+  for (let row = 0; row < GRID; row++) {
+    for (let col = 0; col < GRID; col++) {
+      // Box-average the supersampled block so edges land as mid values.
+      let sum = 0;
+      for (let dy = 0; dy < SUPER; dy++) {
+        for (let dx = 0; dx < SUPER; dx++) {
+          const i = ((row * SUPER + dy) * s + (col * SUPER + dx)) * 4;
+          sum += pixels[i];
+        }
+      }
+      values.push(sum / (SUPER * SUPER * 255));
+    }
+  }
+  return values;
+}
+
+function cellIndex(dot: Dot) {
+  const col = Math.min(GRID - 1, Math.floor(dot.x / CELL));
+  const row = Math.min(GRID - 1, Math.floor(dot.y / CELL));
+  return row * GRID + col;
+}
+
+function setTargets(dots: Dot[], values: number[]) {
+  for (const dot of dots) dot.tv = values[cellIndex(dot)] ?? 0.5;
+}
+
+/** Jump straight to the target — first paint, and reduced motion. */
+function settle(dots: Dot[]) {
+  for (const dot of dots) dot.v = dot.tv;
 }
 
 /** Rec. 601 luma — the standard weighting for perceived brightness. */
-function sample(dots: Dot[], pixels: Uint8ClampedArray) {
-  for (const dot of dots) {
-    const col = Math.min(GRID - 1, Math.floor(dot.x / CELL));
-    const row = Math.min(GRID - 1, Math.floor(dot.y / CELL));
-    const i = (row * GRID + col) * 4;
-    dot.v = (0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2]) / 255;
+function artValues(pixels: Uint8ClampedArray) {
+  const values: number[] = [];
+  for (let i = 0; i < GRID * GRID; i++) {
+    const p = i * 4;
+    values.push((0.299 * pixels[p] + 0.587 * pixels[p + 1] + 0.114 * pixels[p + 2]) / 255);
   }
+  return values;
 }
 
 function clock(ms: number) {
@@ -72,18 +148,24 @@ function clock(ms: number) {
 /**
  * Now-playing as an ordered-dither disc.
  *
- * Dithering is what lets real album artwork onto a site with no accent hue: the
- * colour is not suppressed, it is discarded, and what is left is the one thing
- * the palette does trade in — value.
+ * Silent, the dots hold the Spotify mark. When a track starts they migrate into
+ * the dithered album artwork and back again when it stops, so the disc always
+ * says what it is even when there is nothing to show.
  *
- * The frame loop is the part that keeps Law 4. It runs only while the pointer
- * is inside the disc or dots are still settling, and stops itself the moment
- * both are false. A page at rest holds no running animation.
+ * Dithering is what lets real artwork onto a site with no accent hue: the colour
+ * is not suppressed, it is discarded, and what is left is the one thing the
+ * palette trades in — value.
+ *
+ * The frame loop is what keeps Law 4. It runs while the pointer is inside, while
+ * dots are settling, while a value transition is in flight, or while a ripple is
+ * alive — and stops itself the moment all four are false.
  */
 export function HalftoneDisc({ className = "" }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const dotsRef = useRef<Dot[]>(buildDots());
+  const markRef = useRef<number[] | null>(null);
   const pointerRef = useRef<{ x: number; y: number } | null>(null);
+  const ripplesRef = useRef<Ripple[]>([]);
   const frameRef = useRef<number | null>(null);
   const lastRef = useRef(0);
   const reducedRef = useRef(false);
@@ -93,8 +175,7 @@ export function HalftoneDisc({ className = "" }: { className?: string }) {
   const { resolvedTheme } = useTheme();
 
   /* Ink is light on a dark ground and dark on a light one, so "more ink" flips
-     with the skin: bright artwork grows the dots in dark mode, dark artwork
-     grows them in light mode. Without this the disc reads as a negative. */
+     with the skin. Without this the disc reads as a negative. */
   const invert = resolvedTheme === "light";
 
   const draw = useCallback(() => {
@@ -109,16 +190,12 @@ export function HalftoneDisc({ className = "" }: { className?: string }) {
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, SIZE, SIZE);
-
-    const ink = getComputedStyle(canvas).getPropertyValue("color") || "#f5f5f5";
-    ctx.fillStyle = ink;
+    ctx.fillStyle = getComputedStyle(canvas).getPropertyValue("color") || "#f5f5f5";
 
     for (const dot of dotsRef.current) {
       const value = invert ? 1 - dot.v : dot.v;
-      // Floored so the darkest cells stay a legible grid rather than dropping
-      // out — the disc has to read as an object even when it is nearly empty.
-      const r = Math.max(0.5, value * CELL * 0.6);
-      ctx.globalAlpha = 0.38 + value * 0.62;
+      const r = Math.max(0.45, value * CELL * 0.62);
+      ctx.globalAlpha = 0.2 + value * 0.8;
       ctx.beginPath();
       ctx.arc(dot.x + dot.ox, dot.y + dot.oy, r, 0, Math.PI * 2);
       ctx.fill();
@@ -136,9 +213,18 @@ export function HalftoneDisc({ className = "" }: { className?: string }) {
       lastRef.current = now;
 
       const pointer = pointerRef.current;
-      let moving = false;
+      const ripples = ripplesRef.current;
+      let busy = false;
 
       for (const dot of dotsRef.current) {
+        // Value migration — mark into artwork and back.
+        if (Math.abs(dot.tv - dot.v) > 0.002) {
+          dot.v += (dot.tv - dot.v) * Math.min(1, dt * 6);
+          busy = true;
+        } else {
+          dot.v = dot.tv;
+        }
+
         let tx = 0;
         let ty = 0;
 
@@ -154,7 +240,22 @@ export function HalftoneDisc({ className = "" }: { className?: string }) {
           }
         }
 
-        // Spring toward the target offset, which is zero once the pointer leaves.
+        for (const ripple of ripples) {
+          const dx = dot.x - ripple.x;
+          const dy = dot.y - ripple.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 0.001) continue;
+          const age = (now - ripple.born) / 1000;
+          const front = age * RIPPLE_SPEED;
+          const offset = Math.abs(dist - front);
+          if (offset > RIPPLE_WIDTH) continue;
+          // Struck as the front passes, and fading as the ring travels out.
+          const strength =
+            (1 - offset / RIPPLE_WIDTH) * (1 - age / RIPPLE_LIFE) * RIPPLE_STRENGTH;
+          dot.vx += (dx / dist) * strength * dt;
+          dot.vy += (dy / dist) * strength * dt;
+        }
+
         const ax = STIFFNESS * (tx - dot.ox) - DAMPING * dot.vx;
         const ay = STIFFNESS * (ty - dot.oy) - DAMPING * dot.vy;
         dot.vx += ax * dt;
@@ -163,13 +264,15 @@ export function HalftoneDisc({ className = "" }: { className?: string }) {
         dot.oy += dot.vy * dt;
 
         if (Math.abs(dot.vx) + Math.abs(dot.vy) + Math.abs(dot.ox) + Math.abs(dot.oy) > 0.05) {
-          moving = true;
+          busy = true;
         }
       }
 
+      ripplesRef.current = ripples.filter((r) => (now - r.born) / 1000 < RIPPLE_LIFE);
+
       draw();
 
-      if (pointer || moving) {
+      if (pointer || busy || ripplesRef.current.length > 0) {
         frameRef.current = requestAnimationFrame(step);
       } else {
         // Settled and untouched — stop, and leave the page still.
@@ -184,9 +287,14 @@ export function HalftoneDisc({ className = "" }: { className?: string }) {
     frameRef.current = requestAnimationFrame(step);
   }, [draw]);
 
+  // Rasterise the mark once, and start on it.
   useEffect(() => {
     reducedRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    markRef.current = markValues();
+    setTargets(dotsRef.current, markRef.current);
+    settle(dotsRef.current);
     draw();
+
     return () => {
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
       frameRef.current = null;
@@ -197,8 +305,8 @@ export function HalftoneDisc({ className = "" }: { className?: string }) {
     draw();
   }, [draw, resolvedTheme]);
 
-  /* Poll on the same 30s cadence as the counters. Nothing playing is a normal
-     answer, not an error — the dots simply flatten into an even grid. */
+  /* Poll on the same cadence as the counters. Nothing playing is a normal
+     answer, not an error — the dots simply return to the mark. */
   useEffect(() => {
     let cancelled = false;
 
@@ -225,9 +333,19 @@ export function HalftoneDisc({ className = "" }: { className?: string }) {
   useEffect(() => {
     const art = track?.isPlaying ? track.artUrl : undefined;
 
+    const toMark = () => {
+      if (!markRef.current) return;
+      setTargets(dotsRef.current, markRef.current);
+      if (reducedRef.current) {
+        settle(dotsRef.current);
+        draw();
+      } else {
+        run();
+      }
+    };
+
     if (!art) {
-      flatten(dotsRef.current);
-      draw();
+      toMark();
       return;
     }
 
@@ -244,97 +362,100 @@ export function HalftoneDisc({ className = "" }: { className?: string }) {
       if (!octx) return;
 
       octx.drawImage(img, 0, 0, GRID, GRID);
-      let pixels: Uint8ClampedArray;
       try {
-        pixels = octx.getImageData(0, 0, GRID, GRID).data;
+        setTargets(dotsRef.current, artValues(octx.getImageData(0, 0, GRID, GRID).data));
       } catch {
-        return; // tainted despite the proxy — keep the even grid
+        return; // tainted despite the proxy — hold the mark
       }
 
-      sample(dotsRef.current, pixels);
-      draw();
+      if (reducedRef.current) {
+        settle(dotsRef.current);
+        draw();
+      } else {
+        run();
+      }
     };
 
+    img.onerror = toMark;
     img.src = art;
     return () => {
       cancelled = true;
     };
-  }, [track?.artUrl, track?.isPlaying, draw]);
+  }, [track?.artUrl, track?.isPlaying, draw, run]);
 
-  const onPointerMove = (event: React.PointerEvent<HTMLElement>) => {
-    if (reducedRef.current) return;
+  const toLocal = (event: React.PointerEvent<HTMLElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
-    pointerRef.current = {
+    return {
       x: ((event.clientX - rect.left) / rect.width) * SIZE,
       y: ((event.clientY - rect.top) / rect.height) * SIZE,
     };
-    run();
   };
 
-  const onPointerLeave = () => {
-    pointerRef.current = null;
-    setOpen(false);
-    if (!reducedRef.current) run();
-  };
-
-  const playing = track?.isPlaying && track.title;
-  const label = playing ? `Now playing: ${track.title} by ${track.artist}` : "Nothing playing";
+  const playing = Boolean(track?.isPlaying && track.title);
+  const label = playing
+    ? `Now playing: ${track!.title} by ${track!.artist}. Click the disc to ripple it.`
+    : "Nothing playing. Click the disc to ripple it.";
 
   return (
-    <div
-      className={`pointer-events-none z-40 flex items-end justify-end lg:fixed lg:bottom-6 lg:right-6 ${className}`}
-    >
-      <div className="pointer-events-auto flex items-end gap-3">
-        {/* The record, revealed by holding the pointer or focus on the disc. */}
+    <div className={`flex flex-col items-center gap-3 ${className}`}>
+      <div
+        role="img"
+        aria-label={label}
+        title={label}
+        onPointerMove={(event) => {
+          if (reducedRef.current) return;
+          pointerRef.current = toLocal(event);
+          run();
+        }}
+        onPointerEnter={() => setOpen(true)}
+        onPointerLeave={() => {
+          pointerRef.current = null;
+          setOpen(false);
+          if (!reducedRef.current) run();
+        }}
+        onPointerDown={(event) => {
+          if (reducedRef.current) return;
+          const { x, y } = toLocal(event);
+          ripplesRef.current.push({ x, y, born: performance.now() });
+          run();
+        }}
+        className="w-full max-w-[300px] cursor-pointer text-ink"
+      >
+        <canvas ref={canvasRef} width={SIZE} height={SIZE} className="h-auto w-full" />
+      </div>
+
+      {/* The record. Present in the layout at all times so revealing it never
+          shifts anything around it. */}
+      <div className="h-9 w-full max-w-[300px] text-center">
         <div
-          aria-hidden={!open}
-          className={`hidden max-w-[15rem] rounded-[var(--radius-tile)] border border-line bg-surface px-3 py-2.5 transition-opacity duration-200 sm:block ${
-            open ? "opacity-100" : "pointer-events-none opacity-0"
-          }`}
+          className={`transition-opacity duration-200 ${open || playing ? "opacity-100" : "opacity-0"}`}
         >
-          <p className="font-mono text-[0.5625rem] uppercase tracking-wider text-ink-3">
+          <p className="font-mono text-[0.5rem] uppercase tracking-[0.08em] text-ink-3">
             {playing ? "Now playing" : "Spotify"}
           </p>
           {playing ? (
-            <>
-              <p className="mt-1 truncate text-[0.75rem] font-medium">{track.title}</p>
-              <p className="truncate text-[0.75rem] text-ink-2">{track.artist}</p>
-              {Boolean(track.durationMs) && (
-                <p className="mt-1 font-mono text-[0.5625rem] tabular-nums text-ink-3">
-                  {clock(track.progressMs ?? 0)} / {clock(track.durationMs ?? 0)}
-                </p>
+            <a
+              href={track!.songUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-0.5 block truncate text-[0.6875rem] text-ink-2 transition-colors hover:text-ink"
+            >
+              <span className="text-ink">{track!.title}</span>
+              <span className="text-ink-3"> — </span>
+              {track!.artist}
+              {Boolean(track!.durationMs) && (
+                <span className="text-ink-3">
+                  {" "}
+                  {clock(track!.progressMs ?? 0)}/{clock(track!.durationMs ?? 0)}
+                </span>
               )}
-            </>
+            </a>
           ) : (
-            <p className="mt-1 text-[0.75rem] text-ink-2">
+            <p className="mt-0.5 text-[0.6875rem] text-ink-3">
               {track === null ? "—" : "Nothing playing"}
             </p>
           )}
         </div>
-
-        <a
-          href={playing ? track.songUrl : "#"}
-          target={playing ? "_blank" : undefined}
-          rel={playing ? "noopener noreferrer" : undefined}
-          aria-label={label}
-          title={label}
-          onPointerMove={onPointerMove}
-          onPointerEnter={() => setOpen(true)}
-          onPointerLeave={onPointerLeave}
-          onFocus={() => setOpen(true)}
-          onBlur={() => setOpen(false)}
-          onClick={playing ? undefined : (e) => e.preventDefault()}
-          className="block shrink-0 rounded-full text-ink transition-colors"
-          style={{ width: SIZE, height: SIZE }}
-        >
-          <canvas
-            ref={canvasRef}
-            width={SIZE}
-            height={SIZE}
-            aria-hidden
-            className="h-full w-full"
-          />
-        </a>
       </div>
     </div>
   );

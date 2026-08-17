@@ -10,6 +10,30 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.1.0",
+    date: "2026-08-17",
+    title: "Matched to the mockup",
+    notes: [
+      "Rebuilt home, feed, and chrome 1:1 against the supplied design",
+      "The /work archive is gone — home carries selected work and the dated work list itself",
+      "Case pages stay at /work/[slug], reached from the selected cards",
+      "Colophon is its own surface again rather than a section inside About",
+      "Nav is filled chips, not outlined ones: inactive surfaces read as raised keys, the current one as the key held down",
+      "Theme is three explicit controls — light, dark, system — instead of a toggle that cycles and hides where you are",
+      "Selected cards carry the real record: one-liner, domain, project palette, and category",
+      "Work rows are period, title, description, and a thumbnail against a rule",
+      "The disc moved into the layout — it is part of the record, not a badge stuck to the window",
+      "Silent, the dots now hold the Spotify mark, rasterised into the same grid the artwork uses",
+      "A track starting migrates the dots from the mark into the dithered artwork, and back when it stops",
+      "Clicking the disc sends a travelling ripple through the field — struck, not only pushed",
+      "Colophon is no longer a list: token rows read their own live computed value and copy on click, and the type specimens set weight and drag size",
+      "Copy and artwork carried over from portfolio-v1 — real case studies for ChessEver and Sylvan",
+      "Project palettes sampled from the actual artwork rather than invented",
+      "Manifest sniffs image type from the file bytes, so a JPEG saved as .png no longer reports the wrong size",
+      "Elsewhere restored from v1: LinkedIn, v0, Layers, Substack, and Contra",
+    ],
+  },
+  {
     version: "1.0.0",
     date: "2026-08-17",
     title: "The four surfaces",

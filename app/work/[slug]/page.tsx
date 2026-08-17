@@ -67,13 +67,13 @@ export default async function CasePage(props: PageProps<"/work/[slug]">) {
         {/* The rail — on a phone a band above the work, not a screen of chrome. */}
         <aside className="lg:sticky lg:top-10 lg:self-start">
           <Link
-            href="/work"
-            className="group inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 font-mono text-[0.625rem] uppercase tracking-wider text-ink-2 transition-colors hover:text-ink"
+            href="/"
+            className="group inline-flex items-center gap-1.5 rounded-[4px] bg-surface-2 px-2 py-1 font-mono text-[0.5625rem] uppercase tracking-[0.08em] text-ink-2 transition-colors hover:text-ink"
           >
             <span className="inline-block transition-transform group-hover:-translate-x-0.5">
               ←
             </span>
-            Work
+            Home
           </Link>
 
           <h1 className="mt-7 text-[1.5rem] font-medium leading-tight tracking-tight">
