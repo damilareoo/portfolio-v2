@@ -108,6 +108,62 @@ export const workAssets: Record<string, Asset[]> = {
       "date": null,
       "width": 1400,
       "height": 1000
+    },
+    {
+      "src": "/work/hitmans-library/02-desktop-top.png",
+      "title": "Desktop top",
+      "date": null,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "src": "/work/hitmans-library/03-scroll-25.png",
+      "title": "Scroll 25",
+      "date": null,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "src": "/work/hitmans-library/04-scroll-50.png",
+      "title": "Scroll 50",
+      "date": null,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "src": "/work/hitmans-library/05-scroll-75.png",
+      "title": "Scroll 75",
+      "date": null,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "src": "/work/hitmans-library/06-detail.png",
+      "title": "Detail",
+      "date": null,
+      "width": 720,
+      "height": 450
+    },
+    {
+      "src": "/work/hitmans-library/07-mobile-top.png",
+      "title": "Mobile top",
+      "date": null,
+      "width": 430,
+      "height": 932
+    },
+    {
+      "src": "/work/hitmans-library/08-mobile-mid.png",
+      "title": "Mobile mid",
+      "date": null,
+      "width": 430,
+      "height": 932
+    },
+    {
+      "src": "/work/hitmans-library/09-mobile-low.png",
+      "title": "Mobile low",
+      "date": null,
+      "width": 430,
+      "height": 932
     }
   ],
   "pixel-soccer": [
@@ -126,6 +182,20 @@ export const workAssets: Record<string, Asset[]> = {
       "date": null,
       "width": 1920,
       "height": 1080
+    },
+    {
+      "src": "/work/sylvan/02-desktop-top.png",
+      "title": "Desktop top",
+      "date": null,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "src": "/work/sylvan/03-mobile.png",
+      "title": "Mobile",
+      "date": null,
+      "width": 430,
+      "height": 932
     }
   ],
   "workbench": [

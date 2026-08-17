@@ -419,14 +419,17 @@ export function HalftoneDisc({ className = "" }: { className?: string }) {
           ripplesRef.current.push({ x, y, born: performance.now() });
           run();
         }}
-        className="w-full max-w-[300px] cursor-pointer text-ink"
+        className="w-[128px] cursor-pointer text-ink"
       >
         <canvas ref={canvasRef} width={SIZE} height={SIZE} className="h-auto w-full" />
       </div>
 
       {/* The record. Present in the layout at all times so revealing it never
           shifts anything around it. */}
-      <div className="h-9 w-full max-w-[300px] text-center">
+      {/* Wider than the 128px disc on purpose — the track line has to fit
+          without crushing, and the block is always present so revealing it
+          never shifts the layout. */}
+      <div className="h-9 w-[15rem] max-w-full text-center">
         <div
           className={`transition-opacity duration-200 ${open || playing ? "opacity-100" : "opacity-0"}`}
         >

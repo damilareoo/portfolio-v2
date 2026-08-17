@@ -10,6 +10,26 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.2.0",
+    date: "2026-08-17",
+    title: "Words left, work right",
+    notes: [
+      "Selected work returns to the v1.0.0 treatment: a mono rule-and-label head, two columns with real room, the face at 16/10, and the title set against its year",
+      "The home's dated work list is gone — four selected pieces read as an argument where a list reads as an inventory",
+      "Hitman's Library promoted to selected, with a case study written for it",
+      "The disc left the column the list vacated and sits with the footer, back at its original 128px",
+      "Its canvas keeps the larger internal coordinate space, so the ripple and pointer-push stay tuned",
+      "Case pages keep every word in the left rail — overview, record, approach — and give the whole right column to the work",
+      "Added the inset plate: one or two frames held inside a tinted ground rather than bled to the column edge, so a reel has rhythm instead of reading as a contact sheet",
+      "The rail pins and scrolls within itself on a tall viewport rather than dragging the reel down with it",
+      "Experience merged into About, in the shape the home's work list used to have: the period outside the rule, the record inside it",
+      "Each role's box carries that company's own OG image and leaves for the company's site, not for LinkedIn",
+      "Animated art is served unoptimised — the image optimiser was flattening the Sylvan mark to its first frame",
+      "Empty slots declare shallow ratios: a placeholder should hold a shape, not open a portrait-sized void",
+      "Frames for Hitman's Library captured from the live site; ChessEver's remain empty and labelled, since its domain answers automated requests with a bot check rather than the product",
+    ],
+  },
+  {
     version: "1.1.0",
     date: "2026-08-17",
     title: "Matched to the mockup",

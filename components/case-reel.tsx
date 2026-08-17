@@ -55,6 +55,47 @@ export function CaseReel({ blocks, assets }: { blocks: CaseBlock[]; assets: Asse
           );
         }
 
+        if (block.kind === "inset") {
+          /* The plate carries generous padding so the frames inside it read as
+             held rather than cropped — the rhythm break the reel needs. */
+          return (
+            <Reveal key={i} index={i}>
+              <div
+                className={`rounded-[var(--radius-tile)] px-6 py-10 sm:px-12 sm:py-16 ${
+                  block.tone === "strong" ? "bg-strong" : "bg-surface-2"
+                }`}
+              >
+                <div
+                  className={`mx-auto grid max-w-[80%] gap-6 ${
+                    block.items.length === 2 ? "sm:grid-cols-2" : ""
+                  }`}
+                >
+                  {block.items.map((media, n) => {
+                    const resolved = take(media);
+                    return (
+                      <figure key={n}>
+                        <Frame
+                          src={resolved.src}
+                          alt={media.alt ?? ""}
+                          width={resolved.width}
+                          height={resolved.height}
+                          ratio={media.ratio ?? "4 / 3"}
+                          sizes="(min-width: 640px) 36vw, 74vw"
+                        />
+                        {media.caption && (
+                          <figcaption className="mt-2 font-mono text-[0.5625rem] uppercase tracking-wider text-ink-3">
+                            {media.caption}
+                          </figcaption>
+                        )}
+                      </figure>
+                    );
+                  })}
+                </div>
+              </div>
+            </Reveal>
+          );
+        }
+
         if (block.kind === "pair") {
           const [a, b] = block.items;
           const left = take(a);

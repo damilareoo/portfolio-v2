@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { CopyEmail } from "@/components/copy-email";
 import { SiteNav } from "@/components/site-nav";
+import { Reveal } from "@/lib/reveal";
+import { roles, type Role } from "@/data/experience";
 import { elsewhere, site } from "@/data/site";
 
 export const metadata: Metadata = {
@@ -19,6 +22,51 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
     <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-x-5 border-b border-line py-2.5 last:border-b-0 sm:grid-cols-[96px_minmax(0,1fr)]">
       <span className="text-[0.6875rem] text-ink-3">{label}</span>
       <span className="text-[0.75rem] text-ink">{children}</span>
+    </div>
+  );
+}
+
+/** A role: the period outside the rule, everything known about it inside. */
+function RoleRow({ role }: { role: Role }) {
+  return (
+    <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-x-5 sm:grid-cols-[96px_minmax(0,1fr)]">
+      <span className="pt-px text-[0.6875rem] leading-[1.45] text-ink-3">{role.period}</span>
+      <div className="border-l border-line pb-9 pl-5">
+        <a
+          href={role.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group block"
+        >
+          <div className="flex items-baseline gap-2">
+            <span className="text-[0.75rem] font-medium tracking-tight text-ink">
+              {role.role}
+            </span>
+            <span
+              aria-hidden
+              className="shrink-0 text-[0.625rem] text-ink-3 transition-colors group-hover:text-ink"
+            >
+              ↗
+            </span>
+          </div>
+          <p className="mt-1 text-[0.6875rem] leading-[1.45] text-ink-2">
+            {role.company}
+            {role.engagement && <span className="text-ink-3"> · {role.engagement}</span>}
+          </p>
+          <p className="mt-0.5 text-[0.6875rem] leading-[1.45] text-ink-3">{role.location}</p>
+          {role.logo && (
+            <div className="relative mt-3 aspect-[2/1] w-[112px] overflow-hidden border border-line bg-surface-2 transition-colors group-hover:border-ink-3">
+              <Image
+                src={role.logo}
+                alt=""
+                fill
+                sizes="112px"
+                className="object-cover"
+              />
+            </div>
+          )}
+        </a>
+      </div>
     </div>
   );
 }
@@ -83,6 +131,20 @@ export default function AboutPage() {
               Most of what I make is quiet on purpose. Restraint is not the
               absence of an idea; it is what makes the one idea legible.
             </p>
+          </div>
+
+          {/* Experience carries the shape the home's work list used to have —
+              the period outside the rule, the record inside it. The box holds
+              each company's own OG image, and the row leaves for its site. */}
+          <div className="mt-12">
+            <Heading>Experience</Heading>
+            <div className="mt-4 max-w-[34rem]">
+              {roles.map((role, i) => (
+                <Reveal key={`${role.company}-${role.period}`} index={i}>
+                  <RoleRow role={role} />
+                </Reveal>
+              ))}
+            </div>
           </div>
         </section>
 

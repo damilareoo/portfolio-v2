@@ -43,6 +43,9 @@ export function Frame({
           fill
           sizes={sizes}
           priority={priority}
+          /* The optimiser flattens an animated GIF to its first frame, so a
+             moving mark would arrive static. Serve those untouched. */
+          unoptimized={src.endsWith(".gif")}
           className="object-cover"
         />
       ) : (

@@ -22,6 +22,14 @@ export async function generateMetadata(
   };
 }
 
+function RailLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="font-mono text-[0.5625rem] uppercase tracking-[0.08em] text-ink-3">
+      {children}
+    </span>
+  );
+}
+
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-4 border-b border-line py-2.5 last:border-b-0">
@@ -63,9 +71,11 @@ export default async function CasePage(props: PageProps<"/work/[slug]">) {
 
   return (
     <main className="mx-auto w-full max-w-[1180px] px-[var(--pg-gap)] py-8 sm:py-10">
-      <div className="grid gap-10 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-14">
-        {/* The rail — on a phone a band above the work, not a screen of chrome. */}
-        <aside className="lg:sticky lg:top-10 lg:self-start">
+      <div className="grid gap-10 lg:grid-cols-[264px_minmax(0,1fr)] lg:gap-14">
+        {/* The rail — on a phone a band above the work, not a screen of chrome.
+            It holds every word on the page, so on a tall viewport it pins and
+            scrolls within itself rather than dragging the reel down with it. */}
+        <aside className="lg:sticky lg:top-10 lg:max-h-[calc(100dvh-5rem)] lg:self-start lg:overflow-y-auto lg:pb-6 lg:pr-3 lg:[&::-webkit-scrollbar-thumb]:rounded-full lg:[&::-webkit-scrollbar-thumb]:bg-line lg:[&::-webkit-scrollbar]:w-[3px] lg:[&::-webkit-scrollbar]:bg-transparent">
           <Link
             href="/"
             className="group inline-flex items-center gap-1.5 rounded-[4px] bg-surface-2 px-2 py-1 font-mono text-[0.5625rem] uppercase tracking-[0.08em] text-ink-2 transition-colors hover:text-ink"
@@ -80,6 +90,19 @@ export default async function CasePage(props: PageProps<"/work/[slug]">) {
             {item.title}
           </h1>
           <p className="mt-2 text-[0.875rem] leading-relaxed text-ink-2">{item.oneLiner}</p>
+
+          {item.intro && (
+            <div className="mt-7">
+              <RailLabel>Overview</RailLabel>
+              <div className="mt-2.5 space-y-3">
+                {item.intro.map((paragraph) => (
+                  <p key={paragraph} className="text-[0.75rem] leading-[1.6] text-ink-2">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="mt-7">
             {item.client && <Row label="Client">{item.client}</Row>}
@@ -100,6 +123,19 @@ export default async function CasePage(props: PageProps<"/work/[slug]">) {
               </Row>
             )}
           </div>
+
+          {item.approach && (
+            <div className="mt-7">
+              <RailLabel>Approach</RailLabel>
+              <div className="mt-2.5 space-y-3">
+                {item.approach.map((paragraph) => (
+                  <p key={paragraph} className="text-[0.75rem] leading-[1.6] text-ink-2">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
         </aside>
 
         {/* The column — the work itself. */}

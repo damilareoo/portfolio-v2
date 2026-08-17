@@ -25,14 +25,16 @@ Four, and the nav names all four.
 
 | Route | Holds |
 |---|---|
-| `/` | Everything about the work — lockup, selected cards, the dated work list |
+| `/` | Everything about the work — lockup and four selected pieces |
 | `/feed` | The gallery |
-| `/about` | The record about the person |
+| `/about` | The record about the person, and the roles behind it |
 | `/colophon` | How the site is made, and the instruments |
 
 `/work/[slug]` survives as a case page, reached from a selected card. `/system` and `/changelog` stay live and stay out of the nav; the colophon links to both.
 
 There is no archive surface. With selected work and the dated list both on the home page, `/work` held a filtered restatement of a page the visitor had already read — a nav entry has to earn itself, and that one was paying for a duplicate.
+
+The dated list has since gone too. Four pieces with room read as an argument; the same four as a list read as an inventory, and the page was making both cases at once. Roles moved to `/about`, where they belong: they are a fact about the person, not a piece of work.
 
 ## Token system
 
@@ -115,22 +117,25 @@ One model in `data/work.ts`, tiered by how much room a piece earns.
 
 | Tier | Gets | Lives |
 |---|---|---|
-| `selected` | A `/work/[slug]` case page and room on the home rail | Home centre rail and `/work` |
-| `project` | Tile plus one line, links out to the live thing | `/work` |
-| `index` | Text only: title, tags, year | `/work` |
+| `selected` | A `/work/[slug]` case page and one of the four cards on the home | Home |
+| `project` | Nothing rendered today — held for when a second surface earns its keep | — |
+| `index` | Nothing rendered today | — |
 
 Selected work without written blocks says so plainly on its case page instead of padding — the site does not pretend to depth it lacks.
 
-A case page is a sticky metadata rail beside a column of typed blocks:
+A case page keeps every word in the left rail — one-liner, `intro`, the record rows, then `approach` — and gives the whole right column to the work. The rail pins on a tall viewport and scrolls within itself rather than dragging the reel down with it.
 
 | Block | Renders |
 |---|---|
-| `full` | One full-width frame |
+| `full` | One frame at the column's full width |
 | `pair` | Two frames side by side |
+| `inset` | One or two frames held inside a tinted plate, `surface` or `strong` |
 | `text` | A narrow prose break at a decision point |
 | `quote` | A pulled line with optional attribution |
 
-Blocks without a `src` consume the project's assets in filename order, so dropping files into `public/work/<slug>` fills a reel without editing data.
+`inset` is what gives a reel rhythm: without a plate every frame is the same width and the page reads as a contact sheet. `text` and `quote` survive for anything that genuinely needs prose mid-reel, but the rail is where words go now.
+
+Blocks without a `src` consume the project's assets in filename order, so dropping files into `public/work/<slug>` fills a reel without editing data. A declared `ratio` only shapes a slot while it is empty — real art always carries its own dimensions — so placeholder ratios stay shallow rather than opening a portrait-sized void.
 
 ## The colophon
 
@@ -175,6 +180,12 @@ Environment: `KV_REST_API_URL` and `KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_*
 
 ## Status
 
-v1.1.0: four surfaces — Home, Feed, About, Colophon — matched to the supplied design, with copy and artwork carried over from portfolio-v1.
+v1.2.0: the home carries selected work alone, case pages put every word in the rail and every frame in the column, and About holds the roles.
 
-Outstanding: the feed and the work thumbnails are populated with captures of the live products and of portfolio-v1, which stand in until real artwork is dropped into `public/feed` and `public/work/<slug>`. ChessEver and Sylvan case pages carry the v1 write-ups and one hero image each; the rest of their reels are still labelled empty frames. The handling layer from the 2026-08-13 spec — divider drag, tile reorder, reset — is still unbuilt.
+Outstanding, and worth being exact about:
+
+- **The fourth card.** Only three pieces are `selected`, so the home grid reads `03 PIECES` with an empty cell. A fourth is intended.
+- **Two roles.** Endgame AI, ChessEver and HEX carry exact dates. SmallChess and an early-career role sit commented out in `data/experience.ts` — dates unknown, and the site does not invent them.
+- **Frames.** Hitman's Library has nine real captures. Sylvan has two: its site is a single near-empty viewport. ChessEver has one, its existing hero — `chessever.com` answers automated requests with a bot check rather than the product, so its reel is labelled empty frames until real art lands.
+- The feed is still captures of the live products and of portfolio-v1, standing in until real artwork is dropped into `public/feed`.
+- The handling layer from the 2026-08-13 spec — divider drag, tile reorder, reset — is still unbuilt.
