@@ -1,0 +1,114 @@
+import { Frame } from "@/components/frame";
+import { Reveal } from "@/lib/reveal";
+import type { CaseBlock, CaseMedia } from "@/data/work";
+import type { Asset } from "@/data/assets.generated";
+
+/**
+ * The centre column of a case page.
+ *
+ * Blocks carry their own art where it is authored; anything without a src falls
+ * through to the next unused frame from the project's asset folder, so dropping
+ * files into public/work/<slug> fills the reel in order without editing data.
+ */
+export function CaseReel({ blocks, assets }: { blocks: CaseBlock[]; assets: Asset[] }) {
+  // Consumed in render order — a plain counter, because the fallback is
+  // positional by definition.
+  let next = 0;
+  const take = (media: CaseMedia) => {
+    if (media.src) return { src: media.src, width: undefined, height: undefined };
+    const asset = assets[next++];
+    return { src: asset?.src, width: asset?.width, height: asset?.height };
+  };
+
+  return (
+    <div className="space-y-[var(--pg-gap)]">
+      {blocks.map((block, i) => {
+        if (block.kind === "text") {
+          return (
+            <Reveal key={i} index={i} as="section" className="mx-auto max-w-[34rem] py-8">
+              {block.heading && (
+                <h2 className="font-mono text-[0.625rem] uppercase tracking-wider text-ink-3">
+                  {block.heading}
+                </h2>
+              )}
+              <div className="mt-3 space-y-4">
+                {block.body.map((paragraph) => (
+                  <p key={paragraph} className="text-[0.9375rem] leading-relaxed">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </Reveal>
+          );
+        }
+
+        if (block.kind === "quote") {
+          return (
+            <Reveal key={i} index={i} as="section" className="mx-auto max-w-[34rem] py-8">
+              <p className="text-[1.125rem] leading-relaxed">{block.body}</p>
+              {block.attribution && (
+                <p className="mt-3 font-mono text-[0.625rem] uppercase tracking-wider text-ink-3">
+                  {block.attribution}
+                </p>
+              )}
+            </Reveal>
+          );
+        }
+
+        if (block.kind === "pair") {
+          const [a, b] = block.items;
+          const left = take(a);
+          const right = take(b);
+          return (
+            <Reveal key={i} index={i}>
+              <div className="grid gap-[var(--pg-gap)] sm:grid-cols-2">
+                {[
+                  { media: a, resolved: left },
+                  { media: b, resolved: right },
+                ].map(({ media, resolved }, n) => (
+                  <figure key={n}>
+                    <Frame
+                      src={resolved.src}
+                      alt={media.alt ?? ""}
+                      width={resolved.width}
+                      height={resolved.height}
+                      ratio={media.ratio ?? "4 / 3"}
+                      sizes="(min-width: 640px) 45vw, 92vw"
+                    />
+                    {media.caption && (
+                      <figcaption className="mt-2 font-mono text-[0.5625rem] uppercase tracking-wider text-ink-3">
+                        {media.caption}
+                      </figcaption>
+                    )}
+                  </figure>
+                ))}
+              </div>
+            </Reveal>
+          );
+        }
+
+        const resolved = take(block);
+        return (
+          <Reveal key={i} index={i}>
+            <figure>
+              <Frame
+                src={resolved.src}
+                alt={block.alt ?? ""}
+                width={resolved.width}
+                height={resolved.height}
+                ratio={block.ratio ?? "16 / 9"}
+                priority={i === 0}
+                sizes="(min-width: 1024px) 62vw, 92vw"
+              />
+              {block.caption && (
+                <figcaption className="mt-2 font-mono text-[0.5625rem] uppercase tracking-wider text-ink-3">
+                  {block.caption}
+                </figcaption>
+              )}
+            </figure>
+          </Reveal>
+        );
+      })}
+    </div>
+  );
+}

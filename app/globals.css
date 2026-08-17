@@ -56,6 +56,8 @@ html {
 body {
   background: var(--bg);
   color: var(--text-1);
+  /* Tuned live by the colophon's value field — see lib/value-field.tsx. */
+  font-weight: var(--body-weight, 400);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -68,6 +70,27 @@ body {
 :focus-visible {
   outline: 1.5px solid var(--text-1);
   outline-offset: 2px;
+}
+
+/* Law 4, amended: an element may animate on arrival, once. It is transformed
+   into place rather than animated by a keyframe, so an element that has already
+   arrived holds no running animation — a page at rest is a screenshot of
+   itself. See lib/reveal.tsx. */
+/* Guarded on scripting: with no JS nothing sets data-arrived, so the starting
+   state must never be applied or the page would render blank. */
+@media (scripting: enabled) {
+  .arrive {
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+      opacity 420ms cubic-bezier(0.16, 1, 0.3, 1) var(--arrive-delay, 0ms),
+      transform 420ms cubic-bezier(0.16, 1, 0.3, 1) var(--arrive-delay, 0ms);
+  }
+
+  .arrive[data-arrived] {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* A counter rolls only when the visitor turned it — see lib/dial-turns.tsx. */

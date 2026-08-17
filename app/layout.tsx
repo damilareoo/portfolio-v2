@@ -2,10 +2,10 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { ThemeProvider } from "next-themes";
 import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
 import { isPortfolio } from "@/lib/site-mode";
 import { SettingsProvider, settingsScript } from "@/lib/settings";
 import { DialTurnsProvider } from "@/lib/dial-turns";
+import { ValueFieldProvider } from "@/lib/value-field";
 import "./globals.css";
 
 const suisse = localFont({
@@ -53,14 +53,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <SettingsProvider>
             <DialTurnsProvider>
-              {isPortfolio ? (
-                children
-              ) : (
-                <>
-                  <SiteHeader />
-                  <div className="flex-1">{children}</div>
-                </>
-              )}
+              {/* Sits above the surfaces so a committed blend survives client-side
+                  navigation and resets on refresh. */}
+              <ValueFieldProvider>
+                {isPortfolio ? (
+                  children
+                ) : (
+                  <>
+                    <SiteHeader />
+                    <div className="flex-1">{children}</div>
+                  </>
+                )}
+              </ValueFieldProvider>
             </DialTurnsProvider>
           </SettingsProvider>
         </ThemeProvider>

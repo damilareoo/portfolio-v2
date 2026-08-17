@@ -21,6 +21,26 @@ export type CaseSection = {
   body: string[];
 };
 
+export type CaseMedia = {
+  /** Path under public/work/<slug>/. Absent renders a labelled empty frame. */
+  src?: string;
+  alt?: string;
+  caption?: string;
+  /** Slot shape while there is no art to measure, e.g. "4 / 3". */
+  ratio?: string;
+};
+
+/**
+ * A case page is an ordered list of these. Text blocks are narrow and sit at
+ * decision points, so the argument stays readable without a wall of prose
+ * before the first image.
+ */
+export type CaseBlock =
+  | ({ kind: "full" } & CaseMedia)
+  | { kind: "pair"; items: [CaseMedia, CaseMedia] }
+  | { kind: "text"; heading?: string; body: string[] }
+  | { kind: "quote"; body: string; attribution?: string };
+
 export type WorkItem = {
   slug: string;
   title: string;
@@ -34,10 +54,23 @@ export type WorkItem = {
   mark?: string;
   image?: string;
   tone?: "strong" | "surface";
+  /** Who it was for, when the piece was client work. */
+  client?: string;
+  role?: string;
+  stack?: string;
   /**
-   * Case study body. Selected work without sections renders its record and says
+   * The project's real brand palette. Rendered desaturated, and only returned to
+   * full colour while a pointer is held on it — genuine metadata in the site's
+   * own register. Left undefined the strip does not render; the site does not
+   * invent a palette it does not have.
+   */
+  palette?: string[];
+  /**
+   * Case study body. Selected work without blocks renders its record and says
    * so plainly rather than padding — the site does not pretend to depth it lacks.
    */
+  blocks?: CaseBlock[];
+  /** @deprecated Superseded by `blocks`. Kept so old entries still render. */
   sections?: CaseSection[];
 };
 

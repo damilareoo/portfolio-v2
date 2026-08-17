@@ -48,13 +48,20 @@ export async function GET() {
 
     const data = (await res.json()) as {
       is_playing?: boolean;
+      progress_ms?: number;
       item?: {
         name: string;
+        duration_ms?: number;
         artists: { name: string }[];
+        album?: { images?: { url: string; width: number }[] };
         external_urls: { spotify: string };
       };
     };
     if (!data.item) return NextResponse.json(SILENT, { headers: NO_CACHE });
+
+    // The disc dithers the artwork down to a dot grid, so the smallest image
+    // Spotify offers is already more resolution than it can use.
+    const art = [...(data.item.album?.images ?? [])].sort((a, b) => a.width - b.width)[0];
 
     return NextResponse.json(
       {
@@ -62,6 +69,11 @@ export async function GET() {
         title: data.item.name,
         artist: data.item.artists.map((a) => a.name).join(", "),
         songUrl: data.item.external_urls.spotify,
+        progressMs: data.progress_ms ?? 0,
+        durationMs: data.item.duration_ms ?? 0,
+        // Proxied rather than linked: the canvas reads pixels back, and a
+        // cross-origin image would taint it and make getImageData throw.
+        artUrl: art ? `/api/now-playing/art?u=${encodeURIComponent(art.url)}` : undefined,
       },
       { headers: NO_CACHE },
     );

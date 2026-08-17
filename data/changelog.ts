@@ -10,6 +10,26 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.0.0",
+    date: "2026-08-17",
+    title: "The four surfaces",
+    notes: [
+      "Law 4 amended to 'nothing moves unless touched, or arriving' — see docs/specs/2026-08-17-v1-surfaces.md",
+      "An element may animate the first time it enters the viewport, once; it never re-triggers on the way back up",
+      "Still no parallax, no autoplay, no ambient loops: a page at rest is identical to a screenshot of itself",
+      "Four surfaces, and the nav names all four: Index, Work, Feed, About",
+      "New /feed gallery — column masonry, staggered arrival, and a lightbox that pages on arrow keys and gives focus back",
+      "Case pages rebuilt as a hybrid reel: a sticky metadata rail beside a column of typed media and prose blocks",
+      "New /about carries the record and absorbs the colophon — palette, type specimens, stack, and the dials",
+      "Now-playing is now the halftone disc: album art dithered to a monochrome dot field that the cursor pushes",
+      "Dithering is what lets real artwork onto the site — it discards the colour rather than suppressing it",
+      "Colophon easter egg: a weight × contrast field that re-derives the mid-ladder tokens live, holds across navigation, and resets on refresh",
+      "Assets drop into public/feed and public/work/<slug>; pnpm manifest reads their dimensions from the file headers",
+      "An empty frame prints what is missing and what shape it will be, rather than collapsing",
+    ],
+    deployment: "https://portfolio-v2-fjk8lycuw-damilares-projects-fc682e5f.vercel.app",
+  },
+  {
     version: "0.6.0",
     date: "2026-08-14",
     title: "The site starts reporting on itself",
