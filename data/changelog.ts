@@ -28,6 +28,7 @@ export const changelog: ChangelogEntry[] = [
       "Empty slots declare shallow ratios: a placeholder should hold a shape, not open a portrait-sized void",
       "Frames for Hitman's Library captured from the live site; ChessEver's remain empty and labelled, since its domain answers automated requests with a bot check rather than the product",
     ],
+    deployment: "https://portfolio-v2-2qdtx10d7-damilares-projects-fc682e5f.vercel.app",
   },
   {
     version: "1.1.0",
