@@ -102,7 +102,12 @@ export function GlyphCell({
 
       const cells = cellsRef.current;
       const ticked = onTickRef.current?.(now) ?? null;
-      if (ticked) setTargets(cells, ticked);
+      if (ticked) {
+        // A ticked frame primes the field as surely as the `frame` prop does:
+        // a source that only ticks is still a field with something to say.
+        setTargets(cells, ticked);
+        primedRef.current = true;
+      }
 
       const pointer = pointerRef.current;
       const busy = stepCells(cells, dt, now, pointer, ripplesRef.current);
@@ -175,6 +180,7 @@ export function GlyphCell({
     const ticked = onTick(performance.now());
     if (!ticked) return;
     setTargets(cellsRef.current, ticked);
+    primedRef.current = true;
     settle(cellsRef.current);
     draw();
   }, [onTick, run, draw]);

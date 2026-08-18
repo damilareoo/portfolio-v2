@@ -53,8 +53,11 @@ describe("TUNING", () => {
 
 describe("setTargets", () => {
   /* setTargets reads the field's geometry back off the cells, which holds only
-     while a lattice is centred on its field. These pin that invariant: a wrong
-     size or a transposed index puts the lit value on the wrong cell, silently. */
+     while a lattice is centred on its field. These pin that invariant. They do
+     not catch every wrong size — flooring means a size off by less than half a
+     cell still lands on the right column — but they catch a transposed index
+     and any size wrong enough to shift a value onto another cell, which is the
+     failure that would otherwise be silent. */
   it("lands a lit value on the one cell standing at its index", () => {
     const cells = buildCells(GRID, SIZE, "circle");
     const values = new Float32Array(GRID * GRID);
