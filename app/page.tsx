@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Frame } from "@/components/frame";
-import { HalftoneDisc } from "@/components/halftone-disc";
+import { NowPlayingDisc } from "@/components/now-playing-disc";
 import { SiteNav } from "@/components/site-nav";
 import { Tags } from "@/components/work-tile";
 import { Reveal } from "@/lib/reveal";
@@ -116,7 +116,7 @@ export default function Home() {
       {/* The disc lost its column when the list went. It sits with the footer
           now — an instrument on the shelf, not a badge stuck to the corner. */}
       <div className="mt-16 flex justify-center sm:justify-end">
-        <HalftoneDisc />
+        <NowPlayingDisc />
       </div>
 
       <footer className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line pt-5 pb-8">
