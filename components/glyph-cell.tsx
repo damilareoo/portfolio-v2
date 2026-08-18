@@ -64,6 +64,10 @@ export function GlyphCell({
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
+    /* A field that has never been handed a frame has nothing to say, and a
+       field of zeroes is not silence — on the light skin it inverts to full
+       ink, a solid disc. It stays blank until it is given something. */
+    if (!primedRef.current) return;
 
     const cellSize = size / grid;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
