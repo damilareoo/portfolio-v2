@@ -122,6 +122,28 @@ album artwork when a track starts. New behaviour while playing:
   the dither, so every track ripples differently without inventing anything.
 - A hairline arc around the cell carries real progress.
 
+**The artwork has to be readable.** Today it is not: the disc renders `radius ∝ value`, so
+dot *area* — which is what the eye actually integrates — goes as `value²` and every midtone
+collapses. A `0.2` alpha floor keeps dark regions from ever reaching black, so the image has
+no blacks to read against. And a 32-cell grid is fed from Spotify's *smallest* image, chosen
+deliberately at `app/api/now-playing/route.ts:64` on the assumption the grid could not use
+more. Four corrections, in order of effect:
+
+1. **Area-linear mapping.** `radius ∝ √value`, so perceived ink is proportional to
+   luminance. This is the halftone principle the current code inverts, and it alone
+   recovers the whole midtone range.
+2. **Real blacks.** Remove the alpha floor for artwork; a cell at zero luminance draws
+   nothing. The floor stays for the Spotify mark, where it is doing legitimate work.
+3. **Per-artwork auto-level.** Normalise each cover's luminance to its own min and max
+   before mapping. Album art is frequently low-contrast or heavily tinted, and a fixed
+   ramp wastes most of the available range on tones the image never uses.
+4. **A denser grid.** 48 cells rather than 32, with the source image chosen as the
+   smallest Spotify offers that is at least 4× the grid — 300px, not 64px — so each cell
+   box-averages real samples instead of guessing from one.
+
+The Spotify mark stays legible at 48 cells; it is drawn from primitives and rasterises at
+whatever density it is given.
+
 **Card two — the pedometer.** Three pages, matching the reference exactly, with a vertical
 three-dot page indicator on the right edge.
 
