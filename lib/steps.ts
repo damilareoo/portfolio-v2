@@ -12,15 +12,22 @@
  * project injects UPSTASH_REDIS_REST_*. Both are accepted.
  */
 
+import { createHash, timingSafeEqual } from "node:crypto";
 import { countersConfigured } from "@/lib/counters";
 
 const url = process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
 const token = process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
 
-export type StepsDay = { date: string; steps: number };
+/**
+ * A null total is a day nobody reported — the phone was off, in Doze, or the
+ * bearer was mid-rotation. It is not a day of no walking, and the two must
+ * stay distinguishable all the way to the card, which paints an unreported day
+ * as placeholder dots rather than as an empty ring.
+ */
+export type StepsDay = { date: string; steps: number | null };
 
 export type StepsReading = {
-  today: number;
+  today: number | null;
   days: StepsDay[];
   average7: number;
   updatedAt: number | null;
@@ -117,10 +124,32 @@ export function isPlausible(prev: number | null, next: number): boolean {
   return true;
 }
 
+/**
+ * The whole of the ingest's security, kept out of the route so it can be
+ * tested directly. An absent or blank secret matches nothing: a deployment
+ * that has not been given one yet must not be a deployment anyone can write
+ * steps into.
+ *
+ * Both sides are hashed first. Digests are always thirty-two bytes, so
+ * timingSafeEqual — which throws on buffers of unequal size — can never throw,
+ * and the comparison stays constant-time with respect to the secret without a
+ * length guard that would answer short tokens faster than long ones.
+ */
+export function tokenMatches(offered: string, secret: string | undefined): boolean {
+  // Trimmed on both sides: a secret pasted into Vercel with a trailing newline
+  // would otherwise be unmatchable by a token typed correctly on the phone.
+  const expected = (secret ?? "").trim();
+  if (!expected) return false;
+  const digest = (value: string) => createHash("sha256").update(value).digest();
+  return timingSafeEqual(digest(offered.trim()), digest(expected));
+}
+
+/** Averaged over reported days only, so a silent phone cannot deflate the week. */
 export function averageOf(days: StepsDay[]): number {
-  if (days.length === 0) return 0;
-  const total = days.reduce((sum, day) => sum + day.steps, 0);
-  return Math.round(total / days.length);
+  const reported = days.filter((day) => day.steps !== null);
+  if (reported.length === 0) return 0;
+  const total = reported.reduce((sum, day) => sum + (day.steps ?? 0), 0);
+  return Math.round(total / reported.length);
 }
 
 export async function readDay(date: string): Promise<number | null> {
@@ -137,12 +166,13 @@ export async function readSteps(goal: number): Promise<StepsReading | null> {
   ]);
   if (!Array.isArray(values)) return null;
 
-  // A day with no key is a day that was not reported; zero is the honest
-  // reading for it, because the phone posts whether or not anyone walked.
-  const days = dates.map((date, i) => ({ date, steps: toCount(values[i]) ?? 0 }));
+  const days = dates.map((date, i) => ({ date, steps: toCount(values[i]) }));
 
   return {
-    today: days[days.length - 1]?.steps ?? 0,
+    // Null until the first post of the morning. Every day begins unreported,
+    // and a card that showed 0 / 10000 at 6am would be stating a fact nobody
+    // has established yet.
+    today: days[days.length - 1]?.steps ?? null,
     days,
     average7: averageOf(days),
     updatedAt: toCount(updated),
@@ -151,9 +181,14 @@ export async function readSteps(goal: number): Promise<StepsReading | null> {
 }
 
 export async function writeSteps(date: string, steps: number): Promise<boolean> {
-  const key = stepsKey(date);
-  if ((await command(["SET", key, steps])) === null) return false;
-  await command(["EXPIRE", key, DAY_TTL_SECONDS]);
-  await command(["SET", UPDATED_AT_KEY, Date.now()]);
+  // SET with EX is one round trip and atomic. A separate EXPIRE could fail on
+  // its own and leave a key that never ages out of the store.
+  const set = await command(["SET", stepsKey(date), steps, "EX", DAY_TTL_SECONDS]);
+  if (set === null) return false;
+
+  // Only a post about today moves the freshness mark. A backfill is new
+  // history, not new news; letting it touch the mark would have the card claim
+  // a month-old number had been read a minute ago.
+  if (date === zonedDate()) await command(["SET", UPDATED_AT_KEY, Date.now()]);
   return true;
 }

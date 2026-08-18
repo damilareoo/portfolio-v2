@@ -1,4 +1,3 @@
-import { createHash, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { site } from "@/data/site";
 import { countersConfigured } from "@/lib/counters";
@@ -7,6 +6,7 @@ import {
   isPlausible,
   readDay,
   readSteps,
+  tokenMatches,
   writeSteps,
   zonedDate,
 } from "@/lib/steps";
@@ -14,26 +14,11 @@ import {
 export const dynamic = "force-dynamic";
 
 const NO_CACHE = { "Cache-Control": "no-store" };
-const BEARER = "Bearer ";
 
-/**
- * Both sides are hashed before the comparison. It is not the secret that needs
- * hiding — it is the length: timingSafeEqual throws on buffers of unequal size,
- * and the obvious guard against that would answer short tokens faster than long
- * ones. Digests are always thirty-two bytes, so every wrong token costs the
- * same.
- */
-function authorized(request: Request): boolean {
-  const secret = process.env.STEPS_INGEST_SECRET;
-  // An unconfigured secret closes the route rather than opening it. This is the
-  // whole of the ingest's security: a deployment that has not been given a
-  // secret yet must not be a deployment anyone can write steps into.
-  if (!secret) return false;
-
-  const header = request.headers.get("authorization") ?? "";
-  const offered = header.startsWith(BEARER) ? header.slice(BEARER.length).trim() : "";
-  const digest = (value: string) => createHash("sha256").update(value).digest();
-  return timingSafeEqual(digest(offered), digest(secret));
+/** The scheme is case-insensitive per RFC 7235; the token is not. */
+function bearerToken(request: Request): string {
+  const match = /^bearer[ \t]+(.*)$/i.exec(request.headers.get("authorization") ?? "");
+  return match ? match[1] : "";
 }
 
 export async function GET() {
@@ -47,12 +32,16 @@ export async function GET() {
 
 /**
  * Health Connect is device-local and has no API to pull from, so the phone
- * posts here on a schedule instead. Every rejection is a plain status code with
- * no detail: the only client is a macro on the owner's phone, and anything else
- * knocking learns nothing from the answer.
+ * posts here on a schedule instead. Authentication comes first, before the
+ * body is read and before the store is touched, so an unauthenticated caller
+ * cannot use the endpoint to learn anything about either.
+ *
+ * Every rejection is a coarse status code with no detail. The only legitimate
+ * client is a macro on the owner's phone, and anything else knocking learns
+ * only which of five categories it fell into.
  */
 export async function POST(request: Request) {
-  if (!authorized(request)) {
+  if (!tokenMatches(bearerToken(request), process.env.STEPS_INGEST_SECRET)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401, headers: NO_CACHE });
   }
 
@@ -77,6 +66,13 @@ export async function POST(request: Request) {
   const prev = await readDay(date);
   if (!isPlausible(prev, steps)) {
     return NextResponse.json({ error: "implausible" }, { status: 422, headers: NO_CACHE });
+  }
+
+  // Distinguished from a failed write on purpose: no store will ever be
+  // reached on this deployment, so the phone should stop rather than retry
+  // every half hour forever.
+  if (!countersConfigured) {
+    return NextResponse.json({ error: "store not configured" }, { status: 501, headers: NO_CACHE });
   }
 
   if (!(await writeSteps(date, steps))) {
