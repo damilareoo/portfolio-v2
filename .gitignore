@@ -42,3 +42,8 @@ next-env.d.ts
 .gstack/
 .vercel-portfolio
 .env*.local
+
+# agent scratch: SDD ledgers/briefs, and nested worktrees that would
+# otherwise be swept into a commit by `git add -A`
+.claude/
+.superpowers/
