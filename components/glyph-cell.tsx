@@ -106,6 +106,9 @@ export function GlyphCell({
         // A ticked frame primes the field as surely as the `frame` prop does:
         // a source that only ticks is still a field with something to say.
         setTargets(cells, ticked);
+        // And the first one is not a transition either — migrating into it from
+        // zero would open the field on full ink under the light skin.
+        if (!primedRef.current) settle(cells);
         primedRef.current = true;
       }
 
