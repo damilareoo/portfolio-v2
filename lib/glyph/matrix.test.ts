@@ -122,6 +122,24 @@ describe("stepCells", () => {
     for (let i = 0; i < 600; i++) stepCells(cells, 1 / 60, i * 16, null, []);
     expect(Math.abs(near.oy)).toBeLessThan(0.05);
   });
+
+  it("scales a ripple's force by its strength, and defaults to full force", () => {
+    // The front has to have reached the cell for there to be a force to scale,
+    // so the ripple is struck a few cells away and read once it arrives.
+    const struck = (strength?: number) => {
+      const cells = buildCells(GRID, SIZE, "square");
+      settle(cells);
+      const cell = cells[0];
+      const born = 0;
+      const age = (cell.x - 1) / TUNING.RIPPLE_SPEED;
+      stepCells(cells, 1 / 60, age * 1000, null, [{ x: 1, y: cell.y, born, strength }]);
+      return cell.vx;
+    };
+
+    expect(struck()).not.toBe(0); // A scaling test on zero force proves nothing.
+    expect(struck(0.5)).toBeCloseTo(struck() * 0.5, 6);
+    expect(struck(0)).toBe(0);
+  });
 });
 
 describe("liveRipples", () => {

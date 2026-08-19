@@ -13,6 +13,18 @@ import {
   type Cell,
   type Ripple,
 } from "@/lib/glyph/matrix";
+import { inkRadius } from "@/lib/glyph/tone";
+
+/**
+ * What a source has to say on one frame: a new field, rings to strike, or both.
+ *
+ * The rings arrive without a birth time because the cell has the only clock
+ * that matters here — the one the frame loop is running on.
+ */
+export type Tick = {
+  frame?: Float32Array | null;
+  ripples?: { x: number; y: number; strength?: number }[];
+};
 
 /**
  * A field of cells on a canvas, holding whatever frame it is given.
@@ -22,8 +34,9 @@ import {
  * it hands over a frame, and the field migrates to it.
  *
  * The loop is what keeps Law 4. It runs while the pointer is inside, while
- * cells are settling, while a value transition is in flight, or while a ripple
- * is alive — and stops itself the moment all four are false.
+ * cells are settling, while a value transition is in flight, while a ripple is
+ * alive, or while a source still has something to report — and stops itself
+ * the moment all five are false.
  */
 export function GlyphCell({
   grid,
@@ -33,6 +46,7 @@ export function GlyphCell({
   className = "",
   label,
   onTick,
+  tone = "mark",
 }: {
   grid: number;
   size: number;
@@ -40,8 +54,12 @@ export function GlyphCell({
   frame: Float32Array | null;
   className?: string;
   label: string;
-  /** A frame source read once per frame. Returning null means nothing new. */
-  onTick?: (now: number) => Float32Array | null;
+  /** Read once per frame. Returning null means nothing to report — and, with
+      nothing else in flight, is what lets the loop stop. */
+  onTick?: (now: number) => Tick | null;
+  /** How values become ink. See `draw` — a mark and a photograph want
+      opposite things from the same field. */
+  tone?: "mark" | "artwork";
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const cellsRef = useRef<Cell[]>([]);
@@ -53,6 +71,7 @@ export function GlyphCell({
   const lastRef = useRef(0);
   const reducedRef = useRef(false);
   const invertRef = useRef(false);
+  const toneRef = useRef(tone);
 
   const { resolvedTheme } = useTheme();
 
@@ -79,10 +98,21 @@ export function GlyphCell({
     ctx.clearRect(0, 0, size, size);
     ctx.fillStyle = getComputedStyle(canvas).getPropertyValue("color") || "#f5f5f5";
 
+    /* Two inks, because a mark and a photograph want opposite things from the
+       same field. A mark is a graphic: every cell belongs to it, so unlit cells
+       stay as a faint dot field and value rides an alpha ramp on top. A
+       photograph is a halftone: tone is carried by the area of a solid dot and
+       by nothing else. Fading the dot as well would put value into the picture
+       twice and square it — the very crush `inkRadius` exists to undo — and a
+       floor under it would stop a dark cover ever reaching black. */
+    const artwork = toneRef.current === "artwork";
+    if (artwork) ctx.globalAlpha = 1;
+
     for (const cell of cellsRef.current) {
       const value = invertRef.current ? 1 - cell.v : cell.v;
-      const r = Math.max(0.45, value * cellSize * 0.62);
-      ctx.globalAlpha = 0.2 + value * 0.8;
+      const r = artwork ? inkRadius(value, cellSize) : Math.max(0.45, value * cellSize * 0.62);
+      if (r <= 0) continue; // Real blacks: an unlit cell draws nothing at all.
+      if (!artwork) ctx.globalAlpha = 0.2 + value * 0.8;
       ctx.beginPath();
       ctx.arc(cell.x + cell.ox, cell.y + cell.oy, r, 0, Math.PI * 2);
       ctx.fill();
@@ -102,14 +132,19 @@ export function GlyphCell({
 
       const cells = cellsRef.current;
       const ticked = onTickRef.current?.(now) ?? null;
-      if (ticked) {
+      if (ticked?.frame) {
         // A ticked frame primes the field as surely as the `frame` prop does:
         // a source that only ticks is still a field with something to say.
-        setTargets(cells, ticked);
+        setTargets(cells, ticked.frame);
         // And the first one is not a transition either — migrating into it from
         // zero would open the field on full ink under the light skin.
         if (!primedRef.current) settle(cells);
         primedRef.current = true;
+      }
+      // A ring the source asked for is struck on the source's own frame, so it
+      // is exactly as old as the step that is about to read it.
+      if (ticked?.ripples) {
+        for (const ripple of ticked.ripples) ripplesRef.current.push({ ...ripple, born: now });
       }
 
       const pointer = pointerRef.current;
@@ -172,8 +207,13 @@ export function GlyphCell({
     }
   }, [grid, size, shape, frame, draw, run]);
 
-  /* A ticking source is its own reason to run. Under reduced motion it is read
-     once and settled: the value stays true, the movement does not happen. */
+  /* A ticking source is its own reason to run, and a source that changes
+     identity — a track starting — is the only thing that can wake a loop that
+     stopped because there was nothing left to report.
+
+     Under reduced motion it is read once and settled: the value stays true, the
+     movement does not happen. Any rings it offers are dropped here rather than
+     at the source, so a caller cannot emit motion by forgetting to check. */
   useEffect(() => {
     if (!onTick) return;
     if (!reducedRef.current) {
@@ -181,8 +221,8 @@ export function GlyphCell({
       return;
     }
     const ticked = onTick(performance.now());
-    if (!ticked) return;
-    setTargets(cellsRef.current, ticked);
+    if (!ticked?.frame) return;
+    setTargets(cellsRef.current, ticked.frame);
     primedRef.current = true;
     settle(cellsRef.current);
     draw();
@@ -192,6 +232,11 @@ export function GlyphCell({
     invertRef.current = invert;
     draw();
   }, [invert, draw]);
+
+  useEffect(() => {
+    toneRef.current = tone;
+    draw();
+  }, [tone, draw]);
 
   const toLocal = (event: React.PointerEvent<HTMLElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();

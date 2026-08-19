@@ -13,22 +13,31 @@ const CELLS = GRID * GRID; // A square field draws one arc per cell.
 
 /**
  * jsdom has no 2D context, so the canvas is answered by a recorder. It keeps
- * what it was asked to draw, not just how often: `draw` encodes a cell's value
- * as `0.2 + value * 0.8` alpha and a radius of `value * cellSize * 0.62`, so
- * reading those back says which frame the field actually painted — the one it
- * was handed, or some half-migrated state on the way to it.
+ * what it was asked to draw, not just how often: under the `mark` ink, `draw`
+ * encodes a cell's value as `0.2 + value * 0.8` alpha and a radius of
+ * `value * cellSize * 0.62`, so reading those back says which frame the field
+ * actually painted — the one it was handed, or some half-migrated state on the
+ * way to it. The centres come back too, which is how a ring passing through the
+ * field can be seen at all.
  */
 function recordCanvas() {
-  const painted = { arcs: 0, clears: 0, alphas: [] as number[], radii: [] as number[] };
+  const painted = {
+    arcs: 0,
+    clears: 0,
+    alphas: [] as number[],
+    radii: [] as number[],
+    xs: [] as number[],
+  };
   const ctx = {
     setTransform: () => {},
     clearRect: () => {
       painted.clears++;
     },
     beginPath: () => {},
-    arc: (_x: number, _y: number, r: number) => {
+    arc: (x: number, _y: number, r: number) => {
       painted.arcs++;
       painted.radii.push(r);
+      painted.xs.push(x);
       painted.alphas.push(ctx.globalAlpha);
     },
     fill: () => {},
@@ -109,7 +118,7 @@ describe("GlyphCell", () => {
     const painted = recordCanvas();
     const lit = new Float32Array(CELLS).fill(1);
 
-    mount(<GlyphCell grid={GRID} size={SIZE} frame={null} label="ticking" onTick={() => lit} />);
+    mount(<GlyphCell grid={GRID} size={SIZE} frame={null} label="ticking" onTick={() => ({ frame: lit })} />);
 
     // The tick is the field's only source, so it is its own reason to run.
     expect(clock.pending).toBe(1);
@@ -131,7 +140,7 @@ describe("GlyphCell", () => {
     const painted = recordCanvas();
     const lit = new Float32Array(CELLS).fill(1);
 
-    mount(<GlyphCell grid={GRID} size={SIZE} frame={null} label="ticking" onTick={() => lit} />);
+    mount(<GlyphCell grid={GRID} size={SIZE} frame={null} label="ticking" onTick={() => ({ frame: lit })} />);
 
     // Read once and settled: the value is there, the movement is not.
     expect(painted.arcs).toBeGreaterThanOrEqual(CELLS);
@@ -164,5 +173,86 @@ describe("GlyphCell", () => {
     // The first frame is not a transition, so nothing is left running.
     expect(clock.pending).toBe(0);
     for (const value of firstFrameValues(painted)) expect(value).toBeCloseTo(1, 6);
+  });
+
+  it("inks artwork by area, and lets a dark cell be dark", () => {
+    reducedMotion(false);
+    frameClock();
+    const painted = recordCanvas();
+    const frame = new Float32Array(CELLS); // Everything black but two cells.
+    frame[0] = 1;
+    frame[1] = 0.25;
+
+    mount(
+      <GlyphCell grid={GRID} size={SIZE} frame={frame} label="cover" tone="artwork" />,
+    );
+
+    const cell = SIZE / GRID;
+    // A quarter of the luminance lays down a quarter of the ink, which is half
+    // the radius — the whole point of the square root.
+    expect(painted.radii.slice(0, 2)).toEqual([cell * 0.5, cell * 0.25]);
+    // No alpha ramp: the dot is solid and its area carries the tone alone.
+    expect(painted.alphas.slice(0, 2)).toEqual([1, 1]);
+    // And the other 62 cells drew nothing at all, rather than a floor of ink.
+    expect(painted.arcs % 2).toBe(0);
+    expect(painted.arcs).toBeLessThan(CELLS);
+  });
+
+  it("strikes the rings a ticking source asks for", () => {
+    reducedMotion(false);
+    const clock = frameClock();
+    const painted = recordCanvas();
+    const lit = new Float32Array(CELLS).fill(0.5);
+    let struck = false;
+
+    mount(
+      <GlyphCell
+        grid={GRID}
+        size={SIZE}
+        frame={null}
+        label="ticking"
+        onTick={() => {
+          if (struck) return null; // Nothing more to report; the ring carries on.
+          struck = true;
+          return { frame: lit, ripples: [{ x: SIZE / 2, y: SIZE / 2 }] };
+        }}
+      />,
+    );
+
+    const start = performance.now();
+    clock.tick(start);
+    const home = painted.xs.slice(0, CELLS);
+
+    // Long enough for the front to have travelled out to the corners.
+    for (let i = 1; i <= 12; i++) clock.tick(start + i * 16);
+
+    const moved = painted.xs.slice(-CELLS);
+    // The threshold is small because the strike is: TUNING's damping is near
+    // critical, so a ring is a shimmer through the field, not a wave over it.
+    expect(moved.some((x, i) => Math.abs(x - home[i]) > 0.05)).toBe(true);
+    // A live ring is its own reason to keep running, with nothing left to report.
+    expect(clock.pending).toBe(1);
+  });
+
+  it("emits no ring at all under reduced motion", () => {
+    reducedMotion(true);
+    const clock = frameClock();
+    const painted = recordCanvas();
+    const lit = new Float32Array(CELLS).fill(0.5);
+
+    mount(
+      <GlyphCell
+        grid={GRID}
+        size={SIZE}
+        frame={null}
+        label="ticking"
+        onTick={() => ({ frame: lit, ripples: [{ x: SIZE / 2, y: SIZE / 2 }] })}
+      />,
+    );
+
+    // The frame is honoured; the ring the same tick asked for is not, and no
+    // loop is left running to carry one.
+    expect(painted.arcs).toBeGreaterThanOrEqual(CELLS);
+    expect(clock.pending).toBe(0);
   });
 });

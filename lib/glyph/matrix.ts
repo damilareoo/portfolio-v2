@@ -18,7 +18,12 @@ export type Cell = {
   tv: number;
 };
 
-export type Ripple = { x: number; y: number; born: number };
+/**
+ * A ring struck at a point. `strength` is a multiplier on the force it carries,
+ * so a caller with something to say about the ring's size — a bright cover
+ * against a dark one — can say it without reaching into `TUNING`.
+ */
+export type Ripple = { x: number; y: number; born: number; strength?: number };
 
 export type Pointer = { x: number; y: number } | null;
 
@@ -162,7 +167,10 @@ export function stepCells(
       if (offset > TUNING.RIPPLE_WIDTH) continue;
       // Struck as the front passes, and fading as the ring travels out.
       const strength =
-        (1 - offset / TUNING.RIPPLE_WIDTH) * (1 - age / TUNING.RIPPLE_LIFE) * TUNING.RIPPLE_STRENGTH;
+        (1 - offset / TUNING.RIPPLE_WIDTH) *
+        (1 - age / TUNING.RIPPLE_LIFE) *
+        TUNING.RIPPLE_STRENGTH *
+        (ripple.strength ?? 1);
       cell.vx += (dx / dist) * strength * dt;
       cell.vy += (dy / dist) * strength * dt;
     }

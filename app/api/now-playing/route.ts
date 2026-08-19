@@ -59,9 +59,15 @@ export async function GET() {
     };
     if (!data.item) return NextResponse.json(SILENT, { headers: NO_CACHE });
 
-    // The disc dithers the artwork down to a dot grid, so the smallest image
-    // Spotify offers is already more resolution than it can use.
-    const art = [...(data.item.album?.images ?? [])].sort((a, b) => a.width - b.width)[0];
+    /* The disc's grid is 48 cells across and each cell is a box average of the
+       pixels under it, so the artwork wants roughly 4 source pixels per cell in
+       each direction to average over — under that, a cell is one or two pixels
+       and the cover arrives as noise rather than as a picture. Spotify's rungs
+       are 640, 300 and 64: the smallest that clears the bar is 300, and taking
+       the smallest that clears it rather than the largest keeps the proxy
+       cheap. */
+    const images = [...(data.item.album?.images ?? [])].sort((a, b) => a.width - b.width);
+    const art = images.find((image) => image.width >= 4 * 48) ?? images.at(-1);
 
     return NextResponse.json(
       {
