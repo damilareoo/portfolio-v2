@@ -134,7 +134,17 @@ export function lastNDates(today: Date, n: number): string[] {
 export type Ingest =
   | { kind: "nothing" }
   | { kind: "bad-date" }
-  | { kind: "reading"; steps: number; date?: string };
+  | { kind: "reading"; steps: number; date?: string }
+  | { kind: "segments"; segments: StepSegment[] };
+
+/**
+ * One Health Connect step record: a count, and when it started.
+ *
+ * The start is kept as the string it arrived as, because it is also the
+ * identity of the record in the store — the thing that makes a second delivery
+ * of the same record an overwrite rather than another few hundred steps.
+ */
+export type StepSegment = { start: string; count: number };
 
 /** A finite number, or null — from a JSON number or a string holding one. */
 function asNumber(value: unknown): number | null {
@@ -177,6 +187,25 @@ export function readIngest(raw: string): Ingest {
     if (date !== undefined && (typeof date !== "string" || !DATE_PATTERN.test(date))) {
       return { kind: "bad-date" };
     }
+
+    /* The webhook apps post Health Connect's own records rather than a total.
+       A record missing either half of its identity is dropped rather than
+       guessed at, and dropping one is not grounds for refusing the rest — a
+       batch is a sync's worth of a day, and losing all of it over one bad row
+       would lose real walking. */
+    if (Array.isArray(steps)) {
+      const segments: StepSegment[] = [];
+      for (const record of steps) {
+        if (typeof record !== "object" || record === null) continue;
+        const { count, start_time: start } = record as { count?: unknown; start_time?: unknown };
+        const value = asNumber(count);
+        if (value === null || value < 0) continue;
+        if (typeof start !== "string" || Number.isNaN(Date.parse(start))) continue;
+        segments.push({ start, count: value });
+      }
+      return segments.length === 0 ? { kind: "nothing" } : { kind: "segments", segments };
+    }
+
     const value = asNumber(steps);
     if (value === null) return { kind: "nothing" };
     return date === undefined
@@ -249,6 +278,53 @@ export async function readSteps(goal: number): Promise<StepsReading | null> {
     updatedAt: toCount(updated),
     goal,
   };
+}
+
+/** Where a day's individual records live, keyed by the moment each began. */
+export function segmentsKey(date: string): string {
+  return `steps:seg:${date}`;
+}
+
+/**
+ * File a batch of records and rebuild the days they touched.
+ *
+ * The apps that post these sync incrementally — each run carries only what is
+ * new since the last — so a day's total has to be accumulated rather than
+ * replaced. Keeping the records themselves is what makes that safe: a second
+ * delivery of a record overwrites its own field instead of adding to a running
+ * sum, and a corrected record can revise a day *downwards*, which the plain
+ * total's keep-the-peak rule can never do.
+ *
+ * A record is filed under the day it began in Lagos. One that runs across
+ * midnight lands wholly on the day it started, which is a rounding error of a
+ * few minutes' walking and not worth splitting a record to avoid.
+ */
+export async function writeSegments(segments: StepSegment[]): Promise<boolean> {
+  const byDay = new Map<string, StepSegment[]>();
+  for (const segment of segments) {
+    const date = zonedDate(new Date(segment.start));
+    const day = byDay.get(date);
+    if (day) day.push(segment);
+    else byDay.set(date, [segment]);
+  }
+
+  for (const [date, day] of byDay) {
+    const fields: (string | number)[] = [];
+    for (const segment of day) fields.push(segment.start, segment.count);
+    if (await command(["HSET", segmentsKey(date), ...fields]) === null) return false;
+    // The hash ages out on the same sixty days as the total it feeds.
+    await command(["EXPIRE", segmentsKey(date), DAY_TTL_SECONDS]);
+
+    const stored = await command(["HVALS", segmentsKey(date)]);
+    if (!Array.isArray(stored)) return false;
+    let total = 0;
+    for (const value of stored) {
+      const n = Number(value);
+      if (Number.isFinite(n)) total += n;
+    }
+    if (!(await writeSteps(date, Math.round(total)))) return false;
+  }
+  return true;
 }
 
 export async function writeSteps(date: string, steps: number): Promise<boolean> {

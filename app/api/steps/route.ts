@@ -7,6 +7,7 @@ import {
   readIngest,
   readSteps,
   tokenMatches,
+  writeSegments,
   writeSteps,
   zonedDate,
 } from "@/lib/steps";
@@ -61,6 +62,23 @@ export async function POST(request: Request) {
      post was heard and carried no reading. The store is not touched. */
   if (ingest.kind === "nothing") {
     return new NextResponse(null, { status: 204, headers: NO_CACHE });
+  }
+
+  /* Records rather than a total. They are accumulated, not compared: the batch
+     is a sync's worth of a day, and the store already holds the rest of it.
+     The plausibility guard below is for a claim about a whole day, which this
+     is not — a batch of records cannot be "lower than" anything. */
+  if (ingest.kind === "segments") {
+    if (!countersConfigured) {
+      return NextResponse.json(
+        { error: "store not configured" },
+        { status: 501, headers: NO_CACHE },
+      );
+    }
+    if (!(await writeSegments(ingest.segments))) {
+      return NextResponse.json({ error: "store unavailable" }, { status: 503, headers: NO_CACHE });
+    }
+    return NextResponse.json({ ok: true }, { headers: NO_CACHE });
   }
 
   const date = ingest.date ?? zonedDate();

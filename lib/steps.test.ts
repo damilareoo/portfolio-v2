@@ -5,6 +5,7 @@ import {
   averageOf,
   isPlausible,
   lastNDates,
+  readIngest,
   stepsKey,
   tokenMatches,
   zonedDate,
@@ -13,6 +14,51 @@ import {
 describe("stepsKey", () => {
   it("namespaces by date", () => {
     expect(stepsKey("2026-08-18")).toBe("steps:2026-08-18");
+  });
+});
+
+describe("readIngest, segment payloads", () => {
+  const seg = (count: number, start: string) => ({ count, start_time: start, end_time: start });
+
+  it("reads the shape the Health Connect webhook apps post", () => {
+    const body = JSON.stringify({
+      timestamp: "2026-08-19T14:00:00.123Z",
+      app_version: "1.2.3",
+      steps: [seg(842, "2026-08-19T08:00:00Z"), seg(1200, "2026-08-19T09:00:00Z")],
+    });
+    const out = readIngest(body);
+    expect(out.kind).toBe("segments");
+    if (out.kind !== "segments") return;
+    expect(out.segments).toEqual([
+      { start: "2026-08-19T08:00:00Z", count: 842 },
+      { start: "2026-08-19T09:00:00Z", count: 1200 },
+    ]);
+  });
+
+  it("keeps a plain total a total, and does not mistake it for a segment", () => {
+    expect(readIngest('{"steps":6231}')).toEqual({ kind: "reading", steps: 6231 });
+    expect(readIngest("6231")).toEqual({ kind: "reading", steps: 6231 });
+  });
+
+  it("skips records it cannot read rather than failing the whole batch", () => {
+    const body = JSON.stringify({
+      steps: [
+        seg(500, "2026-08-19T08:00:00Z"),
+        { count: "nonsense", start_time: "2026-08-19T09:00:00Z" },
+        { count: 300 }, // no start_time to file it under
+        seg(700, "not-a-date"),
+        seg(250, "2026-08-19T10:00:00Z"),
+      ],
+    });
+    const out = readIngest(body);
+    expect(out.kind).toBe("segments");
+    if (out.kind !== "segments") return;
+    expect(out.segments.map((x) => x.count)).toEqual([500, 250]);
+  });
+
+  it("treats an empty or unreadable array as nothing to report", () => {
+    expect(readIngest('{"steps":[]}').kind).toBe("nothing");
+    expect(readIngest('{"steps":[{"count":"x"}]}').kind).toBe("nothing");
   });
 });
 
@@ -212,6 +258,10 @@ function fakeRedis(seed: Record<string, string | number> = {}) {
   const store = new Map<string, string>(
     Object.entries(seed).map(([k, v]) => [k, String(v)]),
   );
+  /* Hashes live apart from the plain keys, as they do in Redis. The segment
+     store keeps a day's individual records in one, and the day's total beside
+     it as an ordinary key. */
+  const hashes = new Map<string, Map<string, string>>();
   const calls: string[][] = [];
 
   const fetchImpl = async (_url: unknown, init: { body: string }) => {
@@ -230,11 +280,24 @@ function fakeRedis(seed: Record<string, string | number> = {}) {
       case "MGET":
         result = rest.map((key) => store.get(key) ?? null);
         break;
+      case "HSET": {
+        const hash = hashes.get(rest[0]) ?? new Map<string, string>();
+        for (let i = 1; i < rest.length; i += 2) hash.set(rest[i], rest[i + 1]);
+        hashes.set(rest[0], hash);
+        result = 1;
+        break;
+      }
+      case "HVALS":
+        result = [...(hashes.get(rest[0])?.values() ?? [])];
+        break;
+      case "EXPIRE":
+        result = 1;
+        break;
     }
     return { ok: true, json: async () => ({ result }) };
   };
 
-  return { store, calls, fetchImpl };
+  return { store, hashes, calls, fetchImpl };
 }
 
 async function loadSteps(seed?: Record<string, string | number>) {
@@ -564,6 +627,61 @@ describe("POST /api/steps", () => {
     expect(res.status).toBe(200);
     expect(redis.store.get("steps:2026-08-16")).toBe("8000");
     expect(redis.store.has("steps:updated-at")).toBe(false);
+  });
+
+  /* The webhook apps sync incrementally — each run posts only the records made
+     since the last one — so the day's total has to be built up rather than
+     replaced. Storing the segments and summing them is what makes that safe. */
+  it("accumulates segments across incremental syncs", async () => {
+    const { route, redis } = await loadRoute({ secret: SECRET });
+    const today = zonedDate();
+    const at = (hhmm: string) => `${today}T${hhmm}:00.000Z`;
+
+    await route.POST(
+      post(JSON.stringify({ steps: [{ count: 500, start_time: at("08:00") }] }), `Bearer ${SECRET}`),
+    );
+    expect(redis.store.get(stepsKey(today))).toBe("500");
+
+    // A later sync carries only what is new. The day is 500 + 300, not 300.
+    const res = await route.POST(
+      post(JSON.stringify({ steps: [{ count: 300, start_time: at("09:00") }] }), `Bearer ${SECRET}`),
+    );
+    expect(res.status).toBe(200);
+    expect(redis.store.get(stepsKey(today))).toBe("800");
+  });
+
+  it("overwrites a repeated record instead of counting it twice", async () => {
+    const { route, redis } = await loadRoute({ secret: SECRET });
+    const today = zonedDate();
+    const start = `${today}T08:00:00.000Z`;
+    const body = (count: number) => JSON.stringify({ steps: [{ count, start_time: start }] });
+
+    await route.POST(post(body(500), `Bearer ${SECRET}`));
+    await route.POST(post(body(500), `Bearer ${SECRET}`)); // the same record again
+    expect(redis.store.get(stepsKey(today))).toBe("500");
+
+    // And a corrected record replaces it, downwards, which a peak never could.
+    await route.POST(post(body(420), `Bearer ${SECRET}`));
+    expect(redis.store.get(stepsKey(today))).toBe("420");
+  });
+
+  it("files each segment under its own day", async () => {
+    const { route, redis } = await loadRoute({ secret: SECRET });
+    const today = zonedDate();
+    const res = await route.POST(
+      post(
+        JSON.stringify({
+          steps: [
+            { count: 400, start_time: `${today}T08:00:00.000Z` },
+            { count: 900, start_time: "2026-08-16T08:00:00.000Z" },
+          ],
+        }),
+        `Bearer ${SECRET}`,
+      ),
+    );
+    expect(res.status).toBe(200);
+    expect(redis.store.get(stepsKey(today))).toBe("400");
+    expect(redis.store.get("steps:2026-08-16")).toBe("900");
   });
 
   it("answers 501 rather than 503 when no store will ever be reached", async () => {

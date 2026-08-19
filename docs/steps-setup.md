@@ -159,7 +159,52 @@ to the store.
 If the second call also returns `401`, the secret is wrong, or the deployment
 predates it. Redeploy and try again.
 
-## Choosing an automation app
+## The easy way: a webhook app
+
+Nothing to build, nothing to pay for, and no macro. **HC Webhook**
+(<https://github.com/mcnaveen/health-connect-webhook>, on the Play Store) reads
+Health Connect in the background and POSTs it to a URL of your choosing.
+
+1. Install it, and grant it Health Connect **Steps (read)**.
+2. Add a webhook: URL `https://damilareoo-xyz.vercel.app/api/steps`, with a
+   custom header `Authorization: Bearer YOUR_SECRET_HERE`.
+3. Enable **Steps** and nothing else. Sync interval 30 minutes.
+4. Leave it alone.
+
+Alternatives with the same shape: **Life Dashboard Companion**
+(<https://github.com/owen282000/life-dashboard-companion-app>, APK from
+Releases).
+
+### What it posts, and why the server stores it differently
+
+These apps do not send a daily total. They send Health Connect's own records:
+
+```json
+{ "timestamp": "2026-08-19T14:00:00.123Z",
+  "app_version": "1.2.3",
+  "steps": [ { "count": 842, "start_time": "2026-08-19T08:00:00Z",
+               "end_time": "2026-08-19T09:00:00Z" } ] }
+```
+
+and they sync **incrementally** — each run carries only what is new since the
+last one. A batch is therefore part of a day, not a claim about one.
+
+So the endpoint files the records themselves, in a hash per day keyed by each
+record's `start_time`, and the day's total is their sum. That is what makes
+incremental delivery safe: batches accumulate, a record delivered twice
+overwrites its own field rather than counting twice, and a corrected record can
+revise a day **downwards** — which the plain `{"steps": n}` path, with its
+keep-the-peak rule, can never do.
+
+A record is filed under the day it began, in Lagos. One spanning midnight lands
+wholly on the day it started.
+
+**One limitation.** Every record in the batch is summed. With a phone alone that
+is exact. Add a watch that also records steps and the overlapping periods would
+be counted twice — Health Connect keeps sources separate and this endpoint does
+not reconcile them. If that ever happens, sync from one source only.
+
+## Doing it by hand instead: an automation app
 
 The endpoint no longer cares which. Because a body with no number in it answers
 `204` rather than erroring, neither setup needs a guard condition — the macro is
@@ -283,6 +328,8 @@ attached, which is a separate problem — check `KV_REST_API_URL` and
 
 | Symptom | Cause |
 | --- | --- |
+| Total is roughly double what you walked | Two sources are writing steps to Health Connect — typically a phone and a watch — and every record is summed. Sync from one source only. |
+| A day is stuck too high | Only possible via the plain `{"steps": n}` path, which keeps the peak. The webhook path can revise downwards on its own; this one needs the day's key deleting by hand. |
 | `204`, repeatedly | The read action returned nothing, so there was no number to post. Either the automation app lacks Health Connect **Steps (read)**, or — far more likely — Health Connect itself is empty. Go back to Step 1. This is the answer the endpoint gives instead of an error, so it is a symptom, not a fault. |
 | `200 {"ok":true}` but the site still shows zero | The post carried a real zero. Health Connect is reading zero: back to Step 1. |
 | `401` | Bearer wrong, or `STEPS_INGEST_SECRET` not set in Vercel production, or set but not yet deployed. Re-run the pre-flight in Step 3 from a computer to isolate which. Note the secret must exist on **both** Vercel projects — the phone posts to the `damilareoo` one. |

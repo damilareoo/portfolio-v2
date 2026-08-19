@@ -10,6 +10,20 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.3.3",
+    date: "2026-08-19",
+    title: "Records, not totals",
+    notes: [
+      "The steps endpoint now takes Health Connect's own records — an array of counts with the moment each began — as well as a plain daily total",
+      "That is the shape the off-the-shelf webhook apps post, which turns setup into installing one app from the Play Store, pasting a URL and one header, and never touching it again. No automation app, no macro, nothing to buy",
+      "Those apps sync incrementally: each run carries only what is new. So a batch is part of a day, not a claim about one, and the endpoint stores the records rather than a figure — a hash per day keyed by each record's start, with the total as their sum",
+      "Which makes three things true that were not. Batches accumulate instead of overwriting. A record delivered twice overwrites its own field instead of counting twice. And a corrected record can revise a day downwards — the plain total's keep-the-peak rule could only ever ratchet up, so a wrong day was wrong for sixty days",
+      "A record is filed under the day it began, in Lagos; one spanning midnight lands wholly on the day it started",
+      "The plain {\"steps\": n} path is untouched, so the guide's pre-flight and any manual backfill still work exactly as before",
+    ],
+    deployment: "https://portfolio-v2-2fi3t18o1-damilares-projects-fc682e5f.vercel.app",
+  },
+  {
     version: "1.3.2",
     date: "2026-08-19",
     title: "A forgiving ear",
