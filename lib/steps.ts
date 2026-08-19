@@ -117,6 +117,77 @@ export function lastNDates(today: Date, n: number): string[] {
  * recorded is a second device reporting, not a correction. Refusing it keeps
  * the card from walking backwards over the course of an afternoon.
  */
+/**
+ * What a posted body turns out to be saying.
+ *
+ * "Nothing" is a first-class answer, not a failure. The only client this
+ * endpoint has is a macro on a phone, and the commonest thing a macro does is
+ * fire with its step variable never set — Tasker substitutes the literal
+ * `%steps`, MacroDroid leaves a hole. Both produce a body with no number in it,
+ * and both mean the same thing: there is nothing to report right now.
+ *
+ * Treating that as an error pushed the problem onto the phone, where it had to
+ * be solved with a guard condition on the macro — and a guard written slightly
+ * wrong fails silently and forever. It is answered here instead, so the macro
+ * can be one action with nothing clever attached to it.
+ */
+export type Ingest =
+  | { kind: "nothing" }
+  | { kind: "bad-date" }
+  | { kind: "reading"; steps: number; date?: string };
+
+/** A finite number, or null — from a JSON number or a string holding one. */
+function asNumber(value: unknown): number | null {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed === "") return null;
+    const n = Number(trimmed);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
+/**
+ * Read a posted body, in any of the shapes a phone might send it.
+ *
+ * `{"steps": 6231}` is the documented form and still the one to write. A bare
+ * `6231` works too, because an automation app that can only send a variable and
+ * no template around it should not be locked out of an endpoint this simple.
+ *
+ * A malformed date is the one shape that still fails loudly: it is a body that
+ * knows what it wants to say and has said it wrong, which is a different thing
+ * from a body with nothing to say.
+ */
+export function readIngest(raw: string): Ingest {
+  const text = raw.trim();
+  if (text === "") return { kind: "nothing" };
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    // Not JSON at all — an unset variable, or a body that is only a number.
+    const bare = asNumber(text);
+    return bare === null ? { kind: "nothing" } : { kind: "reading", steps: bare };
+  }
+
+  if (typeof parsed === "object" && parsed !== null) {
+    const { steps, date } = parsed as { steps?: unknown; date?: unknown };
+    if (date !== undefined && (typeof date !== "string" || !DATE_PATTERN.test(date))) {
+      return { kind: "bad-date" };
+    }
+    const value = asNumber(steps);
+    if (value === null) return { kind: "nothing" };
+    return date === undefined
+      ? { kind: "reading", steps: value }
+      : { kind: "reading", steps: value, date: date as string };
+  }
+
+  const value = asNumber(parsed);
+  return value === null ? { kind: "nothing" } : { kind: "reading", steps: value };
+}
+
 export function isPlausible(prev: number | null, next: number): boolean {
   if (typeof next !== "number" || !Number.isFinite(next)) return false;
   if (next < 0 || next > STEP_CEILING) return false;

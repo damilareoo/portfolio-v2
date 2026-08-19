@@ -499,20 +499,60 @@ describe("POST /api/steps", () => {
     expect(redis.store.get(stepsKey(zonedDate()))).toBe("6200");
   });
 
-  it("rejects a malformed body with 400 and a badly shaped date with 422", async () => {
+  it("rejects a badly shaped date with 422", async () => {
     const { route } = await loadRoute({ secret: SECRET });
-    expect((await route.POST(post("not json", `Bearer ${SECRET}`))).status).toBe(400);
     expect(
       (await route.POST(post('{"steps":10,"date":"18-08-2026"}', `Bearer ${SECRET}`))).status,
     ).toBe(422);
   });
 
-  it("rejects a non-numeric total with 422", async () => {
+  /* A body with no number in it is not an error. It is a phone with nothing to
+     report — an automation whose step variable never got set — and the whole
+     reason the macro on the other end can be one action with no guard on it. */
+  it("answers 204 and touches nothing when there is no number to be found", async () => {
+    const { route, redis } = await loadRoute({ secret: SECRET });
+    const nothing = [
+      '{"steps": %steps}', // Tasker, variable never set
+      '{"steps": }', // MacroDroid, same
+      "%steps",
+      "[lv=steps]",
+      "not json",
+      "",
+      "   ",
+      "{}",
+      '{"steps":null}',
+    ];
+    for (const body of nothing) {
+      const res = await route.POST(post(body, `Bearer ${SECRET}`));
+      expect(res.status, `body: ${JSON.stringify(body)}`).toBe(204);
+    }
+    expect(redis.calls).toHaveLength(0);
+  });
+
+  it("takes a bare number as the whole body", async () => {
+    const { route, redis } = await loadRoute({ secret: SECRET });
+    expect((await route.POST(post("6231", `Bearer ${SECRET}`))).status).toBe(200);
+    expect(redis.store.get(stepsKey(zonedDate()))).toBe("6231");
+  });
+
+  /* Health Connect hands some devices a float. The guard the macro used to need
+     for that is gone too — the server rounds, as it always did. */
+  it("takes a decimal total, from either shape of body", async () => {
+    const { route, redis } = await loadRoute({ secret: SECRET });
+    expect((await route.POST(post("6231.0", `Bearer ${SECRET}`))).status).toBe(200);
+    expect(redis.store.get(stepsKey(zonedDate()))).toBe("6231");
+    expect((await route.POST(post('{"steps":"6400.7"}', `Bearer ${SECRET}`))).status).toBe(200);
+    expect(redis.store.get(stepsKey(zonedDate()))).toBe("6401");
+  });
+
+  /* Being forgiving about shape is not being forgiving about content: a number
+     that arrives and makes an impossible claim is still refused. The setup
+     guide's pre-flight leans on exactly this. */
+  it("still refuses an implausible number, however it was written", async () => {
     const { route } = await loadRoute({ secret: SECRET });
-    // An unset Tasker variable posts the literal string, which is not JSON at
-    // all; a quoted one is, and has to be refused here.
-    expect((await route.POST(post('{"steps":"6200"}', `Bearer ${SECRET}`))).status).toBe(422);
-    expect((await route.POST(post("{}", `Bearer ${SECRET}`))).status).toBe(422);
+    expect((await route.POST(post('{"steps":-1}', `Bearer ${SECRET}`))).status).toBe(422);
+    expect((await route.POST(post("-1", `Bearer ${SECRET}`))).status).toBe(422);
+    expect((await route.POST(post("999999", `Bearer ${SECRET}`))).status).toBe(422);
   });
 
   it("backfills an explicit past date without disturbing today", async () => {

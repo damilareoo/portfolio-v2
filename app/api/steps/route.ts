@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { site } from "@/data/site";
 import { countersConfigured } from "@/lib/counters";
 import {
-  DATE_PATTERN,
   isPlausible,
   readDay,
+  readIngest,
   readSteps,
   tokenMatches,
   writeSteps,
@@ -39,29 +39,35 @@ export async function GET() {
  * Every rejection is a coarse status code with no detail. The only legitimate
  * client is a macro on the owner's phone, and anything else knocking learns
  * only which of five categories it fell into.
+ *
+ * The body is read leniently on purpose — see `readIngest`. A phone with
+ * nothing to say is the ordinary case, not an error, and answering it as one
+ * moved the complexity onto the phone, where it could fail silently.
  */
 export async function POST(request: Request) {
   if (!tokenMatches(bearerToken(request), process.env.STEPS_INGEST_SECRET)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401, headers: NO_CACHE });
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "malformed body" }, { status: 400, headers: NO_CACHE });
-  }
+  const ingest = readIngest(await request.text());
 
-  const { steps: raw, date: given } = (body ?? {}) as { steps?: unknown; date?: unknown };
-
-  if (given !== undefined && (typeof given !== "string" || !DATE_PATTERN.test(given))) {
+  if (ingest.kind === "bad-date") {
     return NextResponse.json({ error: "bad date" }, { status: 422, headers: NO_CACHE });
   }
-  const date = given ?? zonedDate();
+
+  /* Nothing to report is not a failure, and answering it as one would push the
+     problem back onto the phone — where the only fix is a guard on the macro,
+     and a guard written slightly wrong fails silently for months. 204 says the
+     post was heard and carried no reading. The store is not touched. */
+  if (ingest.kind === "nothing") {
+    return new NextResponse(null, { status: 204, headers: NO_CACHE });
+  }
+
+  const date = ingest.date ?? zonedDate();
 
   // Rounded before the check so that a float total cannot pass validation and
   // then be stored as a different number.
-  const steps = typeof raw === "number" ? Math.round(raw) : Number.NaN;
+  const steps = Math.round(ingest.steps);
 
   const prev = await readDay(date);
   if (!isPlausible(prev, steps)) {

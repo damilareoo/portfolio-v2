@@ -10,6 +10,20 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.3.2",
+    date: "2026-08-19",
+    title: "A forgiving ear",
+    notes: [
+      "The steps endpoint reads its body leniently: a bare number is as good as {\"steps\": n}, a quoted number is fine, and a decimal is rounded rather than refused",
+      "A body with no number in it now answers 204 rather than 400. An automation firing before its step variable is set is a phone with nothing to report, not a malformed request",
+      "That moves the problem off the phone. The macro used to need a regex guard to avoid posting its own variable name as literal text, and a guard written slightly wrong skipped every post while looking perfectly configured",
+      "Being forgiving about shape is not being forgiving about content: a number that arrives and claims something impossible is still refused with 422, and the setup guide's pre-flight still leans on that",
+      "The setup guide is rewritten around it — MacroDroid first because it is free and the endpoint no longer needs the deeper integration, Tasker as the alternative, and no guard condition in either",
+      "It also records why there is no cloud API to pull from, checked rather than assumed: Google Fit's REST API is retired, the Fitbit Web API turns off in September 2026, and its successor restricts every scope behind review while sourcing from hardware a Nothing phone does not have",
+    ],
+    deployment: "https://portfolio-v2-ko95tn95v-damilares-projects-fc682e5f.vercel.app",
+  },
+  {
     version: "1.3.1",
     date: "2026-08-19",
     title: "The pair, at one size",
