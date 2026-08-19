@@ -363,9 +363,13 @@ Independent of Task 1; runs in parallel.
 - Consumes: `lib/counters.ts` — `countersConfigured`, and its `command()` pattern.
 - Produces, relied on by Task 4:
   ```ts
-  export type StepsDay = { date: string; steps: number };
+  // NOTE: `steps` and `today` are nullable, changed from the original draft.
+  // `null` means the day was never reported (render placeholder dots); a
+  // reported `0` is a real day of not walking. `average7` covers reported
+  // days only, and reads 0 when nothing at all has been reported.
+  export type StepsDay = { date: string; steps: number | null };
   export type StepsReading = {
-    today: number; days: StepsDay[]; average7: number;
+    today: number | null; days: StepsDay[]; average7: number;
     updatedAt: number | null; goal: number;
   };
   export const STEP_CEILING: 200000;
@@ -716,7 +720,14 @@ git commit -m "Spotify face: playhead pulse driven by real playback position"
 - Modify: `app/page.tsx` (the bay replaces the lone cell)
 
 **Interfaces:**
-- Consumes: Task 1 — `emptyFrame`, `stampText`, `textWidth`, `GlyphCell` paging props. Task 2 — `StepsReading`, `StepsDay`.
+- Consumes: Task 1 — `emptyFrame`, `stampText`, `textWidth`. Task 2 — `StepsReading`, `StepsDay`.
+  Note: `GlyphCell` does **not** yet have paging props — Task 1 deliberately deferred them to
+  this task, which is their first real caller. Add them here.
+  Note: `StepsDay.steps` and `StepsReading.today` are `number | null`. A `null` day must render
+  as **placeholder dots**, never as `0` — an unreported day and a walked-zero are different
+  facts, and the spec's rule is that a counter never read is not a counter at zero. `weekMarks`
+  must therefore accept null days; the test helper below passes plain numbers, so add a null
+  case of your own.
 - Produces:
   ```ts
   export type CellMark = { value: number; hollow: boolean };

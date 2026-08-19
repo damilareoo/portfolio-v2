@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Agent worktrees are whole second checkouts of this repo. ESLint walks
+    // them regardless of .gitignore, and lints every file twice.
+    ".claude/**",
   ]),
 ]);
 
