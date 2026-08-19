@@ -5,7 +5,6 @@ import { GlyphCell } from "@/components/glyph-cell";
 import { artFrame, spotifyMark } from "@/lib/glyph/glyphs";
 import { TUNING } from "@/lib/glyph/matrix";
 import { fingerprint, pulsesBetween } from "@/lib/glyph/pulse";
-import { autoLevel } from "@/lib/glyph/tone";
 
 type NowPlaying = {
   isPlaying: boolean;
@@ -60,7 +59,6 @@ function clock(ms: number) {
 export function NowPlayingDisc({ className = "" }: { className?: string }) {
   const markRef = useRef<Float32Array | null>(null);
   const [frame, setFrame] = useState<Float32Array | null>(null);
-  const [tone, setTone] = useState<"mark" | "artwork">("mark");
   const [track, setTrack] = useState<NowPlaying | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -121,15 +119,14 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
 
     /* Whatever the field is handed, the pulse needs to know where its light
        gathers — the one thing that differs between one cover and the next. */
-    const show = (values: Float32Array, kind: "mark" | "artwork") => {
+    const show = (values: Float32Array) => {
       printRef.current = fingerprint(values);
       setFrame(values);
-      setTone(kind);
     };
 
     const toMark = () => {
       markRef.current ??= spotifyMark(GRID);
-      show(markRef.current, "mark");
+      show(markRef.current);
     };
 
     if (!art) {
@@ -157,7 +154,7 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
       octx.imageSmoothingQuality = "high";
       octx.drawImage(img, 0, 0, GRID, GRID);
       try {
-        show(autoLevel(artFrame(octx.getImageData(0, 0, GRID, GRID).data, GRID)), "artwork");
+        show(artFrame(octx.getImageData(0, 0, GRID, GRID).data, GRID));
       } catch {
         return; // tainted despite the proxy — hold the mark
       }
@@ -238,7 +235,6 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
           size={SIZE}
           shape="circle"
           frame={frame}
-          tone={tone}
           onTick={onTick}
           label={label}
           className="w-[128px] cursor-pointer text-ink"
@@ -272,8 +268,9 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
           shifts anything around it. */}
       {/* Wider than the 128px disc on purpose — the track line has to fit
           without crushing, and the block is always present so revealing it
-          never shifts the layout. */}
-      <div className="h-9 w-[15rem] max-w-full text-center">
+          never shifts the layout. On a phone it gives that width back: the
+          pedometer stands beside it there, and the pair has to fit. */}
+      <div className="h-9 w-[9rem] max-w-full text-center sm:w-[15rem]">
         <div
           className={`transition-opacity duration-200 ${open || playing ? "opacity-100" : "opacity-0"}`}
         >

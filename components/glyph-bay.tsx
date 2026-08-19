@@ -190,6 +190,10 @@ function Pedometer() {
   return (
     <div className="flex flex-col items-center gap-3">
       <div className="flex items-center gap-2">
+        {/* The indicator hangs off the card's right, so an equal blank hangs
+            off its left. Without it the card sits a dot's width left of the
+            record line beneath it, and the pair stops reading as one object. */}
+        <span aria-hidden className="w-4" />
         <GlyphCell
           grid={GRID}
           size={SIZE}
@@ -199,7 +203,7 @@ function Pedometer() {
           page={page}
           onPageChange={setPage}
           label={label}
-          className="w-[240px] cursor-pointer text-ink select-none sm:w-[204px]"
+          className="w-[128px] cursor-pointer text-ink select-none"
         >
           {page === 1 ? (
             <>
@@ -297,8 +301,10 @@ function Pedometer() {
       </div>
 
       {/* The record line, sized and placed as the disc's is, so the two cards
-          sit on the same baseline whatever either of them has to say. */}
-      <div className="h-9 w-[15rem] max-w-full text-center">
+          sit on the same baseline whatever either of them has to say. It gives
+          up width on a phone because the two fields stand side by side there,
+          and a caption wider than its own card would push its neighbour off. */}
+      <div className="h-9 w-[9rem] max-w-full text-center sm:w-[15rem]">
         <p className="font-mono text-[0.5rem] uppercase tracking-[0.08em] text-ink-3">Steps</p>
         {today === null ? (
           <p className="mt-0.5 text-[0.6875rem] text-ink-3">Not reported yet</p>
@@ -316,14 +322,16 @@ function Pedometer() {
 /**
  * The bay: the two live readouts the home carries, side by side.
  *
- * They are siblings on purpose — same dot field, same mono label, same record
- * line under each — because the argument of the whole thing is that one
- * instrument is wearing two faces, not that the page has collected two widgets.
+ * They are siblings on purpose — same dot field at the same size, same mono
+ * label, same record line under each — because the argument of the whole thing
+ * is that one instrument is wearing two faces, not that the page has collected
+ * two widgets. They stand side by side at every width for the same reason: a
+ * phone that stacks them turns a pair into a list.
  */
 export function GlyphBay({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`flex flex-col items-center gap-12 sm:flex-row sm:items-end sm:justify-end sm:gap-14 ${className}`}
+      className={`flex items-end justify-center gap-6 sm:justify-end sm:gap-14 ${className}`}
     >
       <NowPlayingDisc />
       <Pedometer />

@@ -10,6 +10,22 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.3.1",
+    date: "2026-08-19",
+    title: "The pair, at one size",
+    notes: [
+      "The disc's artwork goes back to the v1.2.0 rendering: every cell draws a dot and tone rides an alpha ramp on top, rather than being carried by dot area alone against real blacks",
+      "The percentile auto-level went with it. Between them they were blowing highlights into solid white and losing the dot lattice the disc is made of — the halftone was truer to a printing process and worse to look at",
+      "The playhead pulse and the progress arc are untouched. What changed is how a cover is drawn, not what the disc reports",
+      "The pedometer was 240px beside a 128px disc. Both are 128px now — they are one instrument wearing two faces, and a pair at two sizes reads as two widgets",
+      "They stand side by side at every width. A phone that stacked them turned the pair into a list, and at the old size they could never have fitted",
+      "Each keeps its own record line beneath it; the lines give up width on a phone so the pair fits without either pushing the other off",
+      "The page indicator hangs off the pedometer's right, so an equal blank now hangs off its left and the card sits square above its own record line",
+      "Steps ingest is live: STEPS_INGEST_SECRET is provisioned on both faces, so the phone automation in docs/steps-setup.md has something to post to",
+    ],
+    deployment: "https://portfolio-v2-k9ewpp088-damilares-projects-fc682e5f.vercel.app",
+  },
+  {
     version: "1.3.0",
     date: "2026-08-19",
     title: "The glyph matrix",
