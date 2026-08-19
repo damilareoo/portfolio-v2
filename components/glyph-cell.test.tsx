@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { ThemeProvider } from "next-themes";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { GlyphCell } from "@/components/glyph-cell";
 
@@ -89,6 +90,10 @@ function reducedMotion(reduce: boolean) {
     media: query,
     addEventListener: () => {},
     removeEventListener: () => {},
+    // next-themes still reaches for the deprecated pair, and the skin test
+    // mounts a real provider rather than pretending to be one.
+    addListener: () => {},
+    removeListener: () => {},
   }));
 }
 
@@ -232,6 +237,69 @@ describe("GlyphCell", () => {
     expect(moved.some((x, i) => Math.abs(x - home[i]) > 0.05)).toBe(true);
     // A live ring is its own reason to keep running, with nothing left to report.
     expect(clock.pending).toBe(1);
+  });
+
+  /* The light skin turns a value into its opposite, which is right for a
+     photograph and catastrophic for a drawing: a figure on an empty field would
+     come out as a hole punched in a solid block of ink. The pedometer card is
+     the caller that would suffer it, so the distinction is pinned here. */
+  it("inverts a luminance on the light skin and leaves ink alone", () => {
+    const dark = new Float32Array(CELLS); // Nothing lit: the empty field.
+
+    const paint = (polarity: "luminance" | "ink") => {
+      reducedMotion(false);
+      frameClock();
+      const painted = recordCanvas();
+      mount(
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          <GlyphCell grid={GRID} size={SIZE} frame={dark} label="empty" polarity={polarity} />
+        </ThemeProvider>,
+      );
+      // The last paint, not the first: the skin effect repaints after mount.
+      const values = painted.alphas.slice(-CELLS).map((a) => (a - 0.2) / 0.8);
+      act(() => root?.unmount());
+      vi.restoreAllMocks();
+      return values;
+    };
+
+    // A dark photograph on a light ground is ink everywhere.
+    for (const value of paint("luminance")) expect(value).toBeCloseTo(1, 6);
+    // An empty drawing is empty on either ground.
+    for (const value of paint("ink")) expect(value).toBeCloseTo(0, 6);
+  });
+
+  it("turns its pages by keyboard, wrapping in both directions", () => {
+    reducedMotion(false);
+    frameClock();
+    recordCanvas();
+    const turns: number[] = [];
+
+    mount(
+      <GlyphCell
+        grid={GRID}
+        size={SIZE}
+        frame={new Float32Array(CELLS).fill(1)}
+        label="paged"
+        pages={3}
+        page={0}
+        onPageChange={(next) => turns.push(next)}
+      />,
+    );
+
+    const card = host!.querySelector('[role="group"]')!;
+    // A field with faces is operated, not looked at — `img` would hide the type
+    // laid over it from the very readers that depend on it.
+    expect(card.getAttribute("tabindex")).toBe("0");
+
+    const press = (key: string) =>
+      act(() => {
+        card.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
+      });
+
+    press("ArrowRight");
+    press("ArrowLeft");
+    press("ArrowUp"); // Not ours; the page still has to be able to scroll.
+    expect(turns).toEqual([1, 2]);
   });
 
   it("emits no ring at all under reduced motion", () => {

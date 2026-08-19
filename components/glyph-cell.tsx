@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import { useTheme } from "next-themes";
 import { createLoop, type Loop } from "@/lib/glyph/loop";
 import {
@@ -26,6 +26,12 @@ export type Tick = {
   ripples?: { x: number; y: number; strength?: number }[];
 };
 
+/** How far a finger has to travel before it meant it. Screen pixels, not cells. */
+const SWIPE = 40;
+
+/** And how little it can travel and still have been a click. */
+const TAP = 8;
+
 /**
  * A field of cells on a canvas, holding whatever frame it is given.
  *
@@ -47,6 +53,11 @@ export function GlyphCell({
   label,
   onTick,
   tone = "mark",
+  polarity = "luminance",
+  pages,
+  page = 0,
+  onPageChange,
+  children,
 }: {
   grid: number;
   size: number;
@@ -60,6 +71,15 @@ export function GlyphCell({
   /** How values become ink. See `draw` — a mark and a photograph want
       opposite things from the same field. */
   tone?: "mark" | "artwork";
+  /** What a value *is*. See `draw`. */
+  polarity?: "luminance" | "ink";
+  /** How many faces this field wears. Paging is off entirely without it. */
+  pages?: number;
+  page?: number;
+  /** Owning the page is the caller's job; the cell only reports the turn. */
+  onPageChange?: (page: number) => void;
+  /** Laid over the field, so a face can carry type the dot alphabet cannot. */
+  children?: ReactNode;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const cellsRef = useRef<Cell[]>([]);
@@ -72,6 +92,8 @@ export function GlyphCell({
   const reducedRef = useRef(false);
   const invertRef = useRef(false);
   const toneRef = useRef(tone);
+  const polarityRef = useRef(polarity);
+  const swipeRef = useRef<{ x: number; y: number } | null>(null);
 
   const { resolvedTheme } = useTheme();
 
@@ -108,8 +130,16 @@ export function GlyphCell({
     const artwork = toneRef.current === "artwork";
     if (artwork) ctx.globalAlpha = 1;
 
+    /* And two meanings for the number itself. A luminance says how bright the
+       depicted thing is, so it has to flip with the ground: a photograph's
+       highlights are ink on white paper and bare screen on a dark one. Ink says
+       where the marks are, and a mark is a mark on either ground — a figure
+       drawn as a luminance would come out as a hole punched in a solid field
+       the moment the light skin inverted it. */
+    const flip = invertRef.current && polarityRef.current === "luminance";
+
     for (const cell of cellsRef.current) {
-      const value = invertRef.current ? 1 - cell.v : cell.v;
+      const value = flip ? 1 - cell.v : cell.v;
       const r = artwork ? inkRadius(value, cellSize) : Math.max(0.45, value * cellSize * 0.62);
       if (r <= 0) continue; // Real blacks: an unlit cell draws nothing at all.
       if (!artwork) ctx.globalAlpha = 0.2 + value * 0.8;
@@ -238,6 +268,11 @@ export function GlyphCell({
     draw();
   }, [tone, draw]);
 
+  useEffect(() => {
+    polarityRef.current = polarity;
+    draw();
+  }, [polarity, draw]);
+
   const toLocal = (event: React.PointerEvent<HTMLElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     return {
@@ -246,11 +281,35 @@ export function GlyphCell({
     };
   };
 
+  const paged = Boolean(pages && pages > 1 && onPageChange);
+  const turn = (delta: number) => {
+    if (!paged) return;
+    const count = pages!;
+    onPageChange!((((page + delta) % count) + count) % count);
+  };
+
   return (
     <div
-      role="img"
+      /* A field with faces is a thing you operate, not a picture: `img` would
+         make its own children presentational, and the type laid over the dots
+         is where a screen reader gets the values the canvas cannot give it. */
+      role={paged ? "group" : "img"}
       aria-label={label}
-      title={label}
+      title={paged ? undefined : label}
+      tabIndex={paged ? 0 : undefined}
+      /* The gesture is horizontal; the page still has to be able to scroll
+         underneath it, or the card becomes a trap on a phone. */
+      style={paged ? { touchAction: "pan-y" } : undefined}
+      onKeyDown={(event) => {
+        if (!paged) return;
+        if (event.key === "ArrowRight") {
+          event.preventDefault();
+          turn(1);
+        } else if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          turn(-1);
+        }
+      }}
       onPointerMove={(event) => {
         if (reducedRef.current) return;
         pointerRef.current = toLocal(event);
@@ -258,17 +317,43 @@ export function GlyphCell({
       }}
       onPointerLeave={() => {
         pointerRef.current = null;
+        swipeRef.current = null;
         if (!reducedRef.current) run();
       }}
       onPointerDown={(event) => {
+        // Recorded before the reduced-motion gate: the ring is motion and can
+        // be dropped, but a page that cannot be turned is a value nobody can read.
+        if (paged) swipeRef.current = { x: event.clientX, y: event.clientY };
         if (reducedRef.current) return;
         const { x, y } = toLocal(event);
         ripplesRef.current.push({ x, y, born: performance.now() });
         run();
       }}
-      className={className}
+      onPointerCancel={() => {
+        swipeRef.current = null;
+      }}
+      onPointerUp={(event) => {
+        const from = swipeRef.current;
+        swipeRef.current = null;
+        if (!paged || !from) return;
+        const dx = event.clientX - from.x;
+        const dy = event.clientY - from.y;
+        // A drag that travelled sideways is a swipe; one that barely travelled
+        // at all is a click, and a click goes forward. Everything else — a
+        // vertical drag, which is the page scrolling — is not ours to read.
+        if (Math.abs(dx) >= SWIPE && Math.abs(dx) > Math.abs(dy)) turn(dx < 0 ? 1 : -1);
+        else if (Math.abs(dx) < TAP && Math.abs(dy) < TAP) turn(1);
+      }}
+      className={`relative ${className}`}
     >
-      <canvas ref={canvasRef} width={size} height={size} className="h-auto w-full" />
+      <canvas
+        ref={canvasRef}
+        width={size}
+        height={size}
+        aria-hidden
+        className="h-auto w-full"
+      />
+      {children ? <div className="pointer-events-none absolute inset-0">{children}</div> : null}
     </div>
   );
 }
