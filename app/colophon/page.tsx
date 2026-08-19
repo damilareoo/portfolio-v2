@@ -3,9 +3,9 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Counters } from "@/components/counters";
 import { DialKit } from "@/components/dial-kit";
+import { GlyphForge } from "@/components/glyph-forge";
 import { SiteNav } from "@/components/site-nav";
 import { TokenRow, TypeSpecimen } from "@/components/colophon-instruments";
-import { ValueField } from "@/components/value-field";
 import { changelog } from "@/data/changelog";
 import { isPortfolio } from "@/lib/site-mode";
 
@@ -99,11 +99,11 @@ export default function ColophonPage() {
           </Section>
 
           <Section
-            label="The field"
-            note="The ladder is fixed. Its middle is not — move across the field to blend weight and contrast from the nearest landmarks, and click to commit. The blend holds while you move around the site and resets when you reload it."
+            label="The forge"
+            note="The same field the home carries, with the pen handed over. Drag across it to draw, or use the arrow keys and space. The drawing is kept on your own device and never sent here — it appears as a hidden page on the home, past the week view. Only the fact that a glyph was drawn is counted, once per browser."
           >
             <div className="max-w-[26rem]">
-              <ValueField />
+              <GlyphForge />
             </div>
           </Section>
 
@@ -176,12 +176,30 @@ export default function ColophonPage() {
             </div>
           </Section>
 
+          <Section label="Provenance">
+            <div className="max-w-[34rem] space-y-3 text-[0.8125rem] leading-[1.6] text-ink-2">
+              <p>
+                The dot-matrix language here is an original web implementation
+                and a homage to Nothing&rsquo;s interface. No Nothing code,
+                assets, or trademarks are used; the glyphs, the font, and the
+                engine that draws them were written for this site.
+              </p>
+              <p>
+                Spotify&rsquo;s <span className="font-mono text-[0.75rem]">audio-features</span>{" "}
+                and <span className="font-mono text-[0.75rem]">audio-analysis</span> endpoints
+                return 403 for this application, so there is no tempo and no beat
+                grid to be had. The pulse is driven by playback position against
+                the clock. It is not beat detection, and it does not claim to be.
+              </p>
+            </div>
+          </Section>
+
           <Section label="Thanks">
             <div className="max-w-[34rem] space-y-3 text-[0.8125rem] leading-[1.6] text-ink-2">
               <p>
                 <Out href="https://intempus.org">Intempus</Out>, whose colophon
                 established the labelled-record structure this one descends from,
-                and whose tint field is the direct ancestor of the value field.
+                and whose tint field is the direct ancestor of the forge.
               </p>
               <p>
                 <Out href="https://guglieri.com/work">Guglieri</Out>,{" "}

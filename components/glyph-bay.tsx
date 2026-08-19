@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { GlyphCell } from "@/components/glyph-cell";
 import { NowPlayingDisc } from "@/components/now-playing-disc";
+import { authoredGlyph } from "@/data/glyph";
+import { glyphFrame, markGlyph } from "@/lib/glyph/forge";
+import { useStoredGlyph } from "@/lib/glyph/stored-glyph";
 import { emptyFrame } from "@/lib/glyph/glyphs";
 import {
   groupDigits,
@@ -18,6 +21,21 @@ const SIZE = 300; // canvas units; CSS scales it
 
 /** The walk, the record, the week — in that order, because that is their order. */
 const FACES = ["the walk", "the record", "the week"] as const;
+
+/**
+ * And a fourth face nothing points at.
+ *
+ * It is reachable by every means the other three are — one more turn past the
+ * week, by swipe, by click, by arrow key — and advertised by none of them: the
+ * indicator keeps its three dots, because a fourth dot would make it a page
+ * somebody skipped rather than a page somebody found. Its label says what it
+ * is, so the visitor who arrives by keyboard is told plainly.
+ */
+const HIDDEN_FACE = "the mark";
+const PAGES = FACES.length + 1;
+
+/** The mark the hidden page carries when the visitor has drawn nothing. */
+const AUTHORED = Uint8Array.from(authoredGlyph);
 
 /* The week's geometry, in the SVG's own 100-unit box. Seven columns and seven
    rows, stopped short of the right edge so the day letters below them line up
@@ -70,13 +88,15 @@ function RecordLabel({ top, name, value }: { top: string; name: string; value: s
 }
 
 /**
- * The pedometer, as three pages of one field.
+ * The pedometer, as three pages of one field — and a fourth nobody is told about.
  *
  * The walk carries the idea: a figure on a path, ground covered behind it at
  * full size and brightness, the road ahead small and dim. The record states the
  * numbers. The week sets today against the six days behind it, and says whether
  * each was met without spending a hue on it — a missed day is an absence, and
- * an open ring is what an absence looks like in a field of dots.
+ * an open ring is what an absence looks like in a field of dots. Past the week
+ * is the mark, which reports nothing and is the point: the instrument's fourth
+ * face is whatever the visitor drew on it, or the signature it shipped with.
  *
  * Nothing here runs a loop of its own. Frames arrive as props, so the field
  * moves when a page is turned or a finger crosses it and is otherwise as still
@@ -85,6 +105,8 @@ function RecordLabel({ top, name, value }: { top: string; name: string; value: s
 function Pedometer() {
   const [reading, setReading] = useState<StepsReading | null>(null);
   const [page, setPage] = useState(0);
+  const drawn = useStoredGlyph();
+  const mark = markGlyph(drawn, AUTHORED);
 
   /* The same thirty seconds the disc polls on. An unconfigured store, a failed
      fetch and a day nobody has reported are all the same answer here — nothing
@@ -122,6 +144,7 @@ function Pedometer() {
   /* Memoised on the values rather than the reading, so a poll that comes back
      saying the same thing hands the field the same array and wakes nothing. */
   const frame = useMemo(() => {
+    if (page === 3) return glyphFrame(mark);
     if (page === 2) return emptyFrame(GRID); // the week is drawn over the field
     if (page === 1) {
       if (today === null && average === null) return placeholderFrame(GRID);
@@ -129,7 +152,7 @@ function Pedometer() {
     }
     if (today === null || goal <= 0) return placeholderFrame(GRID);
     return walkFrame(GRID, today / goal);
-  }, [page, today, average, goal]);
+  }, [page, today, average, goal, mark]);
 
   const marks = useMemo(() => weekMarks(days, goal), [days, goal]);
 
@@ -142,15 +165,27 @@ function Pedometer() {
 
   const met = days.filter((day) => day.steps !== null && day.steps >= goal).length;
   const said =
-    page === 0
-      ? `Steps today ${todaySaid}`
-      : page === 1
-        ? `Steps today ${todaySaid}. Seven-day average ${averageSaid}`
-        : average === null
-          ? "The last seven days, none of them reported yet"
-          : `The last seven days, ${met} of them at or over the goal`;
+    page === 3
+      ? drawn?.some(Boolean)
+        ? "The glyph you drew in the colophon's forge, kept on this device"
+        : "The maker's mark. Draw your own in the colophon's forge and it takes this page"
+      : page === 0
+        ? `Steps today ${todaySaid}`
+        : page === 1
+          ? `Steps today ${todaySaid}. Seven-day average ${averageSaid}`
+          : average === null
+            ? "The last seven days, none of them reported yet"
+            : `The last seven days, ${met} of them at or over the goal`;
 
-  const label = `Steps, page ${page + 1} of ${FACES.length}: ${FACES[page]}. ${said}. Click, swipe, or use the left and right arrow keys to turn the page.`;
+  /* The hidden page names itself rather than counting itself. Announcing "4 of
+     4" on the three pages that do show a dot would give it away to exactly the
+     visitors who cannot see that there are three dots — and calling it "3 of 3"
+     once they got there would be the site lying about where they are. */
+  const turning = "Click, swipe, or use the left and right arrow keys to turn the page.";
+  const label =
+    page === 3
+      ? `Steps, one page past the week: ${HIDDEN_FACE}. ${said}. ${turning}`
+      : `Steps, page ${page + 1} of ${FACES.length}: ${FACES[page]}. ${said}. ${turning}`;
 
   return (
     <div className="flex flex-col items-center gap-3">
@@ -160,7 +195,7 @@ function Pedometer() {
           size={SIZE}
           frame={frame}
           polarity="ink"
-          pages={FACES.length}
+          pages={PAGES}
           page={page}
           onPageChange={setPage}
           label={label}

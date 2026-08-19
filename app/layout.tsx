@@ -5,7 +5,6 @@ import { SiteHeader } from "@/components/site-header";
 import { isPortfolio } from "@/lib/site-mode";
 import { SettingsProvider, settingsScript } from "@/lib/settings";
 import { DialTurnsProvider } from "@/lib/dial-turns";
-import { ValueFieldProvider } from "@/lib/value-field";
 import "./globals.css";
 
 const suisse = localFont({
@@ -53,18 +52,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <SettingsProvider>
             <DialTurnsProvider>
-              {/* Sits above the surfaces so a committed blend survives client-side
-                  navigation and resets on refresh. */}
-              <ValueFieldProvider>
-                {isPortfolio ? (
-                  children
-                ) : (
-                  <>
-                    <SiteHeader />
-                    <div className="flex-1">{children}</div>
-                  </>
-                )}
-              </ValueFieldProvider>
+              {isPortfolio ? (
+                children
+              ) : (
+                <>
+                  <SiteHeader />
+                  <div className="flex-1">{children}</div>
+                </>
+              )}
             </DialTurnsProvider>
           </SettingsProvider>
         </ThemeProvider>

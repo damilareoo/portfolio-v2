@@ -56,8 +56,7 @@ html {
 body {
   background: var(--bg);
   color: var(--text-1);
-  /* Tuned live by the colophon's value field — see lib/value-field.tsx. */
-  font-weight: var(--body-weight, 400);
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
