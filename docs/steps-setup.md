@@ -56,15 +56,24 @@ often as it likes.
 
 ## Step 1 — give Health Connect something to read (Phone 2a: do this first)
 
-**Health Connect is a hub, not a sensor.** It stores what other apps write to
-it. It has no step counter of its own.
+**On Android 14 and later, Health Connect counts steps itself, and this whole
+step may be unnecessary.** From Android 14 (API 34, SDK extension 20+) Health
+Connect does on-device step counting: the moment *any* app holds `READ_STEPS`
+permission, it starts capturing steps from the phone's own sensors and filing
+them under the device's name. No source app, no Fit, no Fitbit.
 
-The Nothing Phone (2a) ships with **no** app that writes steps to Health
-Connect. There is no Google Fit, no Samsung Health, no Fitbit, and no
-first-party Nothing health app on Nothing OS. Skip this step and everything
-below will appear to work perfectly — permissions granted, macro firing, `200
-{"ok":true}` coming back — while the site shows a flat zero forever, because
-Health Connect genuinely has nothing to hand over.
+That is a change from how it used to work, and it inverts the advice below. So
+check first: **Health Connect → Data and access → Activity → Steps**. If a number
+with today's date is there, skip to Step 2.
+
+On **Android 13 and earlier**, the original rule holds: Health Connect is a hub,
+not a sensor. It stores what other apps write to it and has no counter of its
+own. The Nothing Phone (2a) ships with no app that writes steps to it — no
+Google Fit, no Samsung Health, no Fitbit, no first-party Nothing health app.
+Skip this step on such a phone and everything below will appear to work
+perfectly — permissions granted, macro firing, `200 {"ok":true}` coming back —
+while the site shows a flat zero forever, because Health Connect genuinely has
+nothing to hand over.
 
 **The tell is the word "Not connected."** Open Health Connect and look at *Your
 health apps*. If every app there — whatever is installed — reads `Not
@@ -152,19 +161,29 @@ predates it. Redeploy and try again.
 
 ## Choosing an automation app
 
-Either works, and the endpoint no longer cares which. Because a body with no
-number in it answers `204` rather than erroring, neither setup needs a guard
-condition — the macro is a read followed by a post, and that is all.
+The endpoint no longer cares which. Because a body with no number in it answers
+`204` rather than erroring, neither setup needs a guard condition — the macro is
+a read followed by a post, and that is all.
 
-- **MacroDroid** — free. Start here.
-- **Tasker** — a few dollars, and the deeper Health Connect integration. Worth
-  it if MacroDroid's build on your phone has no Health Connect action, or if you
-  expect to automate other things later.
+**Tasker is the one that works.** It is the only Android automation app found
+with a Health Connect read action. MacroDroid, checked on Nothing OS in August
+2026, has none — searching its action picker for "health" returns nothing —
+and LlamaLab Automate's nearest block detects activity *types* rather than step
+totals. If MacroDroid gains the action later it is the better free choice, so
+it is worth thirty seconds in the action picker before paying for anything.
+
+Whatever you use, do **not** settle for a **Device Sensors → Step Counter**
+action as a substitute. That sensor is cumulative since last boot, so a phone up
+for a week reports the week's total as today's.
 
 Whichever you pick, do this first, or it will work all day and die overnight in
 Doze: **Settings → Apps → [the app] → App battery usage → Unrestricted**.
 
-## MacroDroid
+## MacroDroid — only if it has gained a Health Connect action
+
+As of August 2026 it has not, and these steps cannot be completed; they are kept
+because the moment it does, this is the free path. Check by searching `health` in
+the action picker. If nothing comes back, use Tasker below.
 
 1. Install **MacroDroid** from the Play Store.
 2. **Add Macro**, name it `Push Steps`.
@@ -184,13 +203,9 @@ Doze: **Settings → Apps → [the app] → App battery usage → Unrestricted**
 No constraint, no variable check. If `steps` is unset the body arrives empty or
 as the literal `[lv=steps]`, and the server answers `204` and writes nothing.
 
-If your build has no Health Connect action, **do not** fall back to **Device
-Sensors → Step Counter**. That sensor counts from last boot, so a phone up for a
-week would report the week's total as today. Install Tasker instead.
-
 ## Tasker
 
-Same shape, with Tasker's names.
+The working path. Same shape, with Tasker's names.
 
 **Action 1** — **Health Connect** → **Get Health Data**
 
