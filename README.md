@@ -11,11 +11,15 @@ The design language is **Handled**: every surface admits to being an object with
 1. If it looks like an edge, it drags.
 2. If it looks like a card, it lifts.
 3. If it changes, it remembers.
-4. Nothing moves unless touched, or arriving.
+4. Nothing moves unless touched, arriving, or reporting.
 
 Law 4 is what lets monochrome restraint and playfulness coexist: the site is quiet in a screenshot and alive in use, and every motion on the page was caused by the visitor.
 
-The "or arriving" clause is narrow and deliberate. An element may animate the first time it enters the viewport — once. It does not re-trigger when scrolled back to, because a reveal that fires twice is a performance rather than an arrival. Still forbidden: parallax, scroll-linked transforms, autoplay, ambient loops, and anything that keeps moving while the visitor is still. A page at rest holds no running animation.
+The "arriving" clause is narrow and deliberate. An element may animate the first time it enters the viewport — once. It does not re-trigger when scrolled back to, because a reveal that fires twice is a performance rather than an arrival.
+
+The "reporting" clause is narrower still. An instrument displaying live external state may move to show that state changing — only an instrument, only while the state is actually live, and only within its own bounds. The playhead pulse is a track that is playing right now; the pedometer is a day that is still being walked. The motion is the reading, not decoration around it, and it stops when the reading does: nothing on the page may move to announce a value that is merely sitting there.
+
+Still forbidden: parallax, scroll-linked transforms, autoplay, ambient loops, and anything that keeps moving while the visitor is still. A page at rest holds no running animation, and a page at rest with nothing playing holds none either.
 
 Specs: `docs/specs/2026-08-17-v1-surfaces.md` (surfaces, motion law, case model), `docs/specs/2026-08-13-design-language.md` (language, feel) and `docs/specs/2026-08-10-portfolio-v2-design.md` (tokens, typography, stack).
 

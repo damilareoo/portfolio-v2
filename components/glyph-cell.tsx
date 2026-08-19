@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import { useTheme } from "next-themes";
 import { createLoop, type Loop } from "@/lib/glyph/loop";
+import { sweepMask } from "@/lib/glyph/entrance";
 import {
   buildCells,
+  cellIndex,
   liveRipples,
   recentre,
   setTargets,
@@ -31,6 +33,47 @@ const SWIPE = 40;
 
 /** And how little it can travel and still have been a click. */
 const TAP = 8;
+
+/** How long the arrival takes. Long enough to read as an opening, not a wipe. */
+const SWEEP_MS = 600;
+
+const ARRIVAL_KEY = "glyph:arrived";
+
+/**
+ * When this field's arrival began, on the frame clock, or null if it has missed it.
+ *
+ * The arrival is one moment for the whole page rather than one per field: the
+ * first cell to mount stamps it, and every cell mounting inside the window is
+ * handed a backdated start so it joins the wavefront already in progress. A
+ * page opens as one surface, not as a handful of independent animations.
+ *
+ * Missing it is the normal case, and the point of the gate — a session has one
+ * arrival. A client navigation back to the home mounts fresh fields long after
+ * the window closed, a reload finds the stamp already set, and both get nothing,
+ * which is Law 4 holding.
+ *
+ * The stamp is a wall clock because it has to survive a navigation, and
+ * `performance.now()` restarts at zero on every document. Storing that would
+ * have the next page read a stamp from its own future and open dark. The frame
+ * clock is still what the sweep runs on; only the decision is made on the wall.
+ *
+ * Storage that throws — private mode, blocked cookies — is read as "no
+ * arrival". A sweep is worth less than a page that renders.
+ */
+function arrivalStart(): number | null {
+  try {
+    const stamped = sessionStorage.getItem(ARRIVAL_KEY);
+    if (stamped === null) {
+      sessionStorage.setItem(ARRIVAL_KEY, String(Date.now()));
+      return performance.now();
+    }
+    const elapsed = Date.now() - Number(stamped);
+    if (!Number.isFinite(elapsed) || elapsed < 0 || elapsed > SWEEP_MS) return null;
+    return performance.now() - elapsed;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * A field of cells on a canvas, holding whatever frame it is given.
@@ -94,6 +137,7 @@ export function GlyphCell({
   const toneRef = useRef(tone);
   const polarityRef = useRef(polarity);
   const swipeRef = useRef<{ x: number; y: number } | null>(null);
+  const sweepRef = useRef<number | null>(null);
 
   const { resolvedTheme } = useTheme();
 
@@ -138,8 +182,22 @@ export function GlyphCell({
        the moment the light skin inverted it. */
     const flip = invertRef.current && polarityRef.current === "luminance";
 
+    /* The arrival masks ink, not value. The field is already holding its real
+       frame — the sweep only says how much of it has surfaced yet — so it is
+       applied after the flip, where a zero means "no mark" on either skin
+       rather than "black". Reading the clock without owning it is deliberate:
+       `draw` is called from effects as well as from the loop, and a sweep that
+       expired while the loop was stopped must resolve to a full field here
+       rather than be cancelled on a frame nobody is counting. */
+    let mask: Float32Array | null = null;
+    if (sweepRef.current !== null) {
+      const t = (performance.now() - sweepRef.current) / SWEEP_MS;
+      if (t < 1) mask = sweepMask(grid, t);
+    }
+
     for (const cell of cellsRef.current) {
-      const value = flip ? 1 - cell.v : cell.v;
+      const lit = flip ? 1 - cell.v : cell.v;
+      const value = mask ? lit * mask[cellIndex(cell, grid, size)] : lit;
       const r = artwork ? inkRadius(value, cellSize) : Math.max(0.45, value * cellSize * 0.62);
       if (r <= 0) continue; // Real blacks: an unlit cell draws nothing at all.
       if (!artwork) ctx.globalAlpha = 0.2 + value * 0.8;
@@ -177,13 +235,23 @@ export function GlyphCell({
         for (const ripple of ticked.ripples) ripplesRef.current.push({ ...ripple, born: now });
       }
 
+      /* The loop owns the sweep's life, because the loop is the only thing that
+         can be kept alive by it. Retiring it here rather than in `draw` is what
+         stops a field that is never handed a frame — where `draw` returns before
+         it reaches the mask — from holding the page in an endless arrival. */
+      if (sweepRef.current !== null && now - sweepRef.current >= SWEEP_MS) {
+        sweepRef.current = null;
+      }
+
       const pointer = pointerRef.current;
       const busy = stepCells(cells, dt, now, pointer, ripplesRef.current);
       ripplesRef.current = liveRipples(ripplesRef.current, now);
 
       draw();
 
+      // An unspent sweep was not cleared above, so it is still owed frames.
       if (ticked || pointer || busy || ripplesRef.current.length > 0) return true;
+      if (sweepRef.current !== null) return true;
 
       // Settled and untouched — stop, and leave the page still.
       recentre(cells);
@@ -210,11 +278,17 @@ export function GlyphCell({
     reducedRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const loop = createLoop((now) => stepRef.current(now));
     loopRef.current = loop;
+    /* Reduced motion does not shorten the arrival, it declines it: the field
+       opens holding its values, which is what the sweep was resolving into. */
+    if (!reducedRef.current) {
+      sweepRef.current = arrivalStart();
+      if (sweepRef.current !== null) run();
+    }
     return () => {
       loop.stop();
       loopRef.current = null;
     };
-  }, []);
+  }, [run]);
 
   useEffect(() => {
     const geometry = `${grid}:${size}:${shape}`;

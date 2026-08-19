@@ -2,7 +2,7 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { ThemeProvider } from "next-themes";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GlyphCell } from "@/components/glyph-cell";
 
 // React has to be told it is inside a test, or every render warns about act().
@@ -97,6 +97,48 @@ function reducedMotion(reduce: boolean) {
   }));
 }
 
+/** The stamp `GlyphCell` leaves to record that this session has arrived. */
+const ARRIVAL_KEY = "glyph:arrived";
+
+/**
+ * Say the session has already arrived, or that it has not.
+ *
+ * Every test but the arrival's own runs on a session that arrived long ago,
+ * because that is the state the site spends its life in — the sweep is one
+ * moment out of a whole session, so tests opt into it rather than out of it.
+ */
+function alreadyArrived() {
+  sessionStorage.setItem(ARRIVAL_KEY, "0"); // Stamped at the epoch: long over.
+}
+
+function arriving() {
+  sessionStorage.removeItem(ARRIVAL_KEY);
+}
+
+/**
+ * Both clocks, moved as one — which is the only way they ever move in life.
+ *
+ * The sweep decides whether to play on the wall clock and then runs on the
+ * frame clock, so a test that advanced one and not the other would be testing
+ * a machine that does not exist.
+ */
+function stopwatch() {
+  const wall = Date.now();
+  let elapsed = 0;
+  vi.spyOn(performance, "now").mockImplementation(() => 1000 + elapsed);
+  vi.spyOn(Date, "now").mockImplementation(() => wall + elapsed);
+  return {
+    advance(ms: number) {
+      elapsed += ms;
+    },
+  };
+}
+
+/** The values the most recent painted frame carried. */
+function lastFrameValues(painted: { alphas: number[] }) {
+  return painted.alphas.slice(-CELLS).map((alpha) => (alpha - 0.2) / 0.8);
+}
+
 let root: Root | null = null;
 let host: HTMLElement | null = null;
 
@@ -107,7 +149,10 @@ function mount(element: React.ReactElement) {
   act(() => root!.render(element));
 }
 
+beforeEach(alreadyArrived);
+
 afterEach(() => {
+  sessionStorage.clear();
   act(() => root?.unmount());
   host?.remove();
   root = null;
@@ -322,5 +367,68 @@ describe("GlyphCell", () => {
     // loop is left running to carry one.
     expect(painted.arcs).toBeGreaterThanOrEqual(CELLS);
     expect(clock.pending).toBe(0);
+  });
+  it("opens on a sweep that surfaces the centre before the corners", () => {
+    arriving();
+    reducedMotion(false);
+    const watch = stopwatch();
+    const clock = frameClock();
+    const painted = recordCanvas();
+    const lit = new Float32Array(CELLS).fill(1);
+
+    mount(<GlyphCell grid={GRID} size={SIZE} frame={lit} label="arriving" />);
+
+    // The field is already holding a full frame; none of it has surfaced yet.
+    for (const value of firstFrameValues(painted)) expect(value).toBeCloseTo(0, 6);
+    expect(clock.pending).toBe(1); // Arriving is its own reason to run.
+
+    // Halfway through, the wavefront has passed the middle and not the corner.
+    watch.advance(300);
+    clock.tick();
+    const midway = lastFrameValues(painted);
+    expect(midway[4 * GRID + 4]).toBeGreaterThan(0.5);
+    expect(midway[0]).toBeCloseTo(0, 6);
+
+    // And it resolves into the frame the field was holding all along, then stops.
+    watch.advance(400);
+    clock.tick();
+    for (const value of lastFrameValues(painted)) expect(value).toBeCloseTo(1, 6);
+    expect(clock.pending).toBe(0);
+  });
+
+  it("declines the arrival under reduced motion", () => {
+    arriving();
+    reducedMotion(true);
+    const clock = frameClock();
+    const painted = recordCanvas();
+    const lit = new Float32Array(CELLS).fill(1);
+
+    mount(<GlyphCell grid={GRID} size={SIZE} frame={lit} label="still" />);
+
+    // Not a faster sweep — no sweep. The values are true on the first paint.
+    for (const value of firstFrameValues(painted)) expect(value).toBeCloseTo(1, 6);
+    expect(clock.pending).toBe(0);
+  });
+
+  it("arrives once a session, and not for a field mounted later", () => {
+    arriving();
+    reducedMotion(false);
+    const watch = stopwatch();
+    frameClock();
+    const first = recordCanvas();
+    const lit = new Float32Array(CELLS).fill(1);
+
+    mount(<GlyphCell grid={GRID} size={SIZE} frame={lit} label="first" />);
+    for (const value of firstFrameValues(first)) expect(value).toBeCloseTo(0, 6);
+
+    act(() => root!.unmount());
+    host!.remove();
+
+    // A client navigation back, long after the window closed. The stamp is
+    // still in storage, so this field opens holding its values.
+    watch.advance(5000);
+    const later = recordCanvas();
+    mount(<GlyphCell grid={GRID} size={SIZE} frame={lit} label="later" />);
+    for (const value of firstFrameValues(later)) expect(value).toBeCloseTo(1, 6);
   });
 });
