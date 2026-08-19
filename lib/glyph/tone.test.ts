@@ -29,6 +29,27 @@ describe("autoLevel", () => {
     expect(out[0]).toBeGreaterThan(out[2]);
     expect(out[2]).toBeGreaterThan(out[1]);
   });
+
+  it("spreads a narrow-band frame across most of the range despite single-pixel outliers", () => {
+    // One near-black and one near-white pixel bracket 48 values packed into a
+    // 0.04-wide band — a stray dust speck at each end of an otherwise flat
+    // midtone cover. Min/max would anchor on those two pixels and leave the
+    // band exactly as compressed as it started (0.04 wide, same as the input);
+    // percentile clipping should treat them as noise and let the band claim
+    // nearly the whole 0..1 range instead.
+    const bulk = Array.from({ length: 48 }, (_, i) => 0.48 + (i / 47) * 0.04);
+    const frame = Float32Array.from([0, ...bulk, 1]);
+    const out = autoLevel(frame);
+
+    const bulkOut = Array.from(out).slice(1, -1);
+    const bulkSpread = Math.max(...bulkOut) - Math.min(...bulkOut);
+    expect(bulkSpread).toBeGreaterThan(0.9);
+
+    // The single-pixel outliers still clip cleanly to the ends rather than
+    // dragging the whole scale out to meet them.
+    expect(out[0]).toBe(0);
+    expect(out[out.length - 1]).toBe(1);
+  });
 });
 
 describe("inkRadius", () => {
