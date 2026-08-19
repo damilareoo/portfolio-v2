@@ -10,6 +10,22 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.4.0",
+    date: "2026-08-19",
+    title: "Three faces, drawn properly",
+    notes: [
+      "The pedometer's three faces are rebuilt against the reference they were always aiming at, and both fields grow to 176px so the dot alphabet has the room it assumes — 144px on a phone, where the pair still stands side by side",
+      "The walk animates. The figure sets off from the start of the path and walks to today's share of the goal every time you turn to that face, settling on an out-cubic. Law 4 permits it under the touched clause: turning the page is what caused it",
+      "Reduced motion walks it in no time at all — one frame, at the mark. The value is never withheld from anyone, only the journey to it",
+      "The week became the month. Seven columns, six rows, day letters ruled along the bottom, and every day of the month you are standing in — including the ones you have not reached, because those are part of a month's shape",
+      "Which needed the data: the reading now carries the whole month beside the seven days, read in the same single round trip, since the two lists overlap rather than nest",
+      "The site has a hue. --miss is a red meaning one thing — a day that ran out of hours without meeting the goal — on one face of one instrument. Deeper on the light skin, brighter on the dark. The README, the design language spec, and the colophon's palette all record the exception rather than continuing to claim there is none",
+      "Today is never red. A day still being walked has not been missed, which is the unreported-day rule applied to the one day still happening; it wears a ring instead, and the ring is free to mean that now that red carries the missing",
+      "Three states and no more on the calendar, so it reads across a room: ink for met, red for missed, a quiet half-size dot for anything unknown",
+    ],
+    deployment: "https://portfolio-v2-1723p893p-damilares-projects-fc682e5f.vercel.app",
+  },
+  {
     version: "1.3.3",
     date: "2026-08-19",
     title: "Records, not totals",

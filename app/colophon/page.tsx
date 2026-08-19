@@ -23,6 +23,7 @@ const TOKENS = [
   "text-2",
   "text-1",
   "fill-strong",
+  "miss",
 ];
 
 function Heading({ children }: { children: ReactNode }) {
@@ -89,7 +90,7 @@ export default function ColophonPage() {
         <div>
           <Section
             label="Palette"
-            note="One value ladder, two skins, no hue. Each row reads its own live computed value, so it cannot drift out of date with the stylesheet. Click a row to copy the hex."
+            note="One value ladder, two skins, and one hue. Each row reads its own live computed value, so it cannot drift out of date with the stylesheet. Click a row to copy the hex. The last row is the exception: --miss is the only colour on the site, and it means one thing — a day the step goal was missed."
           >
             <div className="max-w-[26rem]">
               {TOKENS.map((token) => (

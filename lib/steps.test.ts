@@ -5,6 +5,7 @@ import {
   averageOf,
   isPlausible,
   lastNDates,
+  monthDates,
   readIngest,
   stepsKey,
   tokenMatches,
@@ -59,6 +60,26 @@ describe("readIngest, segment payloads", () => {
   it("treats an empty or unreadable array as nothing to report", () => {
     expect(readIngest('{"steps":[]}').kind).toBe("nothing");
     expect(readIngest('{"steps":[{"count":"x"}]}').kind).toBe("nothing");
+  });
+});
+
+describe("monthDates", () => {
+  it("runs the whole month, first to last", () => {
+    const august = monthDates(new Date("2026-08-19T12:00:00Z"));
+    expect(august[0]).toBe("2026-08-01");
+    expect(august.at(-1)).toBe("2026-08-31");
+    expect(august).toHaveLength(31);
+  });
+
+  it("knows a short month, and a leap February", () => {
+    expect(monthDates(new Date("2026-09-10T12:00:00Z"))).toHaveLength(30);
+    expect(monthDates(new Date("2026-02-10T12:00:00Z"))).toHaveLength(28);
+    expect(monthDates(new Date("2028-02-10T12:00:00Z"))).toHaveLength(29);
+  });
+
+  it("goes on past today, because a month has days you have not reached", () => {
+    const dates = monthDates(new Date("2026-08-02T12:00:00Z"));
+    expect(dates).toContain("2026-08-31");
   });
 });
 
@@ -401,13 +422,34 @@ describe("readSteps", () => {
     expect(await steps.readSteps(10000)).toBe(null);
   });
 
-  it("reads seven days in one MGET plus one GET", async () => {
+  /* Both faces come out of one round trip. The week can reach back into last
+     month, so the two lists overlap rather than nest and the union is read. */
+  it("reads the week and the month in one MGET plus one GET", async () => {
     const { steps, redis } = await loadSteps();
     await steps.readSteps(10000);
 
     const commands = redis.calls.map((call) => call[0]);
     expect(commands.sort()).toEqual(["GET", "MGET"]);
-    expect(redis.calls.find((call) => call[0] === "MGET")).toHaveLength(8);
+
+    const mget = redis.calls.find((call) => call[0] === "MGET")!;
+    const keys = mget.slice(1);
+    expect(new Set(keys).size).toBe(keys.length); // asked for nothing twice
+
+    const wanted = [
+      ...steps.monthDates(new Date()),
+      ...steps.lastNDates(new Date(), 7),
+    ].map((d: string) => `steps:${d}`);
+    expect(new Set(keys)).toEqual(new Set(wanted));
+  });
+
+  it("returns every day of the month, past today", async () => {
+    const { steps } = await loadSteps();
+    const reading = await steps.readSteps(10000);
+    const month = steps.monthDates(new Date());
+
+    expect(reading!.month.map((d: { date: string }) => d.date)).toEqual(month);
+    // A day nobody has reached is unreported, exactly like one nobody reported.
+    expect(reading!.month.every((d: { steps: number | null }) => d.steps === null)).toBe(true);
   });
 
   it("returns today's total and the goal it was given", async () => {

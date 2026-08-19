@@ -4,7 +4,7 @@ Personal portfolio of Damilare Osofisan. Successor to [damilareoo.xyz](https://w
 
 ## Direction
 
-Pure monochrome, two-skin system. Hierarchy comes from tonal value, weight, and size, never hue. Hairline borders separate surfaces instead of shadows. Set entirely in Suisse Int'l, with Suisse Int'l Mono for labels and meta.
+Monochrome two-skin system, with exactly one exception. Hierarchy comes from tonal value, weight, and size, never hue — the single hue on the site is `--miss`, a red carrying one meaning: a day the step goal was missed. It is the only place a colour is asked to mean something, and it is deliberate rather than decorative. Hairline borders separate surfaces instead of shadows. Set entirely in Suisse Int'l, with Suisse Int'l Mono for labels and meta.
 
 The design language is **Handled**: every surface admits to being an object with weight, an edge you can take hold of, and a memory of where you left it. Four laws govern it, the last one load-bearing:
 
@@ -49,6 +49,24 @@ One engine draws every dot field on the site: a matrix of cells with a spring ap
 | The disc | The track playing, as dithered album artwork, with a ring struck on the playhead's period |
 | The pedometer | Three faces of one field — the walk, the record, and the week |
 | The forge | Nothing. It is the one field the visitor drives, on `/colophon` |
+
+### The three faces
+
+The pedometer is one field wearing three faces, turned by swipe, click, or arrow key.
+
+| Face | Shows |
+|---|---|
+| The walk | A figure on a dotted path. It sets off from the start and walks to today's share of the goal, every time you turn to it — Law 4's "unless touched", since turning the page is what caused it |
+| The record | Today's total and the seven-day average, set in the 3×5 dot alphabet, each under a mono label and its percentage |
+| The month | A calendar of the month you are standing in — seven columns, six rows, day letters ruled along the bottom |
+
+The calendar has three states and no more, so it reads at a glance:
+
+- **Ink** — the goal was met
+- **`--miss` red** — the day ran out of hours without meeting it
+- **A quiet half-size dot** — nothing is known: a day not yet reached, or one nobody reported
+
+A ring marks today. Today is never red: a day still being walked has not been missed, which is the same rule as an unreported day not being a day of no walking, applied to the one day still happening.
 
 The pulse is arithmetic on playback position, not beat detection: Spotify answers 403 for the `audio-features` and `audio-analysis` endpoints for this application, so there is no tempo to be had. The colophon's Provenance section states this, along with what the dot language owes Nothing's interface and what it uses of theirs — none of their code, assets, or trademarks.
 

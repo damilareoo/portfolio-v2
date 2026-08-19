@@ -12,7 +12,6 @@ import {
   recordFrame,
   UNREPORTED,
   walkFrame,
-  weekMarks,
 } from "@/lib/glyph/steps-frames";
 import type { StepsDay, StepsReading } from "@/lib/steps";
 
@@ -20,7 +19,7 @@ const GRID = 25; // dots across
 const SIZE = 300; // canvas units; CSS scales it
 
 /** The walk, the record, the week — in that order, because that is their order. */
-const FACES = ["the walk", "the record", "the week"] as const;
+const FACES = ["the walk", "the record", "the month"] as const;
 
 /**
  * And a fourth face nothing points at.
@@ -37,14 +36,20 @@ const PAGES = FACES.length + 1;
 /** The mark the hidden page carries when the visitor has drawn nothing. */
 const AUTHORED = Uint8Array.from(authoredGlyph);
 
-/* The week's geometry, in the SVG's own 100-unit box. Seven columns and seven
-   rows, stopped short of the right edge so the day letters below them line up
-   with something rather than floating. */
-const COL_X = 14;
-const COL_STEP = 12;
-const ROW_Y = 16;
-const ROW_STEP = 9.5;
-const DOT_MAX = 4;
+/* The calendar's geometry, in the SVG's own 100-unit box. Seven columns for the
+   days of the week and six rows for the weeks a month can straddle, with the
+   day letters ruled off along the bottom. The grid is fixed at six rows whether
+   the month needs them or not, so the card does not change height as the months
+   turn over. */
+const COL_X = 10;
+const COL_STEP = 13.3;
+const ROW_Y = 12;
+const ROW_STEP = 12.4;
+const WEEK_ROWS = 6;
+const DOT_R = 2.6;
+
+/** Monday-first, as a calendar is read. */
+const LETTERS = ["M", "T", "W", "T", "F", "S", "S"];
 
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -72,6 +77,33 @@ function weekday(day: StepsDay | undefined, index: number): { letter: string; na
   if (Number.isNaN(at)) return { letter: "MTWTFSS"[index], name: `Day ${index + 1}` };
   const weekdayIndex = new Date(at).getUTCDay();
   return { letter: WEEKDAYS[weekdayIndex][0], name: WEEKDAYS[weekdayIndex] };
+}
+
+/**
+ * What a day is, on the calendar face.
+ *
+ * Three states and no more, because the face has to be read at a glance from
+ * across a room: the goal was met, the goal was missed, or nothing is known.
+ * A day nobody has reached yet and a day nobody reported are both "unknown" —
+ * they are drawn alike because they mean alike, that the site cannot say.
+ */
+type DayState = "met" | "missed" | "unknown";
+
+function dayState(day: StepsDay, goal: number, today: string): DayState {
+  if (day.date > today) return "unknown"; // not yet reached
+  if (day.steps === null || goal <= 0) return "unknown"; // never reported
+  if (day.steps >= goal) return "met";
+  /* A day still being walked has not been missed. The goal can only be missed
+     by a day that ran out of hours to meet it in, so today stays open until
+     midnight — the same rule as "an unreported day is not a day of no walking",
+     applied to the one day that is still happening. */
+  return day.date === today ? "unknown" : "missed";
+}
+
+/** Which column a date sits in, Monday first. */
+function columnOf(date: string): number {
+  const at = Date.parse(`${date}T00:00:00Z`);
+  return (new Date(at).getUTCDay() + 6) % 7;
 }
 
 /** A label the dot alphabet cannot set, laid over the band the number left it. */
@@ -141,6 +173,32 @@ function Pedometer() {
      ambiguity `today` was made nullable to avoid. The days say which it is. */
   const average = reading && days.some((day) => day.steps !== null) ? reading.average7 : null;
 
+  /* How far along the path the figure has walked, 0 to 1. Not the day's
+     progress — it *travels* to the day's progress, from the start of the path,
+     every time the visitor turns to this face. */
+  const [walked, setWalked] = useState(0);
+  const progress = today === null || goal <= 0 ? null : today / goal;
+
+  useEffect(() => {
+    if (page !== 0 || progress === null) return;
+
+    /* Law 4's "unless touched": turning to this face is what causes the walk,
+       and it resolves into the same figure a still card would have shown.
+       Reduced motion walks it in no time at all — one frame, at the mark —
+       so the value is never withheld from anyone, only the journey to it. */
+    const duration = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1100;
+    let raf = 0;
+    const start = performance.now();
+    const step = (now: number) => {
+      const t = duration === 0 ? 1 : Math.min(1, (now - start) / duration);
+      // Out-cubic: the figure sets off at pace and settles onto its mark.
+      setWalked(progress * (1 - Math.pow(1 - t, 3)));
+      if (t < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [page, progress]);
+
   /* Memoised on the values rather than the reading, so a poll that comes back
      saying the same thing hands the field the same array and wakes nothing. */
   const frame = useMemo(() => {
@@ -150,11 +208,18 @@ function Pedometer() {
       if (today === null && average === null) return placeholderFrame(GRID);
       return recordFrame(GRID, today, average);
     }
-    if (today === null || goal <= 0) return placeholderFrame(GRID);
-    return walkFrame(GRID, today / goal);
-  }, [page, today, average, goal, mark]);
+    if (progress === null) return placeholderFrame(GRID);
+    return walkFrame(GRID, walked);
+  }, [page, today, average, mark, progress, walked]);
 
-  const marks = useMemo(() => weekMarks(days, goal), [days, goal]);
+  const monthDays = reading?.month ?? [];
+  const todayDate = days[days.length - 1]?.date ?? "";
+  /* Which column the 1st falls in, so the rest of the month lays out by counting
+     from it rather than by parsing every date twice. */
+  const firstColumn = monthDays.length > 0 ? columnOf(monthDays[0].date) : 0;
+  const todayIndex = monthDays.findIndex((day) => day.date === todayDate);
+  const todayColumn = todayIndex >= 0 ? columnOf(todayDate) : 0;
+  const todayRow = todayIndex >= 0 ? Math.floor((todayIndex + firstColumn) / 7) : -1;
 
   const todaySaid =
     today === null
@@ -163,7 +228,8 @@ function Pedometer() {
   const averageSaid =
     average === null ? "not reported yet" : `${groupDigits(average)}, ${share(average, goal)}`;
 
-  const met = days.filter((day) => day.steps !== null && day.steps >= goal).length;
+  const met = monthDays.filter((day) => dayState(day, goal, todayDate) === "met").length;
+  const missed = monthDays.filter((day) => dayState(day, goal, todayDate) === "missed").length;
   const said =
     page === 3
       ? drawn?.some(Boolean)
@@ -173,9 +239,9 @@ function Pedometer() {
         ? `Steps today ${todaySaid}`
         : page === 1
           ? `Steps today ${todaySaid}. Seven-day average ${averageSaid}`
-          : average === null
-            ? "The last seven days, none of them reported yet"
-            : `The last seven days, ${met} of them at or over the goal`;
+          : met + missed === 0
+            ? "This month, no day reported yet"
+            : `This month, ${met} days at or over the goal and ${missed} under it`;
 
   /* The hidden page names itself rather than counting itself. Announcing "4 of
      4" on the three pages that do show a dot would give it away to exactly the
@@ -203,7 +269,7 @@ function Pedometer() {
           page={page}
           onPageChange={setPage}
           label={label}
-          className="w-[128px] cursor-pointer text-ink select-none"
+          className="w-[144px] cursor-pointer text-ink select-none sm:w-[176px]"
         >
           {page === 1 ? (
             <>
@@ -215,44 +281,50 @@ function Pedometer() {
           {page === 2 ? (
             <>
               <svg viewBox="0 0 100 100" aria-hidden className="absolute inset-0 h-full w-full">
-                {marks.map((column, col) =>
-                  column.map((mark, row) => {
-                    const cx = COL_X + col * COL_STEP;
-                    const cy = ROW_Y + row * ROW_STEP;
-                    /* A floor under the radius so a day of no walking is still
-                       seven rings and not an empty gap in the week. */
-                    const r = Math.max(mark.hollow ? 1.6 : 0.9, mark.value * DOT_MAX);
-                    return mark.hollow ? (
-                      <circle
-                        key={`${col}-${row}`}
-                        cx={cx}
-                        cy={cy}
-                        r={r}
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={0.8}
-                        opacity={0.32 + mark.value * 0.68}
-                      />
-                    ) : (
-                      <circle
-                        key={`${col}-${row}`}
-                        cx={cx}
-                        cy={cy}
-                        r={r}
-                        fill="currentColor"
-                        opacity={0.2 + mark.value * 0.8}
-                      />
-                    );
-                  }),
-                )}
+                {monthDays.map((day) => {
+                  const index = Number(day.date.slice(8)) - 1;
+                  const col = columnOf(day.date);
+                  const row = Math.floor((index + firstColumn) / 7);
+                  if (row >= WEEK_ROWS) return null;
+                  const state = dayState(day, goal, todayDate);
+                  return (
+                    <circle
+                      key={day.date}
+                      cx={COL_X + col * COL_STEP}
+                      cy={ROW_Y + row * ROW_STEP}
+                      r={state === "unknown" ? DOT_R * 0.5 : DOT_R}
+                      /* Met is ink and reads as the page's own colour on either
+                         skin. Missed is the one hue on the site. Unknown is a
+                         smaller, quieter dot — present, because the day exists,
+                         and dim, because nothing is being claimed about it. */
+                      fill={state === "missed" ? "var(--color-miss)" : "currentColor"}
+                      opacity={state === "unknown" ? 0.28 : 1}
+                    />
+                  );
+                })}
+
+                {/* You are here. The ring is free to mean this now that red
+                    carries "missed" — a hollow mark no longer says anything
+                    else on this face. */}
+                {todayIndex >= 0 && todayRow < WEEK_ROWS ? (
+                  <circle
+                    cx={COL_X + todayColumn * COL_STEP}
+                    cy={ROW_Y + todayRow * ROW_STEP}
+                    r={DOT_R + 2.2}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={0.9}
+                    opacity={0.55}
+                  />
+                ) : null}
               </svg>
-              {marks.map((_, col) => (
+              {LETTERS.map((letter, col) => (
                 <span
                   key={col}
-                  style={{ left: `${COL_X + col * COL_STEP}%`, top: "79%" }}
-                  className="absolute -translate-x-1/2 font-mono text-[0.5rem] uppercase tracking-[0.08em] text-ink-3"
+                  style={{ left: `${COL_X + col * COL_STEP}%`, top: "85%" }}
+                  className="absolute -translate-x-1/2 font-mono text-[0.5625rem] uppercase tracking-[0.06em] text-ink-2"
                 >
-                  {weekday(days[col], col).letter}
+                  {letter}
                 </span>
               ))}
             </>

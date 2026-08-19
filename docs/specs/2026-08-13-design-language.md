@@ -12,7 +12,9 @@ v0.4.0 is correct and cold. It is a well-made monochrome grid with no argument a
 
 ## Scope
 
-Locked and out of scope: the monochrome two-skin token system, Suisse Int'l + Suisse Mono, hairline separation, the shared primitives in `components/ui.tsx`. No accent hue enters the site.
+Locked and out of scope: the monochrome two-skin token system, Suisse Int'l + Suisse Mono, hairline separation, the shared primitives in `components/ui.tsx`.
+
+**Amended 2026-08-19.** "No accent hue enters the site" held until the pedometer's calendar, where the reference carries a missed day in red and no tonal value says the same thing as clearly. One hue is now admitted, as `--miss`, under conditions as narrow as Law 4's own clauses: it means one thing, a day that ran out of hours without meeting the goal; it appears on one face of one instrument; and nothing else on the site may reach for it. A second meaning for it would be a second hue in all but name.
 
 Open and settled here: the archetype, the interaction language, the work hierarchy, and the site's self-reporting.
 

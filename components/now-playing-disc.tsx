@@ -237,7 +237,7 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
           frame={frame}
           onTick={onTick}
           label={label}
-          className="w-[128px] cursor-pointer text-ink"
+          className="w-[144px] cursor-pointer text-ink sm:w-[176px]"
         />
 
         {/* How far through the track, as a hairline outside the dots. Nothing

@@ -18,6 +18,10 @@
   --text-2: #6f6f6f;
   --text-3: #b0b0b0;
   --fill-strong: #111111;
+  /* The one hue on the site, and it earns it by carrying a single meaning: a
+     day the goal was missed. Deeper on the light skin so it holds its weight
+     against a pale ground, brighter on the dark one so it does not go muddy. */
+  --miss: #d92222;
   --on-strong: #ffffff;
 }
 
@@ -30,6 +34,7 @@
   --text-2: #8a8a8a;
   --text-3: #4d4d4d;
   --fill-strong: #f5f5f5;
+  --miss: #ff4d4d;
   --on-strong: #111111;
 }
 
@@ -42,6 +47,7 @@
   --color-ink-2: var(--text-2);
   --color-ink-3: var(--text-3);
   --color-strong: var(--fill-strong);
+  --color-miss: var(--miss);
   --color-on-strong: var(--on-strong);
   --font-sans: var(--font-suisse), system-ui, sans-serif;
   --font-mono: var(--font-suisse-mono), ui-monospace, monospace;

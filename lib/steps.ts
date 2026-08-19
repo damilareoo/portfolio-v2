@@ -29,6 +29,8 @@ export type StepsDay = { date: string; steps: number | null };
 export type StepsReading = {
   today: number | null;
   days: StepsDay[];
+  /** Every day of the current month, in order, for the calendar face. */
+  month: StepsDay[];
   average7: number;
   updatedAt: number | null;
   goal: number;
@@ -217,6 +219,25 @@ export function readIngest(raw: string): Ingest {
   return value === null ? { kind: "nothing" } : { kind: "reading", steps: value };
 }
 
+/**
+ * Every date in the month `today` falls in, first to last, in Lagos.
+ *
+ * The whole month rather than the days so far: the calendar shows the shape of
+ * the month you are standing in, and the days after today are part of that
+ * shape — they are drawn as not yet reached, which is a different thing from a
+ * day that went unreported.
+ */
+export function monthDates(today: Date = new Date()): string[] {
+  const [year, month] = zonedDate(today).split("-").map(Number);
+  // Day 0 of the next month is the last day of this one.
+  const last = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const dates: string[] = [];
+  for (let day = 1; day <= last; day++) {
+    dates.push(`${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`);
+  }
+  return dates;
+}
+
 export function isPlausible(prev: number | null, next: number): boolean {
   if (typeof next !== "number" || !Number.isFinite(next)) return false;
   if (next < 0 || next > STEP_CEILING) return false;
@@ -259,16 +280,25 @@ export async function readDay(date: string): Promise<number | null> {
 export async function readSteps(goal: number): Promise<StepsReading | null> {
   if (!countersConfigured) return null;
 
-  const dates = lastNDates(new Date(), 7);
+  const now = new Date();
+  const week = lastNDates(now, 7);
+  const month = monthDates(now);
+  /* One round trip for both faces. The week can reach back into last month, so
+     the two lists overlap rather than nest, and the union is what gets read. */
+  const dates = [...new Set([...month, ...week])];
+
   const [values, updated] = await Promise.all([
     command(["MGET", ...dates.map(stepsKey)]),
     command(["GET", UPDATED_AT_KEY]),
   ]);
   if (!Array.isArray(values)) return null;
 
-  const days = dates.map((date, i) => ({ date, steps: toCount(values[i]) }));
+  const stepsFor = new Map(dates.map((date, i) => [date, toCount(values[i])]));
+  const dayOf = (date: string): StepsDay => ({ date, steps: stepsFor.get(date) ?? null });
+  const days = week.map(dayOf);
 
   return {
+    month: month.map(dayOf),
     // Null until the first post of the morning. Every day begins unreported,
     // and a card that showed 0 / 10000 at 6am would be stating a fact nobody
     // has established yet.
