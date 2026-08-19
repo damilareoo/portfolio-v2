@@ -40,6 +40,22 @@ There is no archive surface. With selected work and the dated list both on the h
 
 The dated list has since gone too. Four pieces with room read as an argument; the same four as a list read as an inventory, and the page was making both cases at once. Roles moved to `/about`, where they belong: they are a fact about the person, not a piece of work.
 
+## The glyph matrix
+
+One engine draws every dot field on the site: a matrix of cells with a spring apiece, a dot font, and a frame loop that stops itself. What a field says is the caller's business — it hands over a frame, and the field migrates to it.
+
+| Field | Reports |
+|---|---|
+| The disc | The track playing, as dithered album artwork, with a ring struck on the playhead's period |
+| The pedometer | Three faces of one field — the walk, the record, and the week |
+| The forge | Nothing. It is the one field the visitor drives, on `/colophon` |
+
+The pulse is arithmetic on playback position, not beat detection: Spotify answers 403 for the `audio-features` and `audio-analysis` endpoints for this application, so there is no tempo to be had. The colophon's Provenance section states this, along with what the dot language owes Nothing's interface and what it uses of theirs — none of their code, assets, or trademarks.
+
+Steps come from a phone automation posting to a guarded route. Setup is documented at `docs/steps-setup.md`; until it is configured the card degrades to placeholder dots, because a day nobody reported is not a day of no walking.
+
+A glyph drawn in the forge is kept on the visitor's own device and never sent here. Only the fact that one was drawn is counted, once per browser.
+
 ## Token system
 
 Semantic tokens only. Components never reference raw hex values; light and dark are variable swaps.

@@ -10,6 +10,29 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.3.0",
+    date: "2026-08-19",
+    title: "The glyph matrix",
+    notes: [
+      "One engine now draws every dot field on the site — a general matrix of cells with a spring apiece, plus a dot font — and the now-playing disc became its first client rather than its own special case",
+      "The disc's bespoke implementation is retired; it renders through the same engine as everything else, with the same pointer push and travelling ripple it always had",
+      "The playhead pulse: a ring struck on the artwork on a fixed period against the track's real playback position",
+      "It is not beat detection and does not claim to be — Spotify answers 403 for the audio-features and audio-analysis endpoints for this application, so there is no tempo and no beat grid to be had. The colophon's new Provenance section says so plainly",
+      "Album artwork is levelled on percentiles rather than on its darkest and brightest pixel, so one stray highlight no longer flattens a whole cover",
+      "A pedometer joins the disc on the home, wearing three faces of one field: the walk, the record, and the week",
+      "The walk is a figure on a path — ground covered behind it at full size and brightness, the road ahead small and dim",
+      "The week says whether each of the last seven days met its goal without spending a hue on it: a missed day is a hollow ring, which is what the reference does in red and this site cannot",
+      "A day nobody reported is not a day of no walking — unreported reads as absence, not as zero, everywhere it appears",
+      "Steps arrive from a phone automation posting to a guarded route; setup is documented at docs/steps-setup.md, and the card degrades to placeholder dots until it is configured",
+      "The entrance: a radial wavefront opens the fields once per session and never again — not on a client navigation back, not on a scroll, and not at all under reduced motion",
+      "Law 4 gains a third clause. It now reads \"nothing moves unless touched, arriving, or reporting\", where reporting means an instrument showing live external state, only while that state is live, and only within its own bounds",
+      "The colophon's value field is replaced by the forge: the same 25x25 field the home carries, with the pen handed over. Drag to draw, or use the arrow keys and space",
+      "A drawn glyph is kept on the visitor's own device and never sent here. Only the fact that one was drawn is counted, once per browser",
+      "Past the week is a fourth page nothing points at, carrying the visitor's glyph — or, until they draw one, the mark the site shipped with",
+    ],
+    deployment: "https://portfolio-v2-1rppic0pb-damilares-projects-fc682e5f.vercel.app",
+  },
+  {
     version: "1.2.0",
     date: "2026-08-17",
     title: "Words left, work right",
