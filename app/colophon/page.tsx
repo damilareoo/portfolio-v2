@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Counters } from "@/components/counters";
 import { DialKit } from "@/components/dial-kit";
-import { GlyphForge } from "@/components/glyph-forge";
+import { GlyphToys } from "@/components/glyph-toys";
 import { SiteNav } from "@/components/site-nav";
 import { TokenRow, TypeSpecimen } from "@/components/colophon-instruments";
 import { changelog } from "@/data/changelog";
@@ -100,11 +100,11 @@ export default function ColophonPage() {
           </Section>
 
           <Section
-            label="The forge"
-            note="The same field the home carries, with the pen handed over. Drag across it to draw, or use the arrow keys and space. The drawing is kept on your own device and never sent here — it appears as a hidden page on the home, past the week view. Only the fact that a glyph was drawn is counted, once per browser."
+            label="The toys"
+            note="Phone (3) puts 489 LEDs on its back and then hands you a Magic 8 Ball and a bottle to spin, all worked by a single button: press to change toy, press and hold to start. That constraint is the design, so it is copied exactly — one button, five toys, and a field that reports nothing at all. Arrow keys steer the snake."
           >
             <div className="max-w-[26rem]">
-              <GlyphForge />
+              <GlyphToys />
             </div>
           </Section>
 
@@ -181,9 +181,12 @@ export default function ColophonPage() {
             <div className="max-w-[34rem] space-y-3 text-[0.8125rem] leading-[1.6] text-ink-2">
               <p>
                 The dot-matrix language here is an original web implementation
-                and a homage to Nothing&rsquo;s interface. No Nothing code,
-                assets, or trademarks are used; the glyphs, the font, and the
-                engine that draws them were written for this site.
+                and a homage to Nothing&rsquo;s interface &mdash; the Glyph
+                Matrix on Phone (3), a circle of 489 LEDs that shows symbols
+                rather than light patterns, and the Glyph Toys worked by the
+                single button beside it. No Nothing code, assets, or trademarks
+                are used; the glyphs, the alphabet, and the engine that draws
+                them were written for this site.
               </p>
               <p>
                 Spotify&rsquo;s <span className="font-mono text-[0.75rem]">audio-features</span>{" "}
@@ -200,7 +203,8 @@ export default function ColophonPage() {
               <p>
                 <Out href="https://intempus.org">Intempus</Out>, whose colophon
                 established the labelled-record structure this one descends from,
-                and whose tint field is the direct ancestor of the forge.
+                and whose tint field is the direct ancestor of the instruments
+                on this page.
               </p>
               <p>
                 <Out href="https://guglieri.com/work">Guglieri</Out>,{" "}

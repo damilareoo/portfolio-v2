@@ -26,6 +26,11 @@ const ARC_PX = 140; // wide enough to clear the 128px disc with a hairline to sp
    the disc is drawn, which is to say nothing at all. The multiplier lives here
    rather than in `TUNING` because it is this caller's editorial decision about
    its own ring, not a change to the physics every field shares. */
+/* Three rings to the pulse. The ripple's life is longer than this, which is
+   the whole trick: the field always has more than one crossing it. */
+const RINGS_PER_PULSE = 3;
+const RING_PERIOD_MS = TUNING.PULSE_PERIOD_MS / RINGS_PER_PULSE;
+
 const PULSE_FORCE = 24;
 
 /* The arc is drawn in a 100-unit box scaled to ARC_PX, so its radius is in
@@ -194,22 +199,28 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
       positionRef.current = at;
       // A first reading is a baseline, not a pulse.
       if (previous === null) return {};
-      if (pulsesBetween(previous, at, TUNING.PULSE_PERIOD_MS) === 0) return {};
+      if (pulsesBetween(previous, at, RING_PERIOD_MS) === 0) return {};
 
-      /* One ring, however many periods were crossed. At frame cadence that is
-         only ever one; after a stall — a hidden tab, a seek — the arithmetic
-         says several, and striking them together would land as a single thud
-         rather than the pulse it is meant to be. */
-      const cell = SIZE / GRID;
-      const { centre, density } = printRef.current;
+      /* Rings, not a ring. A ripple outlives the sub-period that struck it, so
+         two or three are crossing the field at any moment and the disc reads
+         as concentric rings travelling outward — a visualiser's shape, with a
+         visualiser's cadence, and none of its claim: this is still arithmetic
+         on the playhead, and it would do the same on silence.
+
+         They are struck at the middle rather than at the cover's brightest
+         point, because rings from a moving origin are not concentric. */
+      const beat = Math.floor(at / RING_PERIOD_MS) % RINGS_PER_PULSE === 0;
+      const { density } = printRef.current;
       return {
         ripples: [
           {
-            x: (centre[0] + 0.5) * cell,
-            y: (centre[1] + 0.5) * cell,
-            // A bright cover pushes harder than a dark one, and the floor keeps
-            // a near-black sleeve from pulsing not at all.
-            strength: PULSE_FORCE * (0.6 + 0.8 * density),
+            x: SIZE / 2,
+            y: SIZE / 2,
+            /* The downbeat carries; the ones between it are echoes. A bright
+               cover pushes harder than a dark one, and the floor keeps a
+               near-black sleeve from pulsing not at all. */
+            strength:
+              PULSE_FORCE * (beat ? 1 : 0.42) * (0.6 + 0.8 * density),
           },
         ],
       };

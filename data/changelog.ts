@@ -10,6 +10,22 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.5.0",
+    date: "2026-08-20",
+    title: "Pixels, and toys to spend them on",
+    notes: [
+      "The field draws square pixels. The language borrowed here comes from a grid of LEDs that never touch, and the gap between them is most of its character — circles at 62% of the cell overlapped at full value, which is why a bright run collapsed into a blob however the tone was mapped",
+      "A pixel is a constant size and brightness carries the value, as an LED does. An unlit one keeps a floor: dark, but present, because the unlit lattice is the instrument's face and not an absence. Artwork is the exception and keeps a true black, since a photograph needs somewhere for its shadows to go",
+      "The dot alphabet gained its letters — twenty-six of them at three cells wide, plus punctuation — so the field can say a word and not only a number",
+      "The colophon's forge is gone and Glyph Toys stand in its place: a Magic 8 Ball, a bottle to spin, a hand to throw, dice, and snake. One button works all five, press to change and hold to start, because that constraint is the design and giving the field five buttons would lose the thing worth borrowing",
+      "Nothing there reports anything. It is the one field on the site with no source but the person looking at it",
+      "The disc pulses in concentric rings now rather than one. A ripple outlives the sub-period that struck it, so two or three cross the field at once — a visualiser's shape and cadence, with none of its claim, since this is still arithmetic on the playhead and would do the same on silence",
+      "A loading state in the site's own alphabet: a bar of the same pixels, filling and refilling. It reports no percentage and loops rather than creeping to 99 — a navigation has no progress to read, and a bar implying one would be inventing it",
+      "The forge's storage, its API route and its counter go with it. The hidden fourth page keeps the maker's mark",
+    ],
+    deployment: "https://portfolio-v2-8ufkogqal-damilares-projects-fc682e5f.vercel.app",
+  },
+  {
     version: "1.4.0",
     date: "2026-08-19",
     title: "Three faces, drawn properly",

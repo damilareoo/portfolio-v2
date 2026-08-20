@@ -18,9 +18,6 @@ export const countersConfigured = Boolean(url && token);
 
 export const DIAL_TURNS_KEY = "dial-turns";
 
-/** How many browsers have drawn a glyph — one apiece, however often they redraw. */
-export const GLYPHS_DRAWN_KEY = "glyphs-drawn";
-
 async function command(args: (string | number)[]): Promise<unknown> {
   if (!countersConfigured) return null;
   try {

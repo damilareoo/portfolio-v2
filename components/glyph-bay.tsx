@@ -4,8 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { GlyphCell } from "@/components/glyph-cell";
 import { NowPlayingDisc } from "@/components/now-playing-disc";
 import { authoredGlyph } from "@/data/glyph";
-import { glyphFrame, markGlyph } from "@/lib/glyph/forge";
-import { useStoredGlyph } from "@/lib/glyph/stored-glyph";
 import { emptyFrame } from "@/lib/glyph/glyphs";
 import {
   groupDigits,
@@ -33,8 +31,8 @@ const FACES = ["the walk", "the record", "the month"] as const;
 const HIDDEN_FACE = "the mark";
 const PAGES = FACES.length + 1;
 
-/** The mark the hidden page carries when the visitor has drawn nothing. */
-const AUTHORED = Uint8Array.from(authoredGlyph);
+/** The mark the hidden page carries. */
+const AUTHORED = Float32Array.from(authoredGlyph);
 
 /* The calendar's geometry, in the SVG's own 100-unit box. Seven columns for the
    days of the week and six rows for the weeks a month can straddle, with the
@@ -137,8 +135,7 @@ function RecordLabel({ top, name, value }: { top: string; name: string; value: s
 function Pedometer() {
   const [reading, setReading] = useState<StepsReading | null>(null);
   const [page, setPage] = useState(0);
-  const drawn = useStoredGlyph();
-  const mark = markGlyph(drawn, AUTHORED);
+
 
   /* The same thirty seconds the disc polls on. An unconfigured store, a failed
      fetch and a day nobody has reported are all the same answer here — nothing
@@ -202,7 +199,7 @@ function Pedometer() {
   /* Memoised on the values rather than the reading, so a poll that comes back
      saying the same thing hands the field the same array and wakes nothing. */
   const frame = useMemo(() => {
-    if (page === 3) return glyphFrame(mark);
+    if (page === 3) return AUTHORED;
     if (page === 2) return emptyFrame(GRID); // the week is drawn over the field
     if (page === 1) {
       if (today === null && average === null) return placeholderFrame(GRID);
@@ -210,7 +207,7 @@ function Pedometer() {
     }
     if (progress === null) return placeholderFrame(GRID);
     return walkFrame(GRID, walked);
-  }, [page, today, average, mark, progress, walked]);
+  }, [page, today, average, progress, walked]);
 
   const monthDays = reading?.month ?? [];
   const todayDate = days[days.length - 1]?.date ?? "";
@@ -232,9 +229,7 @@ function Pedometer() {
   const missed = monthDays.filter((day) => dayState(day, goal, todayDate) === "missed").length;
   const said =
     page === 3
-      ? drawn?.some(Boolean)
-        ? "The glyph you drew in the colophon's forge, kept on this device"
-        : "The maker's mark. Draw your own in the colophon's forge and it takes this page"
+      ? "The maker's mark"
       : page === 0
         ? `Steps today ${todaySaid}`
         : page === 1
