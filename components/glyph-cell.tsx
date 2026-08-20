@@ -15,7 +15,6 @@ import {
   type Cell,
   type Ripple,
 } from "@/lib/glyph/matrix";
-import { inkRadius } from "@/lib/glyph/tone";
 
 /**
  * What a source has to say on one frame: a new field, rings to strike, or both.
@@ -33,6 +32,15 @@ const SWIPE = 40;
 
 /** And how little it can travel and still have been a click. */
 const TAP = 8;
+
+/* How much of its cell a pixel fills, and how far its corners are turned. The
+   gap is deliberate and is most of the character: at 1 the field becomes a
+   solid sheet, and the language stops being a matrix at all. */
+const PIXEL_FILL = 0.74;
+const PIXEL_ROUNDING = 0.26;
+
+/** What an unlit pixel is still worth. Dark, but present — an LED, not a hole. */
+const PIXEL_FLOOR = 0.16;
 
 /** How long the arrival takes. Long enough to read as an opening, not a wipe. */
 const SWEEP_MS = 600;
@@ -169,8 +177,8 @@ export function GlyphCell({
        stay as a faint dot field and value rides an alpha ramp on top. A
        photograph is a halftone: tone is carried by the area of a solid dot and
        by nothing else. Fading the dot as well would put value into the picture
-       twice and square it — the very crush `inkRadius` exists to undo — and a
-       floor under it would stop a dark cover ever reaching black. */
+       twice and square it, and a floor under it would stop a dark cover ever
+       reaching black. */
     const artwork = toneRef.current === "artwork";
     if (artwork) ctx.globalAlpha = 1;
 
@@ -195,14 +203,31 @@ export function GlyphCell({
       if (t < 1) mask = sweepMask(grid, t);
     }
 
+    /* A pixel, not a dot. The hardware this language comes from is a grid of
+       square LEDs that never touch, and the gap is what stops a bright run of
+       cells collapsing into a solid blob — the thing that made the halftone
+       look burnt. Size is constant and brightness carries the value, exactly
+       as an LED does: an unlit one is still there, just dark. */
+    const side = cellSize * PIXEL_FILL;
+    const radius = side * PIXEL_ROUNDING;
+
     for (const cell of cellsRef.current) {
       const lit = flip ? 1 - cell.v : cell.v;
       const value = mask ? lit * mask[cellIndex(cell, grid, size)] : lit;
-      const r = artwork ? inkRadius(value, cellSize) : Math.max(0.45, value * cellSize * 0.62);
-      if (r <= 0) continue; // Real blacks: an unlit cell draws nothing at all.
-      if (!artwork) ctx.globalAlpha = 0.2 + value * 0.8;
+      /* An artwork keeps a true black — a photograph needs somewhere for its
+         shadows to go. A mark keeps the whole field visible, because the unlit
+         lattice is the instrument's face and not an absence. */
+      const alpha = artwork ? value : PIXEL_FLOOR + value * (1 - PIXEL_FLOOR);
+      if (alpha <= 0.004) continue;
+      ctx.globalAlpha = alpha;
       ctx.beginPath();
-      ctx.arc(cell.x + cell.ox, cell.y + cell.oy, r, 0, Math.PI * 2);
+      ctx.roundRect(
+        cell.x + cell.ox - side / 2,
+        cell.y + cell.oy - side / 2,
+        side,
+        side,
+        radius,
+      );
       ctx.fill();
     }
     ctx.globalAlpha = 1;

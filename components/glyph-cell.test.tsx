@@ -35,10 +35,12 @@ function recordCanvas() {
       painted.clears++;
     },
     beginPath: () => {},
-    arc: (x: number, _y: number, r: number) => {
+    /* The field draws square pixels. The centre is recovered from the corner so
+       a ring travelling across the field can still be seen by where it struck. */
+    roundRect: (x: number, _y: number, w: number, _h: number, r: number) => {
       painted.arcs++;
       painted.radii.push(r);
-      painted.xs.push(x);
+      painted.xs.push(x + w / 2);
       painted.alphas.push(ctx.globalAlpha);
     },
     fill: () => {},
@@ -52,9 +54,14 @@ function recordCanvas() {
   return painted;
 }
 
+/* A lit pixel's alpha is `FLOOR + value * (1 - FLOOR)`, so the value it was
+   given can be read straight back off what it painted. */
+const FLOOR = 0.16;
+const valueOf = (alpha: number) => (alpha - FLOOR) / (1 - FLOOR);
+
 /** The values the first painted frame carried, recovered from its alphas. */
 function firstFrameValues(painted: { alphas: number[] }) {
-  return painted.alphas.slice(0, CELLS).map((alpha) => (alpha - 0.2) / 0.8);
+  return painted.alphas.slice(0, CELLS).map(valueOf);
 }
 
 /** Frames only advance when a test says so. */
@@ -136,7 +143,7 @@ function stopwatch() {
 
 /** The values the most recent painted frame carried. */
 function lastFrameValues(painted: { alphas: number[] }) {
-  return painted.alphas.slice(-CELLS).map((alpha) => (alpha - 0.2) / 0.8);
+  return painted.alphas.slice(-CELLS).map(valueOf);
 }
 
 let root: Root | null = null;
@@ -181,7 +188,9 @@ describe("GlyphCell", () => {
        Migrating in from zero would open the field on full ink under the light
        skin — the solid disc the blank-until-given guard exists to prevent. */
     for (const value of firstFrameValues(painted)) expect(value).toBeCloseTo(1, 6);
-    expect(painted.radii.slice(0, CELLS).every((r) => r === (SIZE / GRID) * 0.62)).toBe(true);
+    // Every pixel is the same size — an LED does not grow, it brightens.
+    const corner = (SIZE / GRID) * 0.74 * 0.26;
+    expect(painted.radii.slice(0, CELLS).every((r) => Math.abs(r - corner) < 1e-9)).toBe(true);
   });
 
   it("paints an onTick field under reduced motion, without running a loop", () => {
@@ -237,13 +246,12 @@ describe("GlyphCell", () => {
       <GlyphCell grid={GRID} size={SIZE} frame={frame} label="cover" tone="artwork" />,
     );
 
-    const cell = SIZE / GRID;
-    // A quarter of the luminance lays down a quarter of the ink, which is half
-    // the radius — the whole point of the square root.
-    expect(painted.radii.slice(0, 2)).toEqual([cell * 0.5, cell * 0.25]);
-    // No alpha ramp: the dot is solid and its area carries the tone alone.
-    expect(painted.alphas.slice(0, 2)).toEqual([1, 1]);
-    // And the other 62 cells drew nothing at all, rather than a floor of ink.
+    /* A photograph needs somewhere for its shadows to go, so artwork keeps a
+       true black: the value is the brightness, with no floor under it, and an
+       unlit cell paints nothing at all rather than a lattice. */
+    expect(painted.alphas.slice(0, 2)).toEqual([1, 0.25]);
+    // Two pixels per paint and no more, however many times it repaints: the
+    // other 62 cells are black and a black cell in a photograph draws nothing.
     expect(painted.arcs % 2).toBe(0);
     expect(painted.arcs).toBeLessThan(CELLS);
   });
@@ -301,7 +309,7 @@ describe("GlyphCell", () => {
         </ThemeProvider>,
       );
       // The last paint, not the first: the skin effect repaints after mount.
-      const values = painted.alphas.slice(-CELLS).map((a) => (a - 0.2) / 0.8);
+      const values = painted.alphas.slice(-CELLS).map(valueOf);
       act(() => root?.unmount());
       vi.restoreAllMocks();
       return values;
