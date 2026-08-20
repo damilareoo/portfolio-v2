@@ -11,6 +11,7 @@ import {
   UNREPORTED,
   walkFrame,
 } from "@/lib/glyph/steps-frames";
+import { traceFor, tracePath } from "@/lib/glyph/trace";
 import type { StepsDay, StepsReading } from "@/lib/steps";
 
 const GRID = 25; // dots across
@@ -265,11 +266,8 @@ function Pedometer() {
   /* Memoised on the values rather than the reading, so a poll that comes back
      saying the same thing hands the field the same array and wakes nothing. */
   const frame = useMemo(() => {
-    if (detailDay) {
-      const share = goal > 0 && detailDay.steps !== null ? detailDay.steps / goal : 0;
-      // The horizon drops so the readings above it have somewhere to sit.
-      return walkFrame(GRID, share, Math.round(GRID * 0.78));
-    }
+    // A day card is carried by its line; the dot field stays out of its way.
+    if (detailDay) return emptyFrame(GRID);
     if (page === 3) return AUTHORED;
     if (page === 2) return emptyFrame(GRID); // the week is drawn over the field
     if (page === 1) {
@@ -368,8 +366,40 @@ function Pedometer() {
                   {longDate(detailDay.date)}
                 </p>
               </div>
-              <DayStat top="24%" name="Steps" value={groupDigits(detailDay.steps ?? 0)} />
-              <DayStat top="46%" name="Of goal" value={share(detailDay.steps, goal)} />
+              <DayStat top="26%" name="Steps" value={groupDigits(detailDay.steps ?? 0)} />
+              <DayStat top="52%" name="Of goal" value={share(detailDay.steps, goal)} />
+
+              {/* The day's line. Not a route and never labelled as one: nothing
+                  here knows where anybody went. Its length is the day's
+                  walking, and its shape is fixed by the date, so a day drawn
+                  once is drawn the same way for good. */}
+              <svg viewBox="0 0 100 100" aria-hidden className="absolute inset-0 h-full w-full">
+                <path
+                  d={tracePath(traceFor(detailDay.date, detailDay.steps ?? 0), 58, 4)}
+                  transform="translate(40, 26)"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.6}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  opacity={0.9}
+                />
+                {(() => {
+                  const line = traceFor(detailDay.date, detailDay.steps ?? 0);
+                  if (line.length === 0) return null;
+                  const start = line[0];
+                  return (
+                    <circle
+                      cx={40 + 4 + start.x * 50}
+                      cy={26 + 4 + start.y * 50}
+                      r={2.2}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={1.4}
+                    />
+                  );
+                })()}
+              </svg>
             </>
           ) : null}
 

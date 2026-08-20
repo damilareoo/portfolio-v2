@@ -66,7 +66,9 @@ The calendar has three states and no more, so it reads at a glance:
 - **`--miss` red** — the day ran out of hours without meeting it
 - **A quiet half-size dot** — nothing is known: a day not yet reached, or one nobody reported
 
-A ring marks today. Today is never red: a day still being walked has not been missed, which is the same rule as an unreported day not being a day of no walking, applied to the one day still happening.
+Opening a reported day draws **the day's line**: a figure whose length is that day's walking, seeded from the date so the same day always draws the same shape. It is deliberately *not* a route — there is no GPS here — and the colophon says so on the page rather than only in the code.
+
+Today wears a pill. Today is never red: a day still being walked has not been missed, which is the same rule as an unreported day not being a day of no walking, applied to the one day still happening.
 
 The pulse is arithmetic on playback position, not beat detection: Spotify answers 403 for the `audio-features` and `audio-analysis` endpoints for this application, so there is no tempo to be had. The colophon's Provenance section states this, along with what the dot language owes Nothing's interface and what it uses of theirs — none of their code, assets, or trademarks.
 

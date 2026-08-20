@@ -10,6 +10,19 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.7.0",
+    date: "2026-08-20",
+    title: "The day's line",
+    notes: [
+      "Opening a day draws a line: a figure whose length is that day's walking, folded to fit the card. A longer day draws a longer, more wandering one",
+      "It is not a route and is never called one. There is no GPS on this site and none is planned — the line encodes the one thing actually known about a day, which is how far it went, and says nothing whatever about where anybody was. The colophon states this on the page rather than only in the code",
+      "The figure is seeded from the date, so a day drawn once is drawn the same way for good. That determinism is what makes it a record rather than a decoration: Tuesday still looks like Tuesday next year",
+      "It sets out, wanders, and finds its way home — a line that never closed read as a mistake. The hand is tuned to the loosest turn that still closes reliably, since a tighter one knotted the line back through itself",
+      "Considered and rejected: Strava, whose API would have given real routes at the cost of an account and an OAuth dance; Health Connect's exercise routes, which Android only grants by hand and forbids reading from the background, which is what a scheduled sync is; and a GPS logger posting fixes to the site, which would have meant this portfolio holding a location history in public",
+    ],
+    deployment: "https://portfolio-v2-dypantm1s-damilares-projects-fc682e5f.vercel.app",
+  },
+  {
     version: "1.6.0",
     date: "2026-08-20",
     title: "Cards, and a day you can open",
