@@ -103,7 +103,8 @@ export function GlyphCell({
   className = "",
   label,
   onTick,
-  tone = "mark",
+  pixel = "square",
+  unlit = PIXEL_FLOOR,
   polarity = "luminance",
   pages,
   page = 0,
@@ -119,9 +120,13 @@ export function GlyphCell({
   /** Read once per frame. Returning null means nothing to report — and, with
       nothing else in flight, is what lets the loop stop. */
   onTick?: (now: number) => Tick | null;
-  /** How values become ink. See `draw` — a mark and a photograph want
-      opposite things from the same field. */
-  tone?: "mark" | "artwork";
+  /** The shape of a cell. The LED panel this language comes from is square;
+      the widget cards that quote it are round, and both are Nothing's. */
+  pixel?: "square" | "round";
+  /** What an unlit cell is still worth. The default keeps the whole lattice
+      faintly visible, which is right for a panel pretending to be hardware and
+      wrong for a card that should read as marks on a clean surface. */
+  unlit?: number;
   /** What a value *is*. See `draw`. */
   polarity?: "luminance" | "ink";
   /** How many faces this field wears. Paging is off entirely without it. */
@@ -142,7 +147,8 @@ export function GlyphCell({
   const lastRef = useRef(0);
   const reducedRef = useRef(false);
   const invertRef = useRef(false);
-  const toneRef = useRef(tone);
+  const pixelRef = useRef(pixel);
+  const unlitRef = useRef(unlit);
   const polarityRef = useRef(polarity);
   const swipeRef = useRef<{ x: number; y: number } | null>(null);
   const sweepRef = useRef<number | null>(null);
@@ -172,15 +178,8 @@ export function GlyphCell({
     ctx.clearRect(0, 0, size, size);
     ctx.fillStyle = getComputedStyle(canvas).getPropertyValue("color") || "#f5f5f5";
 
-    /* Two inks, because a mark and a photograph want opposite things from the
-       same field. A mark is a graphic: every cell belongs to it, so unlit cells
-       stay as a faint dot field and value rides an alpha ramp on top. A
-       photograph is a halftone: tone is carried by the area of a solid dot and
-       by nothing else. Fading the dot as well would put value into the picture
-       twice and square it, and a floor under it would stop a dark cover ever
-       reaching black. */
-    const artwork = toneRef.current === "artwork";
-    if (artwork) ctx.globalAlpha = 1;
+    const round = pixelRef.current === "round";
+    const floor = unlitRef.current;
 
     /* And two meanings for the number itself. A luminance says how bright the
        depicted thing is, so it has to flip with the ground: a photograph's
@@ -203,31 +202,30 @@ export function GlyphCell({
       if (t < 1) mask = sweepMask(grid, t);
     }
 
-    /* A pixel, not a dot. The hardware this language comes from is a grid of
-       square LEDs that never touch, and the gap is what stops a bright run of
-       cells collapsing into a solid blob — the thing that made the halftone
-       look burnt. Size is constant and brightness carries the value, exactly
-       as an LED does: an unlit one is still there, just dark. */
+    /* A cell never changes size; brightness carries the value, as a lamp does.
+       The gap between cells is deliberate and is most of the character — at
+       full fill the field becomes a sheet and stops being a matrix at all. */
     const side = cellSize * PIXEL_FILL;
     const radius = side * PIXEL_ROUNDING;
 
     for (const cell of cellsRef.current) {
       const lit = flip ? 1 - cell.v : cell.v;
       const value = mask ? lit * mask[cellIndex(cell, grid, size)] : lit;
-      /* An artwork keeps a true black — a photograph needs somewhere for its
-         shadows to go. A mark keeps the whole field visible, because the unlit
-         lattice is the instrument's face and not an absence. */
-      const alpha = artwork ? value : PIXEL_FLOOR + value * (1 - PIXEL_FLOOR);
+      const alpha = floor + value * (1 - floor);
       if (alpha <= 0.004) continue;
       ctx.globalAlpha = alpha;
       ctx.beginPath();
-      ctx.roundRect(
-        cell.x + cell.ox - side / 2,
-        cell.y + cell.oy - side / 2,
-        side,
-        side,
-        radius,
-      );
+      if (round) {
+        ctx.arc(cell.x + cell.ox, cell.y + cell.oy, side / 2, 0, Math.PI * 2);
+      } else {
+        ctx.roundRect(
+          cell.x + cell.ox - side / 2,
+          cell.y + cell.oy - side / 2,
+          side,
+          side,
+          radius,
+        );
+      }
       ctx.fill();
     }
     ctx.globalAlpha = 1;
@@ -363,9 +361,10 @@ export function GlyphCell({
   }, [invert, draw]);
 
   useEffect(() => {
-    toneRef.current = tone;
+    pixelRef.current = pixel;
+    unlitRef.current = unlit;
     draw();
-  }, [tone, draw]);
+  }, [pixel, unlit, draw]);
 
   useEffect(() => {
     polarityRef.current = polarity;

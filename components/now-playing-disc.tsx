@@ -18,7 +18,11 @@ type NowPlaying = {
 
 const SIZE = 300; // canvas units; CSS scales it
 const GRID = 48; // dots across
-const ARC_PX = 140; // wide enough to clear the 128px disc with a hairline to spare
+/* The arc is sized as a share of the disc rather than in pixels. Pinned at a
+   fixed width it stayed put while the disc grew, and a ring that was clearing
+   the dots by a hairline ended up drawn straight through them — a stray line
+   across the artwork with no meaning attached to it. */
+const ARC_SCALE = 1.09; // just clear of the dots, at any size the disc is set to
 
 /* How much harder a playhead pulse strikes than a fingertip.
    The engine's damping is close to critical, so a ring at force 1 displaces the
@@ -256,7 +260,7 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
         <svg
           viewBox="0 0 100 100"
           aria-hidden
-          style={{ width: ARC_PX, height: ARC_PX }}
+          style={{ width: `${ARC_SCALE * 100}%`, height: `${ARC_SCALE * 100}%` }}
           className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-ink-3"
         >
           <circle

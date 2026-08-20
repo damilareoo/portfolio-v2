@@ -49,6 +49,16 @@ const DOT_R = 2.6;
 /** Monday-first, as a calendar is read. */
 const LETTERS = ["M", "T", "W", "T", "F", "S", "S"];
 
+/* How each state is drawn. Size separates the two kinds of not-knowing; weight
+   separates knowing-good from knowing-bad. Both hold on either skin because
+   they ride `currentColor`, which the skin already inverts. */
+const DAY_STYLE: Record<DayState, { scale: number; opacity: number }> = {
+  met: { scale: 1, opacity: 1 },
+  missed: { scale: 1, opacity: 1 },
+  quiet: { scale: 1, opacity: 0.42 },
+  ahead: { scale: 0.42, opacity: 0.3 },
+};
+
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 /**
@@ -85,17 +95,31 @@ function weekday(day: StepsDay | undefined, index: number): { letter: string; na
  * A day nobody has reached yet and a day nobody reported are both "unknown" —
  * they are drawn alike because they mean alike, that the site cannot say.
  */
-type DayState = "met" | "missed" | "unknown";
+/**
+ * What a day is, on the calendar face.
+ *
+ * Four states, and each has to be told apart at a glance on either skin:
+ *
+ * - `met`     full ink. The goal was made.
+ * - `missed`  the one hue on the site. The day ran out of hours without it.
+ * - `quiet`   a mid-grey dot. The day happened; nobody reported it.
+ * - `ahead`   a small faint dot. Not reached yet, and nothing to say about it.
+ *
+ * The last two are deliberately different marks. Both mean "unknown", but one
+ * is a day that has gone by unrecorded and the other is a day that has not
+ * happened — reading them as the same thing would flatten the month.
+ */
+type DayState = "met" | "missed" | "quiet" | "ahead";
 
 function dayState(day: StepsDay, goal: number, today: string): DayState {
-  if (day.date > today) return "unknown"; // not yet reached
-  if (day.steps === null || goal <= 0) return "unknown"; // never reported
+  if (day.date > today) return "ahead";
+  if (day.steps === null || goal <= 0) return "quiet";
   if (day.steps >= goal) return "met";
   /* A day still being walked has not been missed. The goal can only be missed
      by a day that ran out of hours to meet it in, so today stays open until
      midnight — the same rule as "an unreported day is not a day of no walking",
      applied to the one day that is still happening. */
-  return day.date === today ? "unknown" : "missed";
+  return day.date === today ? "quiet" : "missed";
 }
 
 /** Which column a date sits in, Monday first. */
@@ -104,15 +128,42 @@ function columnOf(date: string): number {
   return (new Date(at).getUTCDay() + 6) % 7;
 }
 
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+/** "Friday, 8 August" — the way a day is named when you are looking at just it. */
+function longDate(date: string): string {
+  const at = Date.parse(`${date}T00:00:00Z`);
+  if (Number.isNaN(at)) return date;
+  const d = new Date(at);
+  return `${WEEKDAYS[d.getUTCDay()]}, ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
+}
+
+/** One reading on the day card: what it is called, and what it was. */
+function DayStat({ top, name, value }: { top: string; name: string; value: string }) {
+  return (
+    <div style={{ top }} className="absolute inset-x-0 px-[8%]">
+      <p className="text-[0.4375rem] font-medium uppercase tracking-[0.08em] text-ink-3 sm:text-[0.5rem]">
+        {name}
+      </p>
+      <p className="text-[0.8125rem] font-medium leading-none text-ink sm:text-[0.9375rem]">
+        {value}
+      </p>
+    </div>
+  );
+}
+
 /** A label the dot alphabet cannot set, laid over the band the number left it. */
 function RecordLabel({ top, name, value }: { top: string; name: string; value: string }) {
   return (
     <div
       style={{ top }}
-      className="absolute inset-x-0 flex items-baseline justify-between px-[6%] font-mono text-[0.5rem] uppercase tracking-[0.08em] text-ink-3"
+      className="absolute inset-x-0 flex items-baseline justify-between px-[7%] text-[0.5rem] font-medium uppercase tracking-[0.06em] text-ink sm:text-[0.5625rem]"
     >
       <span>{name}</span>
-      <span className="text-ink-2">{value}</span>
+      <span>{value}</span>
     </div>
   );
 }
@@ -196,9 +247,29 @@ function Pedometer() {
     return () => cancelAnimationFrame(raf);
   }, [page, progress]);
 
+  /* A day the visitor asked to see. A page of its own rather than a panel over
+     the calendar, so the card keeps its one job of showing one thing and going
+     back is a page turn like any other. */
+  const [detail, setDetail] = useState<string | null>(null);
+
+  const monthDays = reading?.month ?? [];
+  const todayDate = days[days.length - 1]?.date ?? "";
+  /* Which column the 1st falls in, so the rest of the month lays out by counting
+     from it rather than by parsing every date twice. */
+  const detailDay = detail ? monthDays.find((day) => day.date === detail) : undefined;
+  const firstColumn = monthDays.length > 0 ? columnOf(monthDays[0].date) : 0;
+  const todayIndex = monthDays.findIndex((day) => day.date === todayDate);
+  const todayColumn = todayIndex >= 0 ? columnOf(todayDate) : 0;
+  const todayRow = todayIndex >= 0 ? Math.floor((todayIndex + firstColumn) / 7) : -1;
+
   /* Memoised on the values rather than the reading, so a poll that comes back
      saying the same thing hands the field the same array and wakes nothing. */
   const frame = useMemo(() => {
+    if (detailDay) {
+      const share = goal > 0 && detailDay.steps !== null ? detailDay.steps / goal : 0;
+      // The horizon drops so the readings above it have somewhere to sit.
+      return walkFrame(GRID, share, Math.round(GRID * 0.78));
+    }
     if (page === 3) return AUTHORED;
     if (page === 2) return emptyFrame(GRID); // the week is drawn over the field
     if (page === 1) {
@@ -207,16 +278,7 @@ function Pedometer() {
     }
     if (progress === null) return placeholderFrame(GRID);
     return walkFrame(GRID, walked);
-  }, [page, today, average, progress, walked]);
-
-  const monthDays = reading?.month ?? [];
-  const todayDate = days[days.length - 1]?.date ?? "";
-  /* Which column the 1st falls in, so the rest of the month lays out by counting
-     from it rather than by parsing every date twice. */
-  const firstColumn = monthDays.length > 0 ? columnOf(monthDays[0].date) : 0;
-  const todayIndex = monthDays.findIndex((day) => day.date === todayDate);
-  const todayColumn = todayIndex >= 0 ? columnOf(todayDate) : 0;
-  const todayRow = todayIndex >= 0 ? Math.floor((todayIndex + firstColumn) / 7) : -1;
+  }, [page, today, average, progress, walked, detailDay, goal]);
 
   const todaySaid =
     today === null
@@ -248,68 +310,132 @@ function Pedometer() {
       ? `Steps, one page past the week: ${HIDDEN_FACE}. ${said}. ${turning}`
       : `Steps, page ${page + 1} of ${FACES.length}: ${FACES[page]}. ${said}. ${turning}`;
 
+  const cardLabel = detailDay
+    ? `${longDate(detailDay.date)}: ${groupDigits(detailDay.steps ?? 0)} steps, ${share(detailDay.steps, goal)} of the goal. Click, swipe, or use the arrow keys to go back to the month.`
+    : label;
+
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="flex items-center gap-2">
-        {/* The indicator hangs off the card's right, so an equal blank hangs
-            off its left. Without it the card sits a dot's width left of the
-            record line beneath it, and the pair stops reading as one object. */}
-        <span aria-hidden className="w-4" />
+      {/* On a phone the indicator sits under the card, not beside it. Three
+          44px targets in a column are wider than the card they belong to, and
+          two of those beside two cards do not fit a 390px screen — so the axis
+          turns, which also puts them where a thumb already is. */}
+      <div
+        onKeyDown={(event) => {
+          if (event.key === "Escape" && detail) {
+            event.preventDefault();
+            setDetail(null);
+          }
+        }}
+        className="flex flex-col items-center sm:flex-row sm:items-center"
+      >
+        {/* Above sm the indicator hangs off the card's right, so an equal blank
+            hangs off its left. Without it the card sits a dot's width left of
+            the record line beneath it, and the pair stops reading as one. */}
+        <span aria-hidden className="hidden w-8 shrink-0 sm:block" />
         <GlyphCell
           grid={GRID}
           size={SIZE}
           frame={frame}
           polarity="ink"
+          /* Round cells on a clean surface: the widget cards quote the LED
+             panel rather than imitate it, so there is no unlit lattice behind
+             them and a cell that is off is simply not there. */
+          pixel="round"
+          unlit={0}
+          /* Paging stays live on a day card, and any turn closes it. Going
+             back is then the same gesture as everything else on this field —
+             swipe, click, arrow key — rather than a control that exists only
+             here. A card you leave the way you left every other card is one
+             nobody has to be taught. */
           pages={PAGES}
           page={page}
-          onPageChange={setPage}
-          label={label}
-          className="w-[144px] cursor-pointer text-ink select-none sm:w-[176px]"
+          onPageChange={(next) => {
+            if (detail) {
+              setDetail(null);
+              setPage(2);
+              return;
+            }
+            setPage(next);
+          }}
+          label={cardLabel}
+          className="w-[144px] cursor-pointer rounded-[1.5rem] bg-surface p-2.5 text-ink select-none sm:w-[176px] sm:rounded-[1.75rem] sm:p-3"
         >
-          {page === 1 ? (
+          {detailDay ? (
             <>
-              <RecordLabel top="39%" name="Total today" value={share(today, goal)} />
-              <RecordLabel top="83%" name="7-day average" value={share(average, goal)} />
+              <div className="absolute inset-x-0 top-[7%] px-[8%]">
+                <p className="text-[0.4375rem] font-medium uppercase tracking-[0.08em] text-ink sm:text-[0.5rem]">
+                  {longDate(detailDay.date)}
+                </p>
+              </div>
+              <DayStat top="24%" name="Steps" value={groupDigits(detailDay.steps ?? 0)} />
+              <DayStat top="46%" name="Of goal" value={share(detailDay.steps, goal)} />
             </>
           ) : null}
 
-          {page === 2 ? (
+          {page === 1 && !detailDay ? (
             <>
-              <svg viewBox="0 0 100 100" aria-hidden className="absolute inset-0 h-full w-full">
+              <RecordLabel top="34%" name="Total today" value={share(today, goal)} />
+              <RecordLabel top="86%" name="7-day average" value={share(average, goal)} />
+            </>
+          ) : null}
+
+          {page === 2 && !detailDay ? (
+            <>
+              <svg viewBox="0 0 100 100" className="pointer-events-none absolute inset-0 h-full w-full">
                 {monthDays.map((day) => {
                   const index = Number(day.date.slice(8)) - 1;
                   const col = columnOf(day.date);
                   const row = Math.floor((index + firstColumn) / 7);
                   if (row >= WEEK_ROWS) return null;
                   const state = dayState(day, goal, todayDate);
+                  const style = DAY_STYLE[state];
+                  const known = state === "met" || state === "missed";
                   return (
-                    <circle
-                      key={day.date}
-                      cx={COL_X + col * COL_STEP}
-                      cy={ROW_Y + row * ROW_STEP}
-                      r={state === "unknown" ? DOT_R * 0.5 : DOT_R}
-                      /* Met is ink and reads as the page's own colour on either
-                         skin. Missed is the one hue on the site. Unknown is a
-                         smaller, quieter dot — present, because the day exists,
-                         and dim, because nothing is being claimed about it. */
-                      fill={state === "missed" ? "var(--color-miss)" : "currentColor"}
-                      opacity={state === "unknown" ? 0.28 : 1}
-                    />
+                    <g key={day.date}>
+                      <circle
+                        cx={COL_X + col * COL_STEP}
+                        cy={ROW_Y + row * ROW_STEP}
+                        r={DOT_R * style.scale}
+                        fill={state === "missed" ? "var(--color-miss)" : "currentColor"}
+                        opacity={style.opacity}
+                      />
+                      {/* A day with something to say is a control. Its target is
+                          far larger than the dot and invisible with it, because
+                          a three-unit dot is not something a finger can be asked
+                          to hit. The press is swallowed so the card does not
+                          also turn the page under it. */}
+                      {known ? (
+                        <circle
+                          cx={COL_X + col * COL_STEP}
+                          cy={ROW_Y + row * ROW_STEP}
+                          r={COL_STEP * 0.48}
+                          fill="transparent"
+                          className="pointer-events-auto cursor-pointer"
+                          onPointerDown={(event) => event.stopPropagation()}
+                          onPointerUp={(event) => event.stopPropagation()}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setDetail(day.date);
+                          }}
+                        />
+                      ) : null}
+                    </g>
                   );
                 })}
 
-                {/* You are here. The ring is free to mean this now that red
-                    carries "missed" — a hollow mark no longer says anything
-                    else on this face. */}
+                {/* You are here. A pill rather than a dot, because today is the
+                    one thing on this face that is not a day like the others —
+                    it is the day still being decided. */}
                 {todayIndex >= 0 && todayRow < WEEK_ROWS ? (
-                  <circle
-                    cx={COL_X + todayColumn * COL_STEP}
-                    cy={ROW_Y + todayRow * ROW_STEP}
-                    r={DOT_R + 2.2}
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={0.9}
-                    opacity={0.55}
+                  <rect
+                    x={COL_X + todayColumn * COL_STEP - DOT_R * 2.1}
+                    y={ROW_Y + todayRow * ROW_STEP - DOT_R * 0.95}
+                    width={DOT_R * 4.2}
+                    height={DOT_R * 1.9}
+                    rx={DOT_R * 0.95}
+                    fill="currentColor"
+                    opacity={0.9}
                   />
                 ) : null}
               </svg>
@@ -317,7 +443,7 @@ function Pedometer() {
                 <span
                   key={col}
                   style={{ left: `${COL_X + col * COL_STEP}%`, top: "85%" }}
-                  className="absolute -translate-x-1/2 font-mono text-[0.5625rem] uppercase tracking-[0.06em] text-ink-2"
+                  className="absolute -translate-x-1/2 text-[0.5rem] font-medium uppercase tracking-[0.04em] text-ink sm:text-[0.5625rem]"
                 >
                   {letter}
                 </span>
@@ -328,8 +454,14 @@ function Pedometer() {
 
         {/* Three dots, and each of them a real control — arrow keys are the
             gesture's keyboard equivalent, but a page you can only reach by
-            guessing that arrow keys work is a page most people cannot reach. */}
-        <div className="flex flex-col gap-0.5">
+            guessing that arrow keys work is a page most people cannot reach.
+
+            The dot is 4px and the target around it is 44, which is the smallest
+            a finger reliably hits. The two sizes are unrelated on purpose: the
+            mark is as small as the design wants and the target is as large as
+            the hand needs, and negative margins stop the second dictating the
+            layout of the first. */}
+        <div className="-mx-2 flex flex-row sm:-mx-0 sm:-my-2 sm:flex-col">
           {FACES.map((face, index) => (
             <button
               key={face}
@@ -337,10 +469,10 @@ function Pedometer() {
               onClick={() => setPage(index)}
               aria-label={`Show ${face}`}
               aria-current={page === index ? "true" : undefined}
-              className="grid h-5 w-4 place-items-center"
+              className="group grid h-11 w-11 place-items-center sm:-mr-3"
             >
               <span
-                className={`h-1 w-1 rounded-full bg-ink transition-opacity duration-200 ${
+                className={`h-1 w-1 rounded-full bg-ink transition-all duration-200 group-hover:scale-150 ${
                   page === index ? "opacity-100" : "opacity-25"
                 }`}
               />
@@ -372,7 +504,9 @@ function Pedometer() {
           up width on a phone because the two fields stand side by side there,
           and a caption wider than its own card would push its neighbour off. */}
       <div className="h-9 w-[9rem] max-w-full text-center sm:w-[15rem]">
-        <p className="font-mono text-[0.5rem] uppercase tracking-[0.08em] text-ink-3">Steps</p>
+        <p className="font-mono text-[0.5rem] uppercase tracking-[0.08em] text-ink-3">
+          {detailDay ? "Swipe to go back" : "Steps"}
+        </p>
         {today === null ? (
           <p className="mt-0.5 text-[0.6875rem] text-ink-3">Not reported yet</p>
         ) : (

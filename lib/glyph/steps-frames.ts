@@ -22,8 +22,8 @@ export type CellMark = { value: number; hollow: boolean };
 /** The dot alphabet is five rows tall; `font.ts` keeps that to itself. */
 const GLYPH_ROWS = 5;
 
-const FIGURE_W = 5;
-const FIGURE_H = 7;
+const FIGURE_W = 6;
+const FIGURE_H = 8;
 
 /**
  * The walker, mid-stride: arms out, one leg planted and one trailing. Drawn as
@@ -32,17 +32,24 @@ const FIGURE_H = 7;
  * way to make it legible is to place every dot by hand.
  */
 const FIGURE = [
-  0, 0, 1, 0, 0,
-  0, 0, 1, 0, 0,
-  1, 1, 1, 1, 1,
-  0, 0, 1, 0, 0,
-  0, 1, 0, 1, 0,
-  1, 0, 0, 1, 0,
-  1, 0, 0, 0, 1,
+  0, 0, 1, 1, 0, 0,
+  0, 0, 1, 1, 0, 0,
+  1, 1, 1, 1, 1, 1,
+  0, 0, 1, 1, 0, 0,
+  0, 0, 1, 1, 0, 0,
+  0, 1, 1, 0, 1, 0,
+  1, 1, 0, 0, 1, 1,
+  1, 0, 0, 0, 0, 1,
 ];
 
 /** What the path ahead of the walker is worth. Not zero: it is still a path. */
-const AHEAD = 0.35;
+/* The road ahead, dimmer than the ground covered.
+   The path is the whole goal laid end to end: the figure's place along it is
+   today's share of it, the bright dots behind are what has been walked, and
+   the dim ones in front are what is left. A day that met its goal has the
+   figure at the end and no road ahead at all — which is not the road being
+   absent from the design, but the reading being finished. */
+const AHEAD = 0.32;
 
 /** How many dots stand in a week column. Seven, to rhyme with the seven days. */
 export const WEEK_ROWS = 7;
@@ -88,8 +95,8 @@ export function recordFrame(
   average: number | null,
 ): Float32Array {
   const frame = emptyFrame(grid);
-  if (today !== null) stampCentred(frame, grid, groupDigits(today), Math.round(grid * 0.16));
-  if (average !== null) stampCentred(frame, grid, groupDigits(average), Math.round(grid * 0.6));
+  if (today !== null) stampCentred(frame, grid, groupDigits(today), Math.round(grid * 0.1));
+  if (average !== null) stampCentred(frame, grid, groupDigits(average), Math.round(grid * 0.62));
   return frame;
 }
 
@@ -102,12 +109,15 @@ export function recordFrame(
  * small and dim. That is the whole readout: you can see how far you have come
  * without reading a number, which is what a glanceable instrument is for.
  */
-export function walkFrame(grid: number, progress: number): Float32Array {
+export function walkFrame(grid: number, progress: number, horizon?: number): Float32Array {
   const frame = emptyFrame(grid);
 
-  // Figure and path travel together as one block, centred in the field.
-  const top = Math.max(0, Math.round((grid - (FIGURE_H + 1)) / 2));
-  const pathRow = Math.min(grid - 1, top + FIGURE_H);
+  /* The path is the card's horizon and sits on its middle line; the figure
+     stands on it. Centring the pair as one block instead drops the horizon to
+     two-thirds down and leaves the card bottom-heavy. A caller with type to fit
+     above the walk can push the horizon down to make room for it. */
+  const pathRow = Math.min(grid - 1, horizon ?? Math.round((grid - 1) / 2));
+  const top = Math.max(0, pathRow - FIGURE_H);
   const left = Math.round(clamp01(progress) * Math.max(0, grid - FIGURE_W));
   const heel = left + (FIGURE_W >> 1);
 

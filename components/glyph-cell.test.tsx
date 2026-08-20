@@ -234,7 +234,7 @@ describe("GlyphCell", () => {
     for (const value of firstFrameValues(painted)) expect(value).toBeCloseTo(1, 6);
   });
 
-  it("inks artwork by area, and lets a dark cell be dark", () => {
+  it("lets a dark cell be dark when the lattice is turned off", () => {
     reducedMotion(false);
     frameClock();
     const painted = recordCanvas();
@@ -243,12 +243,12 @@ describe("GlyphCell", () => {
     frame[1] = 0.25;
 
     mount(
-      <GlyphCell grid={GRID} size={SIZE} frame={frame} label="cover" tone="artwork" />,
+      <GlyphCell grid={GRID} size={SIZE} frame={frame} label="cover" unlit={0} />,
     );
 
-    /* A photograph needs somewhere for its shadows to go, so artwork keeps a
-       true black: the value is the brightness, with no floor under it, and an
-       unlit cell paints nothing at all rather than a lattice. */
+    /* With no floor under it the value is the brightness outright, and an unlit
+       cell paints nothing at all rather than a lattice — which is what a card
+       wants, and what a photograph wants for its shadows. */
     expect(painted.alphas.slice(0, 2)).toEqual([1, 0.25]);
     // Two pixels per paint and no more, however many times it repaints: the
     // other 62 cells are black and a black cell in a photograph draws nothing.

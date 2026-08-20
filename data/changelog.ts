@@ -10,6 +10,25 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.6.0",
+    date: "2026-08-20",
+    title: "Cards, and a day you can open",
+    notes: [
+      "The step faces are rebuilt to the reference: a card with a surface and a wide corner radius, round cells rather than square, and no unlit lattice behind them — these widget cards quote the LED panel rather than imitate it, so a cell that is off is simply not there",
+      "Both skins were drawn to, not adapted after. Ink on white, ink on black, and the one red holding its weight against either",
+      "The record's labels are set in type rather than the dot alphabet, as the reference sets them, with the percentage ranged right against the name",
+      "The walk's horizon moved to the card's middle line. Centring the figure and path together as one block dropped it to two-thirds down and left the card bottom-heavy",
+      "The walker was redrawn: a two-cell head, arms out, and a real stride",
+      "The calendar has four states rather than three. A day that has gone by unreported and a day that has not happened both mean 'unknown', but they are not the same thing, and reading them as one flattened the month — so one is a quiet mid dot and the other a small faint one",
+      "Today wears a pill rather than a ring: it is the one mark on that face that is not a day like the others, being the day still being decided",
+      "A reported day is now a control. Click it and the card turns to that day — its date, its steps, its share of the goal, and its own walk. Any turn from there goes back, so leaving is the same gesture as everything else on the field rather than a control that exists only there",
+      "Its targets are 44px around a 3px dot, which is the smallest a finger reliably hits",
+      "The page indicator turns its axis on a phone and sits under the card. Three 44px targets in a column are wider than the card they belong to, and two of those beside two cards do not fit a 390px screen",
+      "The disc's progress arc was pinned at a fixed width and stayed put while the disc grew, ending up drawn straight through the artwork. It scales with the disc now, and the stray line across the cover is gone",
+    ],
+    deployment: "https://portfolio-v2-2720p4dc5-damilares-projects-fc682e5f.vercel.app",
+  },
+  {
     version: "1.5.0",
     date: "2026-08-20",
     title: "Pixels, and toys to spend them on",
