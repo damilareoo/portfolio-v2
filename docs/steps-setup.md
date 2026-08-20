@@ -352,6 +352,42 @@ explicitly with a `{"steps": N, "date": "YYYY-MM-DD"}` body holding the Lagos
 date. Neither is worth doing for a short trip — a few odd days heal themselves
 once you are back.
 
+## Recovering days the webhook never sent
+
+The webhook path is incremental and capped at a rolling 48 hours, so it can
+never reach back. There is no date-range or backfill feature on it, and "Sync
+Now" only refreshes inside the same window.
+
+The app's **Local HTTP Server** is the way back. Unlike the webhook, `GET /`
+does a full-window read:
+
+1. Enable **Local HTTP Server** in the app (default port `8787`). It prints an
+   address on the phone's wifi, e.g. `http://192.168.100.3:8787`.
+2. Check it answers: `curl http://<phone>:8787/ping` → `{"status":"ok"}`.
+3. Pull a window: `curl 'http://<phone>:8787/?days=30'`. The response is the
+   same envelope the webhook posts — `{ steps: [ { count, start_time, ... } ] }`.
+4. Relay it to the site. Post each day's records separately rather than the
+   whole month in one request, so one oversized body cannot time out and a day
+   that fails does not take the rest with it. Because the endpoint stores
+   records rather than totals, replaying a day that already landed is harmless.
+5. **Turn the server back off.** It is unauthenticated: anything on that wifi
+   can read the health data out of it.
+
+`{"status":"error","message":"No data types enabled"}` means no data type is
+selected in the app's own Data Types screen — the app-wide one, not the
+per-webhook "send all enabled types" toggle. That same state makes background
+sync post *nothing at all*, with no failures in the log to show for it, because
+there is nothing to send. It is the first thing to check when the endpoint has
+gone quiet.
+
+### How far back there is to go
+
+Probably not as far as you expect. On Android 14+ Health Connect only begins
+recording steps once some app holds `READ_STEPS` — before that it is an empty
+vault, not a quiet recorder. So history starts the day permission was first
+granted to anything, and no amount of pulling will produce days from before it.
+Those days were never recorded, by anything. They belong as unreported.
+
 ## Backfilling a day
 
 If the phone was off, or you want to seed history:
