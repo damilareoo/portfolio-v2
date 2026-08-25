@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CaseReel } from "@/components/case-reel";
+import { RecordRow, SectionLabel } from "@/components/ui";
 import { Frame } from "@/components/frame";
 import { GlyphIcon } from "@/components/glyph-icon";
 import { findWork, selected, type CaseBlock } from "@/data/work";
@@ -21,25 +22,6 @@ export async function generateMetadata(
     title: `${item.title} — Damilare Osofisan`,
     description: item.oneLiner,
   };
-}
-
-function RailLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="font-mono text-[0.5625rem] uppercase tracking-[0.08em] text-ink-3">
-      {children}
-    </span>
-  );
-}
-
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-baseline justify-between gap-4 rule-b py-2.5 last:bg-none">
-      <span className="shrink-0 font-mono text-[0.625rem] uppercase tracking-wider text-ink-3">
-        {label}
-      </span>
-      <span className="min-w-0 text-right text-[0.8125rem]">{children}</span>
-    </div>
-  );
 }
 
 export default async function CasePage(props: PageProps<"/work/[slug]">) {
@@ -94,7 +76,7 @@ export default async function CasePage(props: PageProps<"/work/[slug]">) {
 
           {item.intro && (
             <div className="mt-7">
-              <RailLabel>Overview</RailLabel>
+              <SectionLabel>Overview</SectionLabel>
               <div className="mt-2.5 space-y-3">
                 {item.intro.map((paragraph) => (
                   <p key={paragraph} className="text-[0.75rem] leading-[1.6] text-ink-2">
@@ -106,13 +88,13 @@ export default async function CasePage(props: PageProps<"/work/[slug]">) {
           )}
 
           <div className="mt-7">
-            {item.client && <Row label="Client">{item.client}</Row>}
-            <Row label="Year">{item.year}</Row>
-            {item.role && <Row label="Role">{item.role}</Row>}
-            <Row label="Discipline">{item.disciplines.join(", ")}</Row>
-            {item.stack && <Row label="Stack">{item.stack}</Row>}
+            {item.client && <RecordRow label="Client">{item.client}</RecordRow>}
+            <RecordRow label="Year">{item.year}</RecordRow>
+            {item.role && <RecordRow label="Role">{item.role}</RecordRow>}
+            <RecordRow label="Discipline">{item.disciplines.join(", ")}</RecordRow>
+            {item.stack && <RecordRow label="Stack">{item.stack}</RecordRow>}
             {item.href && (
-              <Row label="Live">
+              <RecordRow label="Live">
                 <a
                   href={item.href}
                   target="_blank"
@@ -122,13 +104,13 @@ export default async function CasePage(props: PageProps<"/work/[slug]">) {
                   {new URL(item.href).hostname.replace(/^www\./, "")}{" "}
                   <GlyphIcon name="arrow-out" size="0.5625rem" className="inline-block align-baseline" />
                 </a>
-              </Row>
+              </RecordRow>
             )}
           </div>
 
           {item.approach && (
             <div className="mt-7">
-              <RailLabel>Approach</RailLabel>
+              <SectionLabel>Approach</SectionLabel>
               <div className="mt-2.5 space-y-3">
                 {item.approach.map((paragraph) => (
                   <p key={paragraph} className="text-[0.75rem] leading-[1.6] text-ink-2">
