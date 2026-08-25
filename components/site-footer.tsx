@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { site } from "@/data/site";
 import { changelog } from "@/data/changelog";
+import { GlyphIcon } from "@/components/glyph-icon";
 
 export function SiteFooter() {
   const current = changelog[0];
@@ -19,7 +20,7 @@ export function SiteFooter() {
               rel="noopener noreferrer"
               className="text-[0.8125rem] text-ink-2 transition-colors hover:text-ink"
             >
-              X
+              X <GlyphIcon name="arrow-out" size="0.5rem" className="inline-block align-baseline" />
             </a>
             <a
               href={site.github}
@@ -27,13 +28,13 @@ export function SiteFooter() {
               rel="noopener noreferrer"
               className="text-[0.8125rem] text-ink-2 transition-colors hover:text-ink"
             >
-              GitHub
+              GitHub <GlyphIcon name="arrow-out" size="0.5rem" className="inline-block align-baseline" />
             </a>
             <a
               href={`mailto:${site.email}`}
               className="text-[0.8125rem] text-ink-2 transition-colors hover:text-ink"
             >
-              Email
+              Email <GlyphIcon name="arrow-out" size="0.5rem" className="inline-block align-baseline" />
             </a>
             <Link
               href="/changelog"

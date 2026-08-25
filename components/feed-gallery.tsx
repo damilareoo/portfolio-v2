@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Reveal } from "@/lib/reveal";
+import { GlyphIcon } from "@/components/glyph-icon";
 import type { Asset } from "@/data/assets.generated";
 
 function Label({ children }: { children: React.ReactNode }) {
@@ -119,7 +120,7 @@ function Lightbox({
             aria-label="Previous"
             className="rounded-full border border-line px-3 py-1.5 text-[0.8125rem] text-ink-2 transition-colors hover:text-ink"
           >
-            ←
+            <GlyphIcon name="arrow-left" size="0.8125rem" />
           </button>
           <button
             type="button"
@@ -127,7 +128,7 @@ function Lightbox({
             aria-label="Next"
             className="rounded-full border border-line px-3 py-1.5 text-[0.8125rem] text-ink-2 transition-colors hover:text-ink"
           >
-            →
+            <GlyphIcon name="arrow-right" size="0.8125rem" />
           </button>
         </div>
       </div>

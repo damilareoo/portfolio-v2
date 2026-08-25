@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CaseReel } from "@/components/case-reel";
 import { Frame } from "@/components/frame";
+import { GlyphIcon } from "@/components/glyph-icon";
 import { findWork, selected, type CaseBlock } from "@/data/work";
 import { workAssets } from "@/data/assets.generated";
 
@@ -81,7 +82,7 @@ export default async function CasePage(props: PageProps<"/work/[slug]">) {
             className="group inline-flex items-center gap-1.5 rounded-[4px] bg-surface-2 px-2 py-1 font-mono text-[0.5625rem] uppercase tracking-[0.08em] text-ink-2 transition-colors hover:text-ink"
           >
             <span className="inline-block transition-transform group-hover:-translate-x-0.5">
-              ←
+              <GlyphIcon name="arrow-left" size="0.625rem" />
             </span>
             Home
           </Link>
@@ -118,7 +119,8 @@ export default async function CasePage(props: PageProps<"/work/[slug]">) {
                   rel="noopener noreferrer"
                   className="text-ink-2 underline decoration-line underline-offset-4 transition-colors hover:text-ink hover:decoration-ink-3"
                 >
-                  {new URL(item.href).hostname.replace(/^www\./, "")}
+                  {new URL(item.href).hostname.replace(/^www\./, "")}{" "}
+                  <GlyphIcon name="arrow-out" size="0.5625rem" className="inline-block align-baseline" />
                 </a>
               </Row>
             )}
@@ -172,7 +174,7 @@ export default async function CasePage(props: PageProps<"/work/[slug]">) {
                 <span className="text-[0.9375rem] font-medium tracking-tight transition-colors group-hover:text-ink-2">
                   {next.title}{" "}
                   <span className="inline-block transition-transform group-hover:translate-x-0.5">
-                    →
+                    <GlyphIcon name="arrow-right" size="0.6875rem" />
                   </span>
                 </span>
               </Link>
