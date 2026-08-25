@@ -22,6 +22,7 @@ export const changelog: ChangelogEntry[] = [
       "It carries no overview and no approach, because nothing true has been written for it yet. The template already knows how to show a piece with a record and no prose rather than padding one out, and that is the honest version",
       "The manifest learned to read a vector. A raster keeps its size in a header and an SVG keeps it in the viewBox, which is what the browser lays the frame out against whatever the width and height attributes claim",
     ],
+    deployment: "https://portfolio-v2-bxt4zck41-damilares-projects-fc682e5f.vercel.app",
   },
   {
     version: "1.8.0",
