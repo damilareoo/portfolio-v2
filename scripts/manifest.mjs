@@ -16,7 +16,7 @@ import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const PUBLIC = join(root, "public");
-const EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".webp", ".avif", ".gif"]);
+const EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".webp", ".avif", ".gif", ".svg"]);
 
 /** PNG carries width and height as big-endian 32-bit ints in the IHDR chunk. */
 function pngSize(fd) {
@@ -96,6 +96,18 @@ function dimensions(file) {
       return webpSize(fd);
     }
     if (magic.toString("ascii", 0, 3) === "GIF") return gifSize(fd);
+
+    /* A vector carries its size in the markup rather than in a header, so the
+       viewBox is the honest source — it is what the browser lays the frame out
+       against, whatever width and height attributes claim. */
+    if (extname(file).toLowerCase() === ".svg") {
+      const head = Buffer.alloc(Math.min(bytes, 1024));
+      readSync(fd, head, 0, head.length, 0);
+      const box = head.toString("utf8").match(/viewBox="[\d.]+ [\d.]+ ([\d.]+) ([\d.]+)"/);
+      if (box) return { width: Math.round(+box[1]), height: Math.round(+box[2]) };
+      return null;
+    }
+
     return null; // avif falls back to the declared ratio below
   } catch {
     return null;

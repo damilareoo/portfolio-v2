@@ -125,7 +125,15 @@ export default async function CasePage(props: PageProps<"/work/[slug]">) {
         {/* The column — the work itself. */}
         <div className="min-w-0">
           {reel.length > 0 ? (
-            <CaseReel blocks={reel} assets={assets} />
+            <>
+              <CaseReel blocks={reel} assets={assets} />
+              {/* A drawn frame says it is drawn, rather than passing for a capture. */}
+              {item.recreated && (
+                <p className="mt-6 font-mono text-[0.5625rem] uppercase tracking-[0.08em] text-ink-3">
+                  Frames drawn for this page, not captured from the product
+                </p>
+              )}
+            </>
           ) : (
             <>
               <Frame ratio="16 / 9" label={item.title} sizes="(min-width: 1024px) 62vw, 92vw" />

@@ -101,6 +101,36 @@ export const workAssets: Record<string, Asset[]> = {
       "height": 1000
     }
   ],
+  "endgame-mobile": [
+    {
+      "src": "/work/endgame-mobile/01-board.svg",
+      "title": "Board",
+      "date": null,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "src": "/work/endgame-mobile/02-browse.svg",
+      "title": "Browse",
+      "date": null,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "src": "/work/endgame-mobile/03-puzzles.svg",
+      "title": "Puzzles",
+      "date": null,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "src": "/work/endgame-mobile/04-profile.svg",
+      "title": "Profile",
+      "date": null,
+      "width": 390,
+      "height": 844
+    }
+  ],
   "hitmans-library": [
     {
       "src": "/work/hitmans-library/01-site.png",
