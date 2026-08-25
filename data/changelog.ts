@@ -22,6 +22,7 @@ export const changelog: ChangelogEntry[] = [
       "Nothing new animates. An icon neither reports nor arrives, so Law 4 leaves it still — the arrival sweep stays with the instruments, which are the things that were not there a moment ago",
       "The word Close is still a word. Turning it into a cross would have traded a label for a mark and made the control worse for anyone who benefits from the label, which is the same reason the four nav chips keep their names",
     ],
+    deployment: "https://portfolio-v2-6wt8xow70-damilares-projects-fc682e5f.vercel.app",
   },
   {
     version: "1.7.1",
