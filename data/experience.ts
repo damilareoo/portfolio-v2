@@ -45,22 +45,4 @@ export const roles: Role[] = [
     engagement: "Contract",
     logo: "/companies/hex.png",
   },
-  // TODO — awaiting the dates from LinkedIn before either of these can ship.
-  // Nothing here is guessed, so they stay out of the record until confirmed:
-  //
-  // {
-  //   role: "Open Source Design Contributor",
-  //   company: "SmallChess",
-  //   url: "",
-  //   period: "",
-  //   location: "",
-  //   logo: "/companies/smallchess.png",
-  // },
-  // {
-  //   role: "Early Career Designer",
-  //   company: "",
-  //   url: "",
-  //   period: "",
-  //   location: "",
-  // },
 ];

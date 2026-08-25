@@ -276,7 +276,7 @@ function Pedometer() {
     }
     if (progress === null) return placeholderFrame(GRID);
     return walkFrame(GRID, walked);
-  }, [page, today, average, progress, walked, detailDay, goal]);
+  }, [page, today, average, progress, walked, detailDay]);
 
   const todaySaid =
     today === null

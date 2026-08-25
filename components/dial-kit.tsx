@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { useSettings, type Step } from "@/lib/settings";
 import { useDialTurns } from "@/lib/dial-turns";
+import { useMounted } from "@/lib/use-mounted";
 
 type Option<T extends string> = { value: T; label: string; className?: string };
 
@@ -48,12 +48,10 @@ function DialRow<T extends string>({
 }
 
 export function DialKit() {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const { theme, setTheme } = useTheme();
   const { density, typeScale, setDensity, setTypeScale } = useSettings();
   const { record } = useDialTurns();
-
-  useEffect(() => setMounted(true), []);
 
   /* Every dial reports its turn. Re-selecting the current value is not a turn —
      the counter measures change, not clicks. */

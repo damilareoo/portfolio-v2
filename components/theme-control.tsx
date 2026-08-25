@@ -1,19 +1,8 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import { useDialTurns } from "@/lib/dial-turns";
-
-/* The server cannot know the stored theme, so the first client render must
-   match the server's. Reading it as an external store gives false on the
-   server and true after hydration without a state write in an effect. */
-const noop = () => () => {};
-const useMounted = () =>
-  useSyncExternalStore(
-    noop,
-    () => true,
-    () => false,
-  );
+import { useMounted } from "@/lib/use-mounted";
 
 /**
  * Three states, three targets — light, dark, and system as separate controls

@@ -10,6 +10,19 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.7.1",
+    date: "2026-08-25",
+    title: "Where the settings actually live",
+    notes: [
+      "Four long-standing lint errors are gone, and the fix was to stop lying about where state lives. The dials and the visitor's own turn count are kept in localStorage, which the pre-paint script reads before React exists and a second tab can change while this one is open — that is an external system, not React state, and it is now read as one. The server renders the defaults, the client re-renders with the saved values after hydration, and no effect writes state on mount",
+      "A dial turned in another tab now retunes this one. That was never a goal; it falls out of reading storage properly, and it is the behaviour a visitor would expect from a setting they can see in two windows at once",
+      "The mounted check that three components each kept their own copy of is one hook in lib/use-mounted.ts. Three copies of the same four lines is three chances to fix it in two places",
+      "One stale dependency dropped from the glyph field's memo — the goal was listed but never read, so a change to it rebuilt a frame that could not have differed",
+      "Two roles the record was holding a place for are removed rather than left commented. A TODO waiting on dates that never came is not a plan, and nothing here was ever going to be guessed",
+    ],
+    deployment: "https://portfolio-v2-6uw8wumuj-damilares-projects-fc682e5f.vercel.app",
+  },
+  {
     version: "1.7.0",
     date: "2026-08-20",
     title: "The day's line",

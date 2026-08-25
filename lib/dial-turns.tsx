@@ -7,10 +7,50 @@ import {
   useEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 
 const LOCAL_KEY = "dialkit-turns";
+
+/* This visitor's own turns live in localStorage, which is external to React the
+   same way the shared count is: the server has no way to know it. Reading it as
+   a store gives the server zero and the client its saved trace after hydration,
+   without writing state from inside an effect. */
+let mineSnapshot: number | null = null;
+const mineListeners = new Set<() => void>();
+
+function getMine(): number {
+  if (mineSnapshot === null) {
+    try {
+      const saved = Number(localStorage.getItem(LOCAL_KEY));
+      mineSnapshot = Number.isFinite(saved) && saved > 0 ? saved : 0;
+    } catch {
+      // Private browsing — this visit simply starts from zero.
+      mineSnapshot = 0;
+    }
+  }
+  return mineSnapshot;
+}
+
+const getServerMine = () => 0;
+
+function subscribeMine(listener: () => void) {
+  mineListeners.add(listener);
+  return () => {
+    mineListeners.delete(listener);
+  };
+}
+
+function bumpMine() {
+  mineSnapshot = getMine() + 1;
+  try {
+    localStorage.setItem(LOCAL_KEY, String(mineSnapshot));
+  } catch {
+    // Not worth failing a dial turn over.
+  }
+  mineListeners.forEach((listener) => listener());
+}
 
 type DialTurnsValue = {
   /** Turns by everyone, ever. Null until read, or when no store is configured. */
@@ -28,9 +68,9 @@ const DialTurnsContext = createContext<DialTurnsValue | null>(null);
 
 export function DialTurnsProvider({ children }: { children: ReactNode }) {
   const [total, setTotal] = useState<number | null>(null);
-  const [mine, setMine] = useState(0);
   const [live, setLive] = useState(false);
   const [justMoved, setJustMoved] = useState(false);
+  const mine = useSyncExternalStore(subscribeMine, getMine, getServerMine);
 
   // Read once on mount and never poll: a number that climbs on its own would be
   // motion the visitor did not cause. It moves when they move it.
@@ -48,13 +88,6 @@ export function DialTurnsProvider({ children }: { children: ReactNode }) {
         // No shared count. The local trace still works.
       });
 
-    try {
-      const saved = Number(localStorage.getItem(LOCAL_KEY));
-      if (Number.isFinite(saved) && saved > 0) setMine(saved);
-    } catch {
-      // Private browsing — this visit simply starts from zero.
-    }
-
     return () => {
       cancelled = true;
     };
@@ -62,15 +95,7 @@ export function DialTurnsProvider({ children }: { children: ReactNode }) {
 
   const record = useCallback(() => {
     setJustMoved(true);
-    setMine((prev) => {
-      const next = prev + 1;
-      try {
-        localStorage.setItem(LOCAL_KEY, String(next));
-      } catch {
-        // Not worth failing a dial turn over.
-      }
-      return next;
-    });
+    bumpMine();
     // Optimistic: the visitor sees their own turn land immediately.
     setTotal((prev) => (prev === null ? prev : prev + 1));
 

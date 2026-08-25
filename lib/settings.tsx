@@ -4,10 +4,8 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useRef,
-  useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 
@@ -39,6 +37,83 @@ function apply({ density, typeScale }: Settings) {
   root.style.setProperty("--type-scale", TYPE_SCALE[typeScale] ?? "1");
 }
 
+/* Where the settings actually live is localStorage, not React: the pre-paint
+   script below reads them before React exists, and a second tab can change them
+   while this one is open. So they are read as an external store — the server
+   renders the defaults, the client re-renders with the saved values after
+   hydration, and nothing has to write state from inside an effect. */
+
+function parse(raw: string | null): Settings {
+  if (!raw) return DEFAULTS;
+  try {
+    const saved = JSON.parse(raw) as Partial<Settings>;
+    return {
+      density: saved.density ?? DEFAULTS.density,
+      typeScale: saved.typeScale ?? DEFAULTS.typeScale,
+    };
+  } catch {
+    // Corrupt storage just means defaults.
+    return DEFAULTS;
+  }
+}
+
+/* Cached, because getSnapshot runs on every render and must hand back the same
+   object until the settings truly change or React re-renders without end. */
+let snapshot: Settings = DEFAULTS;
+let stale = true;
+
+function getSnapshot(): Settings {
+  if (stale) {
+    try {
+      snapshot = parse(localStorage.getItem(STORAGE_KEY));
+    } catch {
+      // Private browsing — this visit runs on the defaults.
+      snapshot = DEFAULTS;
+    }
+    stale = false;
+  }
+  return snapshot;
+}
+
+// The server has no storage to read, so it renders what a first visit sees.
+const getServerSnapshot = (): Settings => DEFAULTS;
+
+const listeners = new Set<() => void>();
+const emit = () => listeners.forEach((listener) => listener());
+
+// A dial turned in another tab is a change arriving from outside; the DOM here
+// has to be retuned to match it, since no local write did it for us.
+function onStorage(event: StorageEvent) {
+  if (event.key !== null && event.key !== STORAGE_KEY) return;
+  stale = true;
+  apply(getSnapshot());
+  emit();
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  if (listeners.size === 1) window.addEventListener("storage", onStorage);
+  return () => {
+    listeners.delete(listener);
+    if (listeners.size === 0) window.removeEventListener("storage", onStorage);
+  };
+}
+
+// One place applies and persists, so no update can race another. The initial
+// apply is the pre-paint script's job — it reads this same key and these same
+// maps, which is why nothing needs re-applying on mount.
+function write(next: Settings) {
+  snapshot = next;
+  stale = false;
+  apply(next);
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    // Private browsing — the setting still applies for this session.
+  }
+  emit();
+}
+
 type SettingsValue = Settings & {
   setDensity: (s: Step) => void;
   setTypeScale: (s: Step) => void;
@@ -47,45 +122,10 @@ type SettingsValue = Settings & {
 const SettingsContext = createContext<SettingsValue | null>(null);
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<Settings>(DEFAULTS);
-  // Guards the first render from writing defaults over saved values.
-  const hydrated = useRef(false);
+  const settings = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const saved = JSON.parse(raw) as Partial<Settings>;
-        setSettings({
-          density: saved.density ?? DEFAULTS.density,
-          typeScale: saved.typeScale ?? DEFAULTS.typeScale,
-        });
-      }
-    } catch {
-      // Corrupt or unavailable storage just means defaults.
-    }
-    hydrated.current = true;
-  }, []);
-
-  // One place applies and persists, so no update can race another.
-  useEffect(() => {
-    if (!hydrated.current) return;
-    apply(settings);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-    } catch {
-      // Private browsing — the setting still applies for this session.
-    }
-  }, [settings]);
-
-  const setDensity = useCallback(
-    (density: Step) => setSettings((prev) => ({ ...prev, density })),
-    [],
-  );
-  const setTypeScale = useCallback(
-    (typeScale: Step) => setSettings((prev) => ({ ...prev, typeScale })),
-    [],
-  );
+  const setDensity = useCallback((density: Step) => write({ ...getSnapshot(), density }), []);
+  const setTypeScale = useCallback((typeScale: Step) => write({ ...getSnapshot(), typeScale }), []);
 
   const value = useMemo(
     () => ({ ...settings, setDensity, setTypeScale }),
