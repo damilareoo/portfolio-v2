@@ -19,6 +19,7 @@ export const changelog: ChangelogEntry[] = [
       "The manifest keeps its new eye for vectors. That was a gap in the tooling rather than anything to do with the piece: an SVG carries its size in the viewBox, and the manifest could not read one, so it silently emitted an empty list and a page fell back to saying the case was unwritten",
       "The selected work is three again, and the README says three. It had claimed four since before there were four, which was a small untruth that a placeholder briefly made accidentally correct",
     ],
+    deployment: "https://portfolio-v2-iq5oym8ty-damilares-projects-fc682e5f.vercel.app",
   },
   {
     version: "1.9.0",
