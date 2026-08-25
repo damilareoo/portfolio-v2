@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { RecordRow } from "@/components/ui";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Counters } from "@/components/counters";
@@ -45,15 +46,6 @@ function Section({
       {note && <p className="mt-2 max-w-[34rem] text-[0.75rem] leading-[1.6] text-ink-3">{note}</p>}
       <div className="mt-4">{children}</div>
     </section>
-  );
-}
-
-function Row({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-x-5 rule-b py-2.5 last:bg-none sm:grid-cols-[96px_minmax(0,1fr)]">
-      <span className="text-[0.6875rem] text-ink-3">{label}</span>
-      <span className="text-[0.75rem] text-ink">{children}</span>
-    </div>
   );
 }
 
@@ -151,28 +143,28 @@ export default function ColophonPage() {
 
           <Section label="Stack">
             <div className="max-w-[26rem]">
-              <Row label="Framework">Next.js, React, TypeScript</Row>
-              <Row label="Styling">Tailwind CSS on CSS custom properties</Row>
-              <Row label="Counters">Upstash Redis</Row>
-              <Row label="Music">Spotify, dithered to a dot field</Row>
-              <Row label="Hosting">Vercel</Row>
-              <Row label="Version">
+              <RecordRow label="Framework">Next.js, React, TypeScript</RecordRow>
+              <RecordRow label="Styling">Tailwind CSS on CSS custom properties</RecordRow>
+              <RecordRow label="Counters">Upstash Redis</RecordRow>
+              <RecordRow label="Music">Spotify, dithered to a dot field</RecordRow>
+              <RecordRow label="Hosting">Vercel</RecordRow>
+              <RecordRow label="Version">
                 <Link
                   href="/changelog"
                   className="underline decoration-line underline-offset-4 transition-colors hover:decoration-ink-3"
                 >
                   v{current.version} — {current.title}
                 </Link>
-              </Row>
+              </RecordRow>
               {!isPortfolio && (
-                <Row label="Workshop">
+                <RecordRow label="Workshop">
                   <Link
                     href="/system"
                     className="underline decoration-line underline-offset-4 transition-colors hover:decoration-ink-3"
                   >
                     System
                   </Link>
-                </Row>
+                </RecordRow>
               )}
             </div>
           </Section>

@@ -49,3 +49,18 @@ export function Meta({ label, value }: { label: string; value: ReactNode }) {
     </div>
   );
 }
+
+/**
+ * A fact, recorded. The site keeps facts in label/value rows on `/about`, on
+ * `/colophon`, and on a case page, and until now each surface drew its own —
+ * which is why the case page read as foreign rather than as under-designed.
+ * This is the shape the majority already used.
+ */
+export function RecordRow({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-x-5 rule-b py-2.5 last:bg-none sm:grid-cols-[96px_minmax(0,1fr)]">
+      <span className="text-[0.6875rem] text-ink-3">{label}</span>
+      <span className="text-[0.75rem] text-ink">{children}</span>
+    </div>
+  );
+}

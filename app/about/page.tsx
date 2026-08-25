@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { RecordRow } from "@/components/ui";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -15,15 +16,6 @@ export const metadata: Metadata = {
 
 function Heading({ children }: { children: ReactNode }) {
   return <h2 className="text-[0.75rem] text-ink-2">{children}</h2>;
-}
-
-function Row({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-x-5 rule-b py-2.5 last:bg-none sm:grid-cols-[96px_minmax(0,1fr)]">
-      <span className="text-[0.6875rem] text-ink-3">{label}</span>
-      <span className="text-[0.75rem] text-ink">{children}</span>
-    </div>
-  );
 }
 
 /** A role: the period outside the rule, everything known about it inside. */
@@ -151,21 +143,21 @@ export default function AboutPage() {
         <section>
           <Heading>Record</Heading>
           <div className="mt-3">
-            <Row label="Based">Lagos, Nigeria</Row>
-            <Row label="Currently">
+            <RecordRow label="Based">Lagos, Nigeria</RecordRow>
+            <RecordRow label="Currently">
               <Out href="https://chessever.com">ChessEver</Out>
               <span className="text-ink-3">, </span>
               <Out href="https://hex.inc">Hex</Out>
-            </Row>
-            <Row label="Focus">0&ndash;1 products</Row>
-            <Row label="Site">
+            </RecordRow>
+            <RecordRow label="Focus">0&ndash;1 products</RecordRow>
+            <RecordRow label="Site">
               <Link
                 href="/colophon"
                 className="underline decoration-line underline-offset-4 transition-colors hover:decoration-ink-3"
               >
                 Colophon
               </Link>
-            </Row>
+            </RecordRow>
           </div>
 
           <div className="mt-8">
