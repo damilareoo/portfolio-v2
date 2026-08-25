@@ -86,26 +86,32 @@ body {
 /* A border that separates is a mark; a border that contains is an edge. Rules
    are drawn as pixels on the icon's own pitch, square rather than round,
    because the field has drawn square pixels since v1.5.0. Containment borders
-   — frames, cards, chips, inputs — are untouched and stay hairlines. */
-.rule-b,
-.rule-t {
-  background-image: repeating-linear-gradient(
-    to right,
-    var(--border) 0,
-    var(--border) calc(var(--rule-cell) * var(--pixel-fill)),
-    transparent calc(var(--rule-cell) * var(--pixel-fill)),
-    transparent var(--rule-cell)
-  );
-  background-repeat: repeat-x;
-  background-size: 100% calc(var(--rule-cell) * var(--pixel-fill));
-}
+   — frames, cards, chips, inputs — are untouched and stay hairlines.
 
-.rule-b {
-  background-position: bottom left;
-}
+   Wrapped in @layer utilities so last:bg-none — itself emitted inside
+   @layer utilities by Tailwind — can win on cascade order instead of
+   losing to an unlayered declaration regardless of specificity. */
+@layer utilities {
+  .rule-b,
+  .rule-t {
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--border) 0,
+      var(--border) calc(var(--rule-cell) * var(--pixel-fill)),
+      transparent calc(var(--rule-cell) * var(--pixel-fill)),
+      transparent var(--rule-cell)
+    );
+    background-repeat: repeat-x;
+    background-size: 100% calc(var(--rule-cell) * var(--pixel-fill));
+  }
 
-.rule-t {
-  background-position: top left;
+  .rule-b {
+    background-position: bottom left;
+  }
+
+  .rule-t {
+    background-position: top left;
+  }
 }
 
 /* Law 4, amended: an element may animate on arrival, once. It is transformed
