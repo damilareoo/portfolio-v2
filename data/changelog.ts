@@ -10,6 +10,20 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.8.0",
+    date: "2026-08-25",
+    title: "The marks join the matrix",
+    notes: [
+      "The dot matrix stops being the instrument panel and becomes the site's icon language. Six icons on a 7x7 grid — the theme dials, the arrows, and a mark for a link that leaves — drawn from the same numbers the instruments draw a pixel with",
+      "Seven cells because it is odd and so has a true centre, because it is the alphabet's five rows with one above and one below so an icon aligns with a word on its own, and because at five cells a diagonal arrow and a chevron are the same shape",
+      "Icons are SVG and the instruments stay on canvas. GlyphCell carries pointer tracking, springs and an arrival sweep, which is everything a live field needs and everything a 14px mark must not have — so an icon has no state, no effects, and costs the nav nothing",
+      "A cell that is off is not drawn. The field keeps its unlit lattice because the lattice is the instrument's face; an icon quotes the panel rather than imitating it, which is the rule the widget cards have followed since v1.6.0",
+      "Rules are marks now. A border that separates is drawn as square pixels on the icon's own pitch; a border that contains is an edge and has not moved. Fifteen separators changed and thirty-eight box edges did not",
+      "Nothing new animates. An icon neither reports nor arrives, so Law 4 leaves it still — the arrival sweep stays with the instruments, which are the things that were not there a moment ago",
+      "The word Close is still a word. Turning it into a cross would have traded a label for a mark and made the control worse for anyone who benefits from the label, which is the same reason the four nav chips keep their names",
+    ],
+  },
+  {
     version: "1.7.1",
     date: "2026-08-25",
     title: "Where the settings actually live",
