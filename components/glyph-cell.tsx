@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import { useTheme } from "next-themes";
 import { createLoop, type Loop } from "@/lib/glyph/loop";
 import { sweepMask } from "@/lib/glyph/entrance";
+import { PIXEL_FLOOR, pixelGeometry } from "@/lib/glyph/pixel";
 import {
   buildCells,
   cellIndex,
@@ -32,15 +33,6 @@ const SWIPE = 40;
 
 /** And how little it can travel and still have been a click. */
 const TAP = 8;
-
-/* How much of its cell a pixel fills, and how far its corners are turned. The
-   gap is deliberate and is most of the character: at 1 the field becomes a
-   solid sheet, and the language stops being a matrix at all. */
-const PIXEL_FILL = 0.74;
-const PIXEL_ROUNDING = 0.26;
-
-/** What an unlit pixel is still worth. Dark, but present — an LED, not a hole. */
-const PIXEL_FLOOR = 0.16;
 
 /** How long the arrival takes. Long enough to read as an opening, not a wipe. */
 const SWEEP_MS = 600;
@@ -205,8 +197,7 @@ export function GlyphCell({
     /* A cell never changes size; brightness carries the value, as a lamp does.
        The gap between cells is deliberate and is most of the character — at
        full fill the field becomes a sheet and stops being a matrix at all. */
-    const side = cellSize * PIXEL_FILL;
-    const radius = side * PIXEL_ROUNDING;
+    const { side, radius } = pixelGeometry(cellSize);
 
     for (const cell of cellsRef.current) {
       const lit = flip ? 1 - cell.v : cell.v;
