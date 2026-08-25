@@ -10,6 +10,17 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.9.1",
+    date: "2026-08-25",
+    title: "The placeholder goes",
+    notes: [
+      "Endgame.ai mobile is removed: the card, the case page, the four drawn frames, and the record. A placeholder earns its place by standing in for something arriving shortly, and this one was standing in for a decision that had not been made",
+      "The `recreated` flag and the line it printed under a reel go with it. Nothing else on the site shows a frame it drew, so the mechanism was a rule with no case left to govern — and a rule kept for a hypothetical is how a codebase fills with furniture nobody sits on",
+      "The manifest keeps its new eye for vectors. That was a gap in the tooling rather than anything to do with the piece: an SVG carries its size in the viewBox, and the manifest could not read one, so it silently emitted an empty list and a page fell back to saying the case was unwritten",
+      "The selected work is three again, and the README says three. It had claimed four since before there were four, which was a small untruth that a placeholder briefly made accidentally correct",
+    ],
+  },
+  {
     version: "1.9.0",
     date: "2026-08-25",
     title: "One record, and a fourth piece",

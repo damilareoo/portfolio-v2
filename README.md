@@ -29,7 +29,7 @@ Four, and the nav names all four.
 
 | Route | Holds |
 |---|---|
-| `/` | Everything about the work — lockup and four selected pieces |
+| `/` | Everything about the work — lockup and the selected pieces |
 | `/feed` | The gallery |
 | `/about` | The record about the person, and the roles behind it |
 | `/colophon` | How the site is made, and the instruments |
@@ -38,7 +38,7 @@ Four, and the nav names all four.
 
 There is no archive surface. With selected work and the dated list both on the home page, `/work` held a filtered restatement of a page the visitor had already read — a nav entry has to earn itself, and that one was paying for a duplicate.
 
-The dated list has since gone too. Four pieces with room read as an argument; the same four as a list read as an inventory, and the page was making both cases at once. Roles moved to `/about`, where they belong: they are a fact about the person, not a piece of work.
+The dated list has since gone too. The selected pieces with room read as an argument; the same pieces as a list read as an inventory, and the page was making both cases at once. Roles moved to `/about`, where they belong: they are a fact about the person, not a piece of work.
 
 ## The icon language
 
@@ -178,15 +178,11 @@ One model in `data/work.ts`, tiered by how much room a piece earns.
 
 | Tier | Gets | Lives |
 |---|---|---|
-| `selected` | A `/work/[slug]` case page and one of the four cards on the home | Home |
+| `selected` | A `/work/[slug]` case page and one of the cards on the home | Home |
 | `project` | Nothing rendered today — held for when a second surface earns its keep | — |
 | `index` | Nothing rendered today | — |
 
 Selected work without written blocks says so plainly on its case page instead of padding — the site does not pretend to depth it lacks.
-
-Artwork that was drawn rather than captured is marked `recreated`, and the case page prints that
-under the reel. A frame made here and shown as though it came from the product would be the one
-claim this site has never made, and a placeholder is not a licence to imply a shipped thing exists.
 
 The record rows on a case page are the same `RecordRow` that `/about` and `/colophon` use, kept in
 `components/ui.tsx` with the other primitives. Three surfaces once drew their own, and the case

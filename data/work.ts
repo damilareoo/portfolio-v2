@@ -60,11 +60,6 @@ export type WorkItem = {
   disciplines: Discipline[];
   /** The live product. Absent for work that no longer exists publicly. */
   href?: string;
-  /**
-   * True when the artwork is drawn rather than captured. The page says so: this
-   * site does not show a frame it did not make and let it read as a screenshot.
-   */
-  recreated?: boolean;
   /** Tile face — selected and project tiers. A letterform until real artwork lands. */
   mark?: string;
   image?: string;
@@ -206,20 +201,6 @@ export const work: WorkItem[] = [
       { kind: "inset", items: [{}, {}] },
       { kind: "inset", tone: "strong", items: [{ caption: "Mobile" }] },
     ],
-  },
-  {
-    slug: "endgame-mobile",
-    title: "Endgame.ai Mobile",
-    oneLiner: "Chess on a phone, for people who follow the game.",
-    year: "2026",
-    period: "2026 — Now",
-    tier: "selected",
-    disciplines: ["Product Design"],
-    domain: "endgame.ai",
-    category: "Mobile",
-    mark: "E",
-    tone: "strong",
-    recreated: true,
   },
   {
     slug: "damilares-skills",
