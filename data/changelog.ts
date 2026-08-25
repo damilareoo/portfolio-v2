@@ -10,6 +10,20 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.9.0",
+    date: "2026-08-25",
+    title: "One record, and a fourth piece",
+    notes: [
+      "The case page did not read as part of the site, and the reason was duller than it looked. The site keeps facts in label-and-value rows in three places, and two of them agreed: same grid, same sizes, values ranged left. The case page kept a third, drawn its own way with mono uppercase labels and values ranged right. It was not under-designed, it was differently designed, which is what reads as foreign",
+      "So there is one row now, kept where the shared primitives live rather than redeclared per surface — which was already the rule here, and the case page was where the breach showed. About and the colophon defined the shape, so the shape is theirs: eighteen rendered rows across those two pages are byte-identical before and after, which is the whole test of a refactor that claims to change nothing",
+      "The layout did not move. Same two columns, same rail that pins and scrolls in itself, same reel. The complaint was that the page did not belong, and what did not belong was the chrome rather than the structure — changing more than that would have been answering a question nobody asked",
+      "Endgame.ai mobile joins the selected work as a placeholder, taking it to four. Four frames — the board, the live games, a puzzle, a profile — and they are drawn rather than captured, in the site's own tokens and with no colour in them",
+      "The page says they are drawn. A frame made here and shown as though it came from the product would be the one claim this site has never made, and a placeholder is not a licence to imply a shipped thing exists",
+      "It carries no overview and no approach, because nothing true has been written for it yet. The template already knows how to show a piece with a record and no prose rather than padding one out, and that is the honest version",
+      "The manifest learned to read a vector. A raster keeps its size in a header and an SVG keeps it in the viewBox, which is what the browser lays the frame out against whatever the width and height attributes claim",
+    ],
+  },
+  {
     version: "1.8.0",
     date: "2026-08-25",
     title: "The marks join the matrix",
