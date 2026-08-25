@@ -184,6 +184,15 @@ One model in `data/work.ts`, tiered by how much room a piece earns.
 
 Selected work without written blocks says so plainly on its case page instead of padding — the site does not pretend to depth it lacks.
 
+Artwork that was drawn rather than captured is marked `recreated`, and the case page prints that
+under the reel. A frame made here and shown as though it came from the product would be the one
+claim this site has never made, and a placeholder is not a licence to imply a shipped thing exists.
+
+The record rows on a case page are the same `RecordRow` that `/about` and `/colophon` use, kept in
+`components/ui.tsx` with the other primitives. Three surfaces once drew their own, and the case
+page's was the one that disagreed — mono uppercase labels, values ranged right — which is why it
+read as foreign rather than as under-designed. It was not the layout.
+
 A case page keeps every word in the left rail — one-liner, `intro`, the record rows, then `approach` — and gives the whole right column to the work. The rail pins on a tall viewport and scrolls within itself rather than dragging the reel down with it.
 
 | Block | Renders |
