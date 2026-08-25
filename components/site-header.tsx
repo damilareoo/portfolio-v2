@@ -3,7 +3,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 export function SiteHeader() {
   return (
-    <header className="flex h-[54px] items-center justify-between border-b border-line bg-surface px-4 sm:px-6">
+    <header className="flex h-[54px] items-center justify-between rule-b bg-surface px-4 sm:px-6">
       <Link
         href="/"
         className="flex items-center gap-2 rounded-full border border-line px-3 py-1 transition-colors hover:border-ink-3"

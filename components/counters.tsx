@@ -63,7 +63,7 @@ function NowPlayingRow() {
   }, []);
 
   return (
-    <div className="border-t border-line pt-3">
+    <div className="rule-t pt-3">
       <Label>Now playing</Label>
       {track?.isPlaying && track.title ? (
         <a
@@ -89,7 +89,7 @@ export function Counters({ version, commit }: { version: string; commit?: string
 
   return (
     <div className="space-y-4">
-      <div className="border-t border-line pt-3">
+      <div className="rule-t pt-3">
         <Label>Dials turned</Label>
         <div className="mt-1.5 flex items-baseline gap-2">
           <Digits value={live ? total : mine} roll={justMoved} />
@@ -106,7 +106,7 @@ export function Counters({ version, commit }: { version: string; commit?: string
 
       <NowPlayingRow />
 
-      <div className="border-t border-line pt-3">
+      <div className="rule-t pt-3">
         <Label>Build</Label>
         <p className="mt-1.5 font-mono text-[0.6875rem] text-ink-2">
           v{version}

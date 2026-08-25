@@ -12,7 +12,7 @@ import { site } from "@/data/site";
 /** A mono rule-and-label head, as the selected section carried in v1.0.0. */
 function SectionHead({ label, right }: { label: string; right?: ReactNode }) {
   return (
-    <div className="mb-5 flex items-baseline justify-between gap-4 border-b border-line pb-2">
+    <div className="mb-5 flex items-baseline justify-between gap-4 rule-b pb-2">
       <span className="font-mono text-[0.625rem] uppercase tracking-wider text-ink-3">
         {label}
       </span>
@@ -117,7 +117,7 @@ export default function Home() {
           footer now — instruments on the shelf, not badges stuck to the corner. */}
       <GlyphBay className="mt-16" />
 
-      <footer className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line pt-5 pb-8">
+      <footer className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 rule-t pt-5 pb-8">
         <a
           href={site.x}
           target="_blank"

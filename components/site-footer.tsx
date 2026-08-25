@@ -7,7 +7,7 @@ export function SiteFooter() {
   const current = changelog[0];
   return (
     <footer className="mx-auto w-full max-w-6xl px-4 pb-8 sm:px-6">
-      <div className="border-t border-line pt-6">
+      <div className="rule-t pt-6">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <span className="text-[0.8125rem] font-medium tracking-tight">damilareoo</span>

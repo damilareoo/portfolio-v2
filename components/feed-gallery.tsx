@@ -174,7 +174,7 @@ export function FeedGallery({ items, lastUpdated }: { items: Asset[]; lastUpdate
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-line pb-3">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 rule-b pb-3">
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"

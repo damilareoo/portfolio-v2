@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { PIXEL_FILL, PIXEL_FLOOR, PIXEL_ROUNDING, pixelGeometry } from "./pixel";
 
@@ -31,5 +33,16 @@ describe("the shared pixel", () => {
   it("scales with the cell", () => {
     expect(pixelGeometry(20).side).toBeCloseTo(pixelGeometry(10).side * 2);
     expect(pixelGeometry(20).radius).toBeCloseTo(pixelGeometry(10).radius * 2);
+  });
+});
+
+describe("the rule shares the pixel's hand", () => {
+  it("declares the same fill ratio in CSS as in TypeScript", () => {
+    // globals.css cannot import a constant, so this is the seam where the two
+    // can drift. A rule drawn at a different fill is a second language.
+    const css = readFileSync(resolve(process.cwd(), "app/globals.css"), "utf8");
+    const declared = css.match(/--pixel-fill:\s*([\d.]+)/);
+    expect(declared, "globals.css must declare --pixel-fill").not.toBeNull();
+    expect(Number(declared![1])).toBe(PIXEL_FILL);
   });
 });

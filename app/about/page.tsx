@@ -19,7 +19,7 @@ function Heading({ children }: { children: ReactNode }) {
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-x-5 border-b border-line py-2.5 last:border-b-0 sm:grid-cols-[96px_minmax(0,1fr)]">
+    <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-x-5 rule-b py-2.5 last:bg-none sm:grid-cols-[96px_minmax(0,1fr)]">
       <span className="text-[0.6875rem] text-ink-3">{label}</span>
       <span className="text-[0.75rem] text-ink">{children}</span>
     </div>
@@ -177,7 +177,7 @@ export default function AboutPage() {
                   href={place.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group grid grid-cols-[72px_minmax(0,1fr)] gap-x-5 border-b border-line py-2.5 last:border-b-0 sm:grid-cols-[96px_minmax(0,1fr)]"
+                  className="group grid grid-cols-[72px_minmax(0,1fr)] gap-x-5 rule-b py-2.5 last:bg-none sm:grid-cols-[96px_minmax(0,1fr)]"
                 >
                   <span className="text-[0.6875rem] text-ink-3">{place.label}</span>
                   <span className="text-[0.75rem] text-ink-2 transition-colors group-hover:text-ink">

@@ -60,7 +60,7 @@ export function TokenRow({ token }: { token: string }) {
     <button
       type="button"
       onClick={copy}
-      className="group flex w-full items-center gap-3 border-b border-line py-2 text-left last:border-b-0"
+      className="group flex w-full items-center gap-3 rule-b py-2 text-left last:bg-none"
     >
       <span
         ref={swatchRef}
@@ -99,7 +99,7 @@ export function TypeSpecimen({
   const [size, setSize] = useState(28);
 
   return (
-    <div className="border-b border-line py-6 last:border-b-0">
+    <div className="rule-b py-6 last:bg-none">
       <p
         style={{
           fontWeight: weight,

@@ -33,7 +33,7 @@ function RailLabel({ children }: { children: React.ReactNode }) {
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 border-b border-line py-2.5 last:border-b-0">
+    <div className="flex items-baseline justify-between gap-4 rule-b py-2.5 last:bg-none">
       <span className="shrink-0 font-mono text-[0.625rem] uppercase tracking-wider text-ink-3">
         {label}
       </span>
@@ -163,7 +163,7 @@ export default async function CasePage(props: PageProps<"/work/[slug]">) {
           )}
 
           {next && (
-            <nav className="mt-16 border-t border-line pt-5">
+            <nav className="mt-16 rule-t pt-5">
               <Link
                 href={`/work/${next.slug}`}
                 className="group flex items-baseline justify-between gap-4"

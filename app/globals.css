@@ -10,6 +10,12 @@
   --radius-window: 16px;
   --radius-tile: 12px;
 
+  /* One cell of a rule, and how much of it the dot fills. The fill is the same
+     number lib/glyph/pixel.ts draws every pixel with — CSS cannot import it, so
+     pixel.test.ts asserts the two agree. */
+  --pixel-fill: 0.74;
+  --rule-cell: 2px;
+
   --bg: #f4f4f4;
   --surface: #ffffff;
   --surface-2: #f7f7f7;
@@ -75,6 +81,31 @@ body {
 :focus-visible {
   outline: 1.5px solid var(--text-1);
   outline-offset: 2px;
+}
+
+/* A border that separates is a mark; a border that contains is an edge. Rules
+   are drawn as pixels on the icon's own pitch, square rather than round,
+   because the field has drawn square pixels since v1.5.0. Containment borders
+   — frames, cards, chips, inputs — are untouched and stay hairlines. */
+.rule-b,
+.rule-t {
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--border) 0,
+    var(--border) calc(var(--rule-cell) * var(--pixel-fill)),
+    transparent calc(var(--rule-cell) * var(--pixel-fill)),
+    transparent var(--rule-cell)
+  );
+  background-repeat: repeat-x;
+  background-size: 100% calc(var(--rule-cell) * var(--pixel-fill));
+}
+
+.rule-b {
+  background-position: bottom left;
+}
+
+.rule-t {
+  background-position: top left;
 }
 
 /* Law 4, amended: an element may animate on arrival, once. It is transformed
