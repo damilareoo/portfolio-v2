@@ -4,7 +4,7 @@ Personal portfolio of Damilare Osofisan. Successor to [damilareoo.xyz](https://w
 
 ## Direction
 
-Monochrome two-skin system, with exactly one exception. Hierarchy comes from tonal value, weight, and size, never hue — the single hue on the site is `--miss`, a red carrying one meaning: a day the step goal was missed. It is the only place a colour is asked to mean something, and it is deliberate rather than decorative. Hairline borders separate surfaces instead of shadows. Set entirely in Suisse Int'l, with Suisse Int'l Mono for labels and meta.
+Monochrome two-skin system, with exactly one exception. Hierarchy comes from tonal value, weight, and size, never hue — the single hue on the site is `--miss`, a red carrying one meaning: a day the step goal was missed. It is the only place a colour is asked to mean something, and it is deliberate rather than decorative. Borders separate surfaces instead of shadows, and they come in two kinds: a border that separates is drawn as a row of square pixels on the icon grid, while a border that contains stays a hairline. A rule is a mark; a box edge is an edge. Set entirely in Suisse Int'l, with Suisse Int'l Mono for labels and meta.
 
 The design language is **Handled**: every surface admits to being an object with weight, an edge you can take hold of, and a memory of where you left it. Four laws govern it, the last one load-bearing:
 
@@ -39,6 +39,27 @@ Four, and the nav names all four.
 There is no archive surface. With selected work and the dated list both on the home page, `/work` held a filtered restatement of a page the visitor had already read — a nav entry has to earn itself, and that one was paying for a duplicate.
 
 The dated list has since gone too. Four pieces with room read as an argument; the same four as a list read as an inventory, and the page was making both cases at once. Roles moved to `/about`, where they belong: they are a fact about the person, not a piece of work.
+
+## The icon language
+
+The matrix is not only the instrument panel. Every icon on the site is a 7×7 field of the same
+pixels, drawn from the same constants in `lib/glyph/pixel.ts` that the canvas draws with — two
+renderers, one hand. Seven cells because it is odd and so has a true centre, because it is the
+dot alphabet's five rows with one above and one below so an icon aligns with a word on its own,
+and because at five cells a diagonal arrow and a chevron are the same shape.
+
+| Renderer | Draws | Why |
+|---|---|---|
+| `components/glyph-cell.tsx` | The instruments | Canvas, springs, ripples, an arrival sweep — a live field that moves |
+| `components/glyph-icon.tsx` | The icons | SVG, no state, no effects, no client boundary — a 14px mark that does not |
+
+Two rules keep it honest. An icon replaces a **mark**, never a **word**: the arrows became glyphs,
+and the lightbox's `Close` and the four nav chips kept their labels, because trading a word for a
+mark makes a control worse for anyone who needs the word. And an unlit cell is simply not drawn —
+the field keeps its unlit lattice because the lattice is the instrument's face, but an icon quotes
+the panel rather than imitating one.
+
+Nothing here animates. An icon neither reports nor arrives, so Law 4 leaves it still.
 
 ## The glyph matrix
 
