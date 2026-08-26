@@ -10,6 +10,22 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.10.0",
+    date: "2026-08-26",
+    title: "Shots, on the panel",
+    notes: [
+      "The feed is called Shots, and /feed redirects to it permanently rather than disappearing. A live URL is a promise, and renaming a surface is not a reason to break one",
+      "The layout drifts: four columns, each pushed down by a whole number of cells, filled shortest-first so the tops stagger while the bottom stays roughly level. Whole cells because a drift measured in pixels I happened to like is arbitrary, and arbitrary is the opposite of placed — quantised to the pitch, every shot sits on the same invisible matrix",
+      "A shot arrives on an LED panel rather than through a halftone. The distinction is the whole of it: a halftone varies the size of a dot to carry tone, and an LED cannot grow, so the emitter is a constant size and brightness carries the value. The panel drives in sixteen steps rather than continuously, which is what stops a dot grid reading as a gradient",
+      "The lattice is on before the picture is. Every emitter sits at a floor, so the field does not appear — it illuminates, on a face that was already there",
+      "One front crosses the whole page, not one per shot. Tiles that arrive within eighty milliseconds of each other join the same wavefront, so scrolling never fires fifty separate animations. It runs down and slightly right, so it reads as a front crossing rather than a curtain falling",
+      "An emitter never reaches full ink and the crossing takes just over half a second. The photograph takes over while the front is still travelling, so the panel is never the finished picture, only the moment before it",
+      "No labels. A shot's name lives in its alt text, where it serves a reader who needs it without being drawn over the work",
+      "autoLevel is wired back in after a version and a half exported to nobody. It was written for the halftone disc the glyph matrix replaced, and it is exactly what fifty photographs need: a shot living in the bottom fifth of the scale would otherwise drive an almost-empty panel",
+      "Reduced motion is given the value and never the journey to it — the shots are simply there",
+    ],
+  },
+  {
     version: "1.9.1",
     date: "2026-08-25",
     title: "The placeholder goes",

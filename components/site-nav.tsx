@@ -3,7 +3,7 @@ import { ThemeControl } from "@/components/theme-control";
 
 const SURFACES = [
   { href: "/", label: "Home" },
-  { href: "/feed", label: "Feed" },
+  { href: "/shots", label: "Shots" },
   { href: "/about", label: "About" },
   { href: "/colophon", label: "Colophon" },
 ] as const;
