@@ -12,16 +12,15 @@ import {
   smoothstep,
   type Panel,
 } from "@/lib/glyph/panel";
+import {
+  COLUMNS_NARROW,
+  COLUMNS_WIDE,
+  DRIFT,
+  WIDE_QUERY,
+  bucketShots,
+} from "@/lib/shots-layout";
+import { useMediaQuery } from "@/lib/use-media-query";
 import type { Asset } from "@/data/assets.generated";
-
-/**
- * How far each column is pushed down, in whole cells.
- *
- * Whole cells, deliberately. A drift measured in pixels I happened to like is
- * arbitrary, and arbitrary is the opposite of placed; quantised to the pitch,
- * every shot on the page sits on the same invisible matrix.
- */
-const DRIFT = [0, 4, 1, 6];
 
 /** How long a front takes to cross. Noticed, rather than watched. */
 const SWEEP = 620;
@@ -37,6 +36,7 @@ type Tile = { frame: HTMLElement; canvas: HTMLCanvasElement; img: HTMLImageEleme
 export function ShotsField({ shots }: { shots: Asset[] }) {
   const root = useRef<HTMLDivElement>(null);
   const panels = useRef(new WeakMap<HTMLElement, Panel>());
+  const columns = useMediaQuery(WIDE_QUERY) ? COLUMNS_WIDE : COLUMNS_NARROW;
 
   /* Sampling reads the decoded image back out of a canvas, which taints on a
      cross-origin source and throws. Everything here is same-origin, but a
@@ -193,17 +193,12 @@ export function ShotsField({ shots }: { shots: Asset[] }) {
       frames.forEach(cancelAnimationFrame);
       frames = [];
     };
-  }, [paint, sample, shots]);
+    /* Columns is a dependency: crossing the breakpoint rebuilds the columns,
+       and the observer has to be rebuilt with them or it spends the rest of
+       the page watching frames that are no longer in the document. */
+  }, [paint, sample, shots, columns]);
 
-  const columns = 4;
-  const buckets: Asset[][] = Array.from({ length: columns }, () => []);
-  const heights = DRIFT.slice(0, columns).map((cells) => cells * PITCH);
-  for (const shot of shots) {
-    let c = 0;
-    for (let k = 1; k < columns; k++) if (heights[k] < heights[c]) c = k;
-    buckets[c].push(shot);
-    heights[c] += shot.height / shot.width;
-  }
+  const buckets = bucketShots(shots, columns);
 
   return (
     <div

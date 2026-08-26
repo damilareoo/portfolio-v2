@@ -10,6 +10,21 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.12.0",
+    date: "2026-08-26",
+    title: "The columns count in one unit",
+    notes: [
+      "Shots has been drawing four columns and filling one. The drift went into the running height as pixels — up to forty-two of them — and every shot after it added a bare aspect ratio of about seven tenths, so nothing a shot could weigh would ever catch a column that started pushed down. Seventeen of twenty-one landed in the first column and two of the four stood empty",
+      "The fix is not a better number, it is one unit. A column's height and its drift are both counted in cells now: a shot is the column's width in cells times its aspect ratio. Same shortest-first fill, same drift, and the feed comes out five, five, seven, four",
+      "It is a heuristic and it says so. The drift is a fixed offset while the shots scale with the page, so no single set of buckets is right at every width — this one is right at the full measure, which is the width the page is composed for",
+      "The bucketing moves out of the component into lib/shots-layout.ts, where it can be run against a feed without a browser. The test that matters asserts the thing that broke: one shot has to outweigh the largest drift, in whatever unit both are written in",
+      "Below the breakpoint the feed is bucketed into two columns instead of dealt into four and left to wrap. Four buckets in two tracks put the fifth shot beside the first, which takes a feed sorted newest-first and reads it in an order nobody sorted. Narrow is its own arrangement rather than a halved one",
+      "The breakpoint itself is written once and read twice — by the code that fills the columns and by the class that draws them. Two copies of a number that must agree are a bug with a date on it",
+      "The breakpoint is read the way the theme and the dials are, as an external store. matchMedia already is one, so it needs no state written after paint and no mounted flag; crossing it rebuilds the columns, and the observer watching them is rebuilt with them rather than left holding frames that have left the document",
+    ],
+    deployment: "https://portfolio-v2-3h0uryshq-damilares-projects-fc682e5f.vercel.app",
+  },
+  {
     version: "1.11.0",
     date: "2026-08-26",
     title: "A missing page says so",

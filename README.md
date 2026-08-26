@@ -72,6 +72,20 @@ shortest-first, so the tops stagger while the bottom stays roughly level. Whole 
 drift measured in pixels somebody liked the look of is arbitrary, and arbitrary is the opposite of
 placed — quantised to the pitch, every shot on the page sits on one invisible matrix.
 
+Filling shortest-first only works if a column's running height and its drift are counted in the
+same unit, and for two versions they were not: the drift went in as pixels while each shot added a
+bare aspect ratio, so no single shot could outweigh a six-cell head start and one column took
+seventeen of twenty-one. `lib/shots-layout.ts` counts both in cells — a shot is `COLUMN_CELLS`
+times its aspect ratio, the column's width at the full measure — and the split comes out 5·5·7·4.
+The heuristic is exact at the full measure only, because the drift is a fixed offset while the
+shots scale; that is the width worth being right at.
+
+The columns are filled in JavaScript and drawn by CSS, so both read one breakpoint, `WIDE_QUERY`.
+Below it the feed is bucketed into two columns rather than dealt into four and left to wrap — four
+buckets in two tracks would put the fifth shot beside the first, and a feed sorted newest-first
+that is not read newest-first is just an unsorted feed. Narrow gets its own arrangement, not a
+halved one.
+
 A shot arrives on an **LED panel**, not through a halftone, and the difference is the whole of it:
 
 | Halftone | Panel |
@@ -285,7 +299,7 @@ Environment: `KV_REST_API_URL` and `KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_*
 
 ## Status
 
-v1.11.0: four surfaces, three selected pieces with case pages, Shots on the LED panel, and a work model that carries nothing it does not render.
+v1.12.0: four surfaces, three selected pieces with case pages, Shots on the LED panel across four balanced columns, and a work model that carries nothing it does not render.
 
 Outstanding, and worth being exact about:
 
