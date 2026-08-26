@@ -32,6 +32,9 @@ export const CEIL = 0.62;
 /** How wide the wavefront is, as a fraction of the viewport. */
 export const BAND = 0.26;
 
+/** The front runs down and slightly right, so it crosses rather than falls. */
+export const SKEW = 0.22;
+
 export type Panel = {
   cols: number;
   rows: number;
@@ -82,4 +85,83 @@ export function quantise(value: number): number {
 export function emitter(value: number, lit: number): number {
   const target = value * CEIL;
   return quantise(FLOOR + (target - FLOOR) * smoothstep(lit));
+}
+
+/**
+ * Where a frame sits, in page coordinates, and how big it is.
+ *
+ * Page coordinates rather than viewport ones because the wavefront is a
+ * page-wide thing: one front crosses every shot on the screen, so each panel
+ * has to be able to say where it stands relative to the others. It also makes
+ * the box scroll-invariant, which is what lets it be measured once per sweep
+ * instead of once per tile per frame.
+ */
+export type PanelBox = { width: number; height: number; originX: number; originY: number };
+
+/**
+ * Sixteen scratch buffers of cell centres, one per brightness step.
+ *
+ * Reused across calls rather than allocated per frame: a sweep repaints every
+ * visible panel sixty times a second, and thirty shots' worth of fresh arrays
+ * per frame is garbage the animation would have to stop for. Safe because
+ * painting is synchronous and never reentrant — a call fills these and is done
+ * with them before the next one begins.
+ */
+const scratch: number[][] = Array.from({ length: STEPS }, () => []);
+
+/**
+ * Draw a panel with the front standing at `front`, in page coordinates.
+ *
+ * One fill per brightness step, not one per emitter. A panel drives sixteen
+ * levels and no more, so every cell at a given level can be collected into one
+ * path and laid down in a single fill — a field of thirteen hundred emitters
+ * costs sixteen fills instead of thirteen hundred. That is the difference
+ * between a page of ten shots and a page of thirty sharing one wavefront: the
+ * arcs are cheap, and it was the state changes and the rasterisation around
+ * each one that were not.
+ */
+export function paintPanel(
+  ctx: CanvasRenderingContext2D,
+  panel: Panel,
+  box: PanelBox,
+  front: number,
+  band: number,
+  ink: string,
+): void {
+  const { cols, rows, values } = panel;
+  const cw = box.width / cols;
+  const ch = box.height / rows;
+  const radius = (Math.min(cw, ch) * FILL) / 2;
+
+  ctx.clearRect(0, 0, box.width, box.height);
+  ctx.fillStyle = ink;
+  for (const level of scratch) level.length = 0;
+
+  for (let y = 0; y < rows; y++) {
+    const cy = y * ch + ch / 2;
+    const pageY = box.originY + y * ch;
+    for (let x = 0; x < cols; x++) {
+      const along = pageY + (box.originX + x * cw) * SKEW;
+      const alpha = emitter(values[y * cols + x], (front - along) / band);
+      const level = Math.round(alpha * (STEPS - 1));
+      if (level <= 0) continue;
+      const bucket = scratch[level];
+      bucket.push(x * cw + cw / 2, cy);
+    }
+  }
+
+  for (let level = 1; level < STEPS; level++) {
+    const bucket = scratch[level];
+    if (!bucket.length) continue;
+    ctx.globalAlpha = level / (STEPS - 1);
+    ctx.beginPath();
+    /* Each emitter opens its own subpath. Without the moveTo, arc() joins the
+       previous one with a straight line and the fill picks up the joins. */
+    for (let i = 0; i < bucket.length; i += 2) {
+      ctx.moveTo(bucket[i] + radius, bucket[i + 1]);
+      ctx.arc(bucket[i], bucket[i + 1], radius, 0, Math.PI * 2);
+    }
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
 }

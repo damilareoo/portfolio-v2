@@ -4,13 +4,14 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef } from "react";
 import {
   BAND,
-  FILL,
   PITCH,
+  SKEW,
   cellsAcross,
-  emitter,
+  paintPanel,
   panelFrom,
   smoothstep,
   type Panel,
+  type PanelBox,
 } from "@/lib/glyph/panel";
 import {
   COLUMNS_NARROW,
@@ -28,10 +29,31 @@ const SWEEP = 620;
 /** Tiles arriving within this window share one front instead of firing apart. */
 const BATCH = 80;
 
-/** The sweep runs down and slightly right, so it crosses rather than falls. */
-const SKEW = 0.22;
+/**
+ * A tile carries its own box, measured once when it arrives.
+ *
+ * A sweep repaints every member sixty times a second, and asking the document
+ * where a frame is — or what colour the ink currently is — inside that loop
+ * costs a layout and a style resolution per tile per frame. The box is in page
+ * coordinates and so does not move when the page scrolls, and the ink cannot
+ * change mid-sweep, so both are read once and carried.
+ */
+type Tile = {
+  frame: HTMLElement;
+  canvas: HTMLCanvasElement;
+  img: HTMLImageElement;
+  box: PanelBox;
+};
 
-type Tile = { frame: HTMLElement; canvas: HTMLCanvasElement; img: HTMLImageElement };
+function measure(frame: HTMLElement): PanelBox {
+  const rect = frame.getBoundingClientRect();
+  return {
+    width: frame.clientWidth,
+    height: frame.clientHeight,
+    originX: rect.left + window.scrollX,
+    originY: rect.top + window.scrollY,
+  };
+}
 
 export function ShotsField({ shots }: { shots: Asset[] }) {
   const root = useRef<HTMLDivElement>(null);
@@ -42,12 +64,10 @@ export function ShotsField({ shots }: { shots: Asset[] }) {
      cross-origin source and throws. Everything here is same-origin, but a
      failure must leave the photograph visible rather than an empty panel. */
   const sample = useCallback((tile: Tile): Panel | null => {
-    const { frame, img } = tile;
-    const w = frame.clientWidth;
-    const h = frame.clientHeight;
-    if (!w || !h || !img.naturalWidth) return null;
-    const cols = cellsAcross(w);
-    const rows = cellsAcross(h);
+    const { box, img } = tile;
+    if (!box.width || !box.height || !img.naturalWidth) return null;
+    const cols = cellsAcross(box.width);
+    const rows = cellsAcross(box.height);
     const off = document.createElement("canvas");
     off.width = cols;
     off.height = rows;
@@ -61,45 +81,19 @@ export function ShotsField({ shots }: { shots: Asset[] }) {
     }
   }, []);
 
-  const paint = useCallback((tile: Tile, front: number) => {
+  const paint = useCallback((tile: Tile, front: number, ink: string) => {
     const panel = panels.current.get(tile.frame);
     if (!panel) return;
-    const { cols, rows, values } = panel;
-    const w = tile.frame.clientWidth;
-    const h = tile.frame.clientHeight;
+    const { width, height } = tile.box;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    if (tile.canvas.width !== Math.round(w * dpr)) {
-      tile.canvas.width = Math.round(w * dpr);
-      tile.canvas.height = Math.round(h * dpr);
+    if (tile.canvas.width !== Math.round(width * dpr)) {
+      tile.canvas.width = Math.round(width * dpr);
+      tile.canvas.height = Math.round(height * dpr);
     }
     const ctx = tile.canvas.getContext("2d");
     if (!ctx) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--text-1").trim();
-
-    const cw = w / cols;
-    const ch = h / rows;
-    const radius = (Math.min(cw, ch) * FILL) / 2;
-    const band = BAND * window.innerHeight;
-    const box = tile.frame.getBoundingClientRect();
-    const originX = box.left;
-    const originY = box.top + window.scrollY;
-
-    for (let y = 0; y < rows; y++) {
-      const cy = y * ch + ch / 2;
-      const pageY = originY + y * ch;
-      for (let x = 0; x < cols; x++) {
-        const along = pageY + (originX + x * cw) * SKEW;
-        const alpha = emitter(values[y * cols + x], (front - along) / band);
-        if (alpha <= 0.01) continue;
-        ctx.globalAlpha = alpha;
-        ctx.beginPath();
-        ctx.arc(x * cw + cw / 2, cy, radius, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-    ctx.globalAlpha = 1;
+    paintPanel(ctx, panel, tile.box, front, BAND * window.innerHeight, ink);
   }, []);
 
   useEffect(() => {
@@ -111,7 +105,15 @@ export function ShotsField({ shots }: { shots: Asset[] }) {
       frame,
       canvas: frame.querySelector("canvas") as HTMLCanvasElement,
       img: frame.querySelector("img") as HTMLImageElement,
+      /* Measured again when the tile arrives — the grid has not necessarily
+         settled at the moment the effect runs, and the images have not loaded. */
+      box: measure(frame),
     }));
+
+    /* The ink is one custom property on the root, and it cannot change while a
+       front is crossing. Reading it per tile per frame resolved the document's
+       whole computed style thirty times a frame to learn the same string. */
+    const ink = () => getComputedStyle(document.documentElement).getPropertyValue("--text-1").trim();
 
     /* Reduced motion is given the value, never the journey to it. */
     if (still) {
@@ -126,23 +128,24 @@ export function ShotsField({ shots }: { shots: Asset[] }) {
     const run = (members: Tile[]) => {
       if (!members.length) return;
       const band = BAND * window.innerHeight;
-      const spans = members.map((t) => {
-        const b = t.frame.getBoundingClientRect();
-        return [b.top + window.scrollY + b.left * SKEW, b.bottom + window.scrollY + b.right * SKEW];
-      });
+      const spans = members.map(({ box }) => [
+        box.originY + box.originX * SKEW,
+        box.originY + box.height + (box.originX + box.width) * SKEW,
+      ]);
       const from = Math.min(...spans.map((s) => s[0])) - band;
       const to = Math.max(...spans.map((s) => s[1])) + band;
       const start = performance.now();
+      const colour = ink();
 
       const step = (now: number) => {
         const t = Math.min(1, (now - start) / SWEEP);
         const front = from + (to - from) * t;
         for (const tile of members) {
-          paint(tile, front);
-          const b = tile.frame.getBoundingClientRect();
+          paint(tile, front, colour);
           /* The photograph takes over while the front is still crossing, so the
              panel is never the finished picture — only the moment before it. */
-          const mid = b.top + window.scrollY + b.height * 0.45 + b.left * SKEW;
+          const { box } = tile;
+          const mid = box.originY + box.height * 0.45 + box.originX * SKEW;
           tile.img.style.opacity = String(smoothstep((front - mid) / band + 0.3));
         }
         if (t < 1) frames.push(requestAnimationFrame(step));
@@ -157,13 +160,14 @@ export function ShotsField({ shots }: { shots: Asset[] }) {
     };
 
     const enqueue = (tile: Tile) => {
+      tile.box = measure(tile.frame);
       const panel = sample(tile);
       if (!panel) {
         tile.img.style.opacity = "1";
         return;
       }
       panels.current.set(tile.frame, panel);
-      paint(tile, -Infinity);
+      paint(tile, -Infinity, ink());
       queue.push(tile);
       window.clearTimeout(timer);
       timer = window.setTimeout(() => {

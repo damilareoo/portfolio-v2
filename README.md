@@ -80,6 +80,19 @@ the column's width at the full measure — and the ten split 3·2·3·2.
 The heuristic is exact at the full measure only, because the drift is a fixed offset while the
 shots scale; that is the width worth being right at.
 
+The feed is built for thirty. Shortest-first gives exactly one guarantee and it is worth stating
+plainly: a column takes a shot only while it is the shortest, so it can finish at most one shot
+taller than the shortest column. Mixing a portrait into a feed of landscapes therefore buys a
+taller ragged edge, not an unbounded one — the bound is the tallest shot, at any count, and the
+tests hold it at every length from one to thirty.
+
+Thirty shots also means thirty panels, and one front crosses all the visible ones at once. A panel
+drives sixteen brightness levels and no more, so `paintPanel` collects every emitter at a level
+into one path and lays it down in a single fill: a field of thirteen hundred emitters costs sixteen
+fills rather than thirteen hundred. Frames are measured once when a tile arrives, in page
+coordinates — scroll-invariant, so the sweep never asks the document where anything is — and the
+ink is read once per front rather than once per tile per frame.
+
 The columns are filled in JavaScript and drawn by CSS, so both read one breakpoint, `WIDE_QUERY`.
 Below it the feed is bucketed into two columns rather than dealt into four and left to wrap — four
 buckets in two tracks would put the fifth shot beside the first, and a feed sorted newest-first
@@ -299,7 +312,7 @@ Environment: `KV_REST_API_URL` and `KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_*
 
 ## Status
 
-v1.12.1: four surfaces, three selected pieces with case pages, Shots on the LED panel across four balanced columns, and a work model that carries nothing it does not render.
+v1.13.0: four surfaces, three selected pieces with case pages, Shots on the LED panel across four balanced columns, and a work model that carries nothing it does not render.
 
 Outstanding, and worth being exact about:
 

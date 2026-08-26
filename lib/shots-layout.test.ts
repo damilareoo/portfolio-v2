@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COLUMN_CELLS, COLUMNS_WIDE, DRIFT, bucketShots } from "./shots-layout";
+import { COLUMN_CELLS, COLUMNS_NARROW, COLUMNS_WIDE, DRIFT, bucketShots } from "./shots-layout";
 
 /** The real feed: ten landscape captures, all the same shape. */
 const shots = Array.from({ length: 10 }, (_, i) => ({ id: i, width: 1400, height: 1000 }));
@@ -54,5 +54,40 @@ describe("bucketShots", () => {
     const buckets = bucketShots(mixed, 2);
     expect(buckets[0].map((s) => s.id)).toEqual([0]);
     expect(buckets[1].map((s) => s.id)).toEqual([1, 2]);
+  });
+
+  it("still spreads a feed of thirty", () => {
+    // Ten is what the feed holds; thirty is what it is being built for. The
+    // drift is a fixed head start, so its influence only shrinks as shots
+    // arrive — the columns should come out level to within one shot.
+    const thirty = Array.from({ length: 30 }, (_, i) => ({ id: i, width: 1400, height: 1000 }));
+    const buckets = bucketShots(thirty, COLUMNS_WIDE);
+    expect(buckets.map((b) => b.length)).toEqual([8, 7, 8, 7]);
+    expect(bucketShots(thirty, COLUMNS_NARROW).map((b) => b.length)).toEqual([15, 15]);
+  });
+
+  it("bounds the ragged bottom by the tallest shot, at any count", () => {
+    /* The guarantee shortest-first gives, and the only one it gives: a column
+       takes a shot only while it is the shortest, so it can end at most one
+       shot taller than the shortest column. Mixing a portrait into a feed of
+       landscapes therefore buys a taller ragged edge, not an unbounded one —
+       which is the honest thing to say about a heuristic. */
+    const shapes = [
+      { width: 1400, height: 1000 },
+      { width: 1920, height: 1080 },
+      { width: 1000, height: 1400 },
+      { width: 1080, height: 1920 },
+    ];
+    const feed = Array.from({ length: 30 }, (_, i) => ({ id: i, ...shapes[(i * 7) % 4] }));
+    const cells = (s: { width: number; height: number }) => COLUMN_CELLS * (s.height / s.width);
+    const tallest = Math.max(...feed.map(cells));
+
+    for (const columns of [COLUMNS_NARROW, COLUMNS_WIDE]) {
+      for (let n = 1; n <= feed.length; n++) {
+        const buckets = bucketShots(feed.slice(0, n), columns);
+        const ends = buckets.map((b, c) => DRIFT[c] + b.reduce((h, s) => h + cells(s), 0));
+        expect(Math.max(...ends) - Math.min(...ends)).toBeLessThanOrEqual(tallest);
+      }
+    }
   });
 });

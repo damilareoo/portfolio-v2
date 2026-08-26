@@ -10,6 +10,21 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.13.0",
+    date: "2026-08-26",
+    title: "Built for thirty",
+    notes: [
+      "The feed holds ten and is being built for thirty, which is a different question from the one the last version answered. Ten shots is one wavefront over ten panels; thirty is one wavefront over as many as the screen holds, and the paint was written as though it would only ever be asked for a few",
+      "Every emitter was its own path, its own state change and its own fill — thirteen hundred of each, per panel, per frame. The guard meant to skip the dark ones never fired, and could not: an unlit emitter sits at the floor rather than at nothing, which is the whole idea of a lattice that is on before the picture is",
+      "So the fills are batched by what the panel can actually drive. Sixteen levels, sixteen paths, sixteen fills — whatever the field's size. The arcs are unchanged and so is the picture; it was the state change and the rasterisation around each one that were being paid thirteen hundred times over",
+      "A frame is measured once, when it arrives, and in page coordinates. The old loop asked the document where each tile was twice a frame and what colour the ink was once a frame, which is a layout and a style resolution per tile per frame to learn two things that cannot change while a front is crossing",
+      "Balance was the other half of the question, and it holds: thirty shots deal out eight, eight, seven, seven. Shortest-first gives one guarantee — a column takes a shot only while it is the shortest, so it ends at most one shot taller than the shortest — and the tests now hold that bound at every length from one to thirty, in two columns and in four",
+      "The bound is the honest thing to say about it. A portrait among landscapes buys a taller ragged edge, not an unbounded one, and no reordering is on the table: sorting by height would balance better and would stop the feed being read newest-first, which is the only thing the order is for",
+      "The paint moved into the glyph engine, where it can be tested without a browser. What the tests hold is the shape of the work rather than the picture: every emitter drawn, no more than sixteen fills however large the field, and a subpath opened per emitter so no fill joins two of them",
+    ],
+    deployment: "https://portfolio-v2-ctndu5800-damilares-projects-fc682e5f.vercel.app",
+  },
+  {
     version: "1.12.1",
     date: "2026-08-26",
     title: "The count was wrong",
