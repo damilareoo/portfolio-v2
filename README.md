@@ -30,7 +30,7 @@ Four, and the nav names all four.
 | Route | Holds |
 |---|---|
 | `/` | Everything about the work — lockup and the selected pieces |
-| `/feed` | The gallery |
+| `/shots` | The gallery. `/feed` redirects here permanently |
 | `/about` | The record about the person, and the roles behind it |
 | `/colophon` | How the site is made, and the instruments |
 
@@ -54,12 +54,42 @@ and because at five cells a diagonal arrow and a chevron are the same shape.
 | `components/glyph-icon.tsx` | The icons | SVG, no state, no effects, no client boundary — a 14px mark that does not |
 
 Two rules keep it honest. An icon replaces a **mark**, never a **word**: the arrows became glyphs,
-and the lightbox's `Close` and the four nav chips kept their labels, because trading a word for a
-mark makes a control worse for anyone who needs the word. And an unlit cell is simply not drawn —
+and the four nav chips kept their labels, because trading a word for a mark makes a control worse
+for anyone who needs the word. And an unlit cell is simply not drawn —
 the field keeps its unlit lattice because the lattice is the instrument's face, but an icon quotes
 the panel rather than imitating one.
 
 Nothing here animates. An icon neither reports nor arrives, so Law 4 leaves it still.
+
+## Shots
+
+The gallery renamed from `/feed`, and the one surface where a photograph is put through the matrix.
+
+The layout drifts: four columns, each pushed down by a whole number of cells and filled
+shortest-first, so the tops stagger while the bottom stays roughly level. Whole cells because a
+drift measured in pixels somebody liked the look of is arbitrary, and arbitrary is the opposite of
+placed — quantised to the pitch, every shot on the page sits on one invisible matrix.
+
+A shot arrives on an **LED panel**, not through a halftone, and the difference is the whole of it:
+
+| Halftone | Panel |
+|---|---|
+| Dot size carries tone | Dot size is constant; **brightness** carries tone |
+| Continuous ink | Sixteen discrete steps, as a driver has |
+| Unlit is absent | Unlit keeps a floor — the lattice is the panel's face |
+
+`inkRadius` in `lib/glyph/tone.ts` is correct for a halftone and wrong here; `lib/glyph/panel.ts`
+holds the panel instead. `autoLevel` is shared by both — a shot living in the bottom fifth of the
+scale would otherwise drive an almost-empty field.
+
+One wavefront crosses the whole page rather than one per shot, running down and slightly right so
+it reads as a front crossing rather than a curtain falling. Shots entering within eighty
+milliseconds join the same front. The photograph takes over while the front is still travelling, so
+the panel is never the finished picture — only the moment before it. Reduced motion is given the
+value and never the journey to it.
+
+No labels. A shot's name lives in its `alt` text, where it serves a reader who needs it without
+being drawn over the work.
 
 ## The glyph matrix
 
@@ -253,5 +283,5 @@ Outstanding, and worth being exact about:
 - **The fourth card.** Only three pieces are `selected`, so the home grid reads `03 PIECES` with an empty cell. A fourth is intended.
 - **Two roles.** Endgame AI, ChessEver and HEX carry exact dates. SmallChess and an early-career role sit commented out in `data/experience.ts` — dates unknown, and the site does not invent them.
 - **Frames.** Hitman's Library has nine real captures. Sylvan has two: its site is a single near-empty viewport. ChessEver has one, its existing hero — `chessever.com` answers automated requests with a bot check rather than the product, so its reel is labelled empty frames until real art lands.
-- The feed is still captures of the live products and of portfolio-v1, standing in until real artwork is dropped into `public/feed`.
+- Shots are still captures of the live products and of portfolio-v1, standing in until real artwork is dropped into `public/feed`. The directory keeps its old name; only the surface was renamed.
 - The handling layer from the 2026-08-13 spec — divider drag, tile reorder, reset — is still unbuilt.
