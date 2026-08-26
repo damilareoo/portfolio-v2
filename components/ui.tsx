@@ -64,3 +64,12 @@ export function RecordRow({ label, children }: { label: string; children: ReactN
     </div>
   );
 }
+
+/** Discipline tags — the metadata is the aesthetic, so it is never decoration. */
+export function Tags({ items }: { items: readonly string[] }) {
+  return (
+    <span className="font-mono text-[0.5625rem] uppercase tracking-wider text-ink-3">
+      {items.join(" · ")}
+    </span>
+  );
+}

@@ -92,15 +92,6 @@ export const workAssets: Record<string, Asset[]> = {
       "width": 7680
     }
   ],
-  "damilares-skills": [
-    {
-      "src": "/work/damilares-skills/01-site.png",
-      "title": "Site",
-      "date": null,
-      "width": 1400,
-      "height": 1000
-    }
-  ],
   "hitmans-library": [
     {
       "src": "/work/hitmans-library/01-site.png",
@@ -166,15 +157,6 @@ export const workAssets: Record<string, Asset[]> = {
       "height": 932
     }
   ],
-  "pixel-soccer": [
-    {
-      "src": "/work/pixel-soccer/01-site.png",
-      "title": "Site",
-      "date": null,
-      "width": 1400,
-      "height": 1000
-    }
-  ],
   "sylvan": [
     {
       "src": "/work/sylvan/01-featured.gif",
@@ -196,15 +178,6 @@ export const workAssets: Record<string, Asset[]> = {
       "date": null,
       "width": 430,
       "height": 932
-    }
-  ],
-  "workbench": [
-    {
-      "src": "/work/workbench/01-site.png",
-      "title": "Site",
-      "date": null,
-      "width": 1400,
-      "height": 1000
     }
   ]
 };

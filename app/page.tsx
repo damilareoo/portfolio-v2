@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Frame } from "@/components/frame";
 import { GlyphBay } from "@/components/glyph-bay";
 import { SiteNav } from "@/components/site-nav";
-import { Tags } from "@/components/work-tile";
+import { Tags } from "@/components/ui";
 import { Reveal } from "@/lib/reveal";
 import { selected, type WorkItem } from "@/data/work";
 import { workAssets } from "@/data/assets.generated";

@@ -8,6 +8,15 @@ import { GlyphIcon } from "@/components/glyph-icon";
 import { findWork, selected, type CaseBlock } from "@/data/work";
 import { workAssets } from "@/data/assets.generated";
 
+/* The set of case pages is closed and known at build time, so the router
+   answers an unknown slug with a real 404 rather than rendering one. The page
+   sits behind the root loading.tsx, which means Next serves a prerendered
+   shell and commits a 200 before the body streams — notFound() inside the
+   render would arrive after the headers had already gone, which is exactly
+   how a soft 404 happens. Closing the params moves the decision to routing,
+   where a status can still be set. */
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return selected.map((item) => ({ slug: item.slug }));
 }
@@ -33,14 +42,7 @@ export default async function CasePage(props: PageProps<"/work/[slug]">) {
 
   const assets = workAssets[item.slug] ?? [];
 
-  /* Old entries authored as prose sections still render — they become text
-     blocks rather than being dropped on the floor. */
-  const legacy: CaseBlock[] = (item.sections ?? []).map((section) => ({
-    kind: "text",
-    heading: section.heading,
-    body: section.body,
-  }));
-  const blocks = item.blocks ?? legacy;
+  const blocks = item.blocks ?? [];
 
   /* Art with no blocks authored for it is still worth showing: the reel falls
      back to one full frame per asset, in filename order. */

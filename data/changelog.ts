@@ -10,6 +10,22 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.11.0",
+    date: "2026-08-26",
+    title: "A missing page says so",
+    notes: [
+      "An unknown case slug answered 200 while showing the not-found page, which is the one kind of lie a site tells a machine rather than a person. A crawler reading that status files the page as real and keeps it in an index forever",
+      "The cause was the loading state, not the routing. The case page sits behind the root loading.tsx, so Next serves a prerendered shell and commits the status before the body streams — notFound() then arrived after the headers had already gone, and a status cannot be taken back",
+      "So the decision moves to where a status can still be set. The set of case pages is closed and known at build time, and saying so lets the router answer an unknown slug itself, before any render begins. The guard inside the page stays as a second line rather than the only one",
+      "The project tier goes. Three pieces had data, a live link and real screenshots, and rendered on no surface — held for an archive that the site had already argued itself out of building. Data kept for a surface that does not exist is not a plan, it is furniture",
+      "With it go the parts that existed only to serve it: the tile face and its surface helper, the palette strip, the two tier filters nothing imported, and the six fields on the model that no surface read. The model now carries only what something renders",
+      "The prose-section shim goes too. It was kept so entries written before blocks would still render, and there have been no such entries for some time — a compatibility layer with nothing left to be compatible with is just a branch that never runs",
+      "Tags was the last thing in a file named for a tile that no longer exists, so it joins the other shared primitives in components/ui.tsx. Same move as the record row in v1.9.0, and for the same reason: a primitive lives with the primitives",
+      "The tier vocabulary stays in the model and in the README. Selected is the only tier occupied today, and that is now stated rather than implied by an empty table row — when an archive earns itself, the words for it are still there",
+    ],
+    deployment: "https://portfolio-v2-h8vtsid49-damilares-projects-fc682e5f.vercel.app",
+  },
+  {
     version: "1.10.0",
     date: "2026-08-26",
     title: "Shots, on the panel",
