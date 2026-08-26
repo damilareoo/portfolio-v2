@@ -36,6 +36,8 @@ Four, and the nav names all four.
 
 `/work/[slug]` survives as a case page, reached from a selected card. `/system` and `/changelog` stay live and stay out of the nav; the colophon links to both.
 
+The case route sets `dynamicParams = false`, so the set of slugs is closed at build time and an unknown one gets a real 404 from the router. It has to be settled there: the page sits behind the root `loading.tsx`, which means Next serves a prerendered shell and commits the status before the body streams, and a `notFound()` reached during the render arrives after the headers have gone. That is how a page returns 200 while showing the not-found screen, which is a lie told to crawlers rather than to readers.
+
 There is no archive surface. With selected work and the dated list both on the home page, `/work` held a filtered restatement of a page the visitor had already read — a nav entry has to earn itself, and that one was paying for a duplicate.
 
 The dated list has since gone too. The selected pieces with room read as an argument; the same pieces as a list read as an inventory, and the page was making both cases at once. Roles moved to `/about`, where they belong: they are a fact about the person, not a piece of work.
@@ -209,8 +211,15 @@ One model in `data/work.ts`, tiered by how much room a piece earns.
 | Tier | Gets | Lives |
 |---|---|---|
 | `selected` | A `/work/[slug]` case page and one of the cards on the home | Home |
-| `project` | Nothing rendered today — held for when a second surface earns its keep | — |
-| `index` | Nothing rendered today | — |
+| `project` | Vocabulary only. Nothing sits here | — |
+| `index` | Vocabulary only. Nothing sits here | — |
+
+Only `selected` is occupied, and the model carries only the fields a surface actually renders. The
+project tier once held three pieces with data, live links and screenshots that rendered nowhere,
+waiting on an archive this site had already argued itself out of building — along with a tile face,
+a palette strip, two filters nothing imported, and six fields no surface read. Data kept for a
+surface that does not exist is not a plan; it is furniture. The words for the other two tiers stay
+because an archive may still earn itself, and then they are the right words.
 
 Selected work without written blocks says so plainly on its case page instead of padding — the site does not pretend to depth it lacks.
 
@@ -276,7 +285,7 @@ Environment: `KV_REST_API_URL` and `KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_*
 
 ## Status
 
-v1.2.0: the home carries selected work alone, case pages put every word in the rail and every frame in the column, and About holds the roles.
+v1.11.0: four surfaces, three selected pieces with case pages, Shots on the LED panel, and a work model that carries nothing it does not render.
 
 Outstanding, and worth being exact about:
 
