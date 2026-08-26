@@ -24,6 +24,7 @@ export const changelog: ChangelogEntry[] = [
       "autoLevel is wired back in after a version and a half exported to nobody. It was written for the halftone disc the glyph matrix replaced, and it is exactly what fifty photographs need: a shot living in the bottom fifth of the scale would otherwise drive an almost-empty panel",
       "Reduced motion is given the value and never the journey to it — the shots are simply there",
     ],
+    deployment: "https://portfolio-v2-940yw75qu-damilares-projects-fc682e5f.vercel.app",
   },
   {
     version: "1.9.1",
