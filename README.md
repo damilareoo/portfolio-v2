@@ -74,9 +74,9 @@ placed — quantised to the pitch, every shot on the page sits on one invisible 
 
 Filling shortest-first only works if a column's running height and its drift are counted in the
 same unit, and for two versions they were not: the drift went in as pixels while each shot added a
-bare aspect ratio, so no single shot could outweigh a six-cell head start and one column took
-seventeen of twenty-one. `lib/shots-layout.ts` counts both in cells — a shot is `COLUMN_CELLS`
-times its aspect ratio, the column's width at the full measure — and the split comes out 5·5·7·4.
+bare aspect ratio, so no single shot could outweigh a six-cell head start and column one took all
+ten. `lib/shots-layout.ts` counts both in cells — a shot is `COLUMN_CELLS` times its aspect ratio,
+the column's width at the full measure — and the ten split 3·2·3·2.
 The heuristic is exact at the full measure only, because the drift is a fixed offset while the
 shots scale; that is the width worth being right at.
 
@@ -299,7 +299,7 @@ Environment: `KV_REST_API_URL` and `KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_*
 
 ## Status
 
-v1.12.0: four surfaces, three selected pieces with case pages, Shots on the LED panel across four balanced columns, and a work model that carries nothing it does not render.
+v1.12.1: four surfaces, three selected pieces with case pages, Shots on the LED panel across four balanced columns, and a work model that carries nothing it does not render.
 
 Outstanding, and worth being exact about:
 

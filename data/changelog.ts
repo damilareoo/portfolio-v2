@@ -10,12 +10,24 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.12.1",
+    date: "2026-08-26",
+    title: "The count was wrong",
+    notes: [
+      "The entry above shipped with numbers that were not the feed's. It said seventeen shots of twenty-one had piled into one column and that the fix split them five, five, seven, four — figures taken from a count that had swept up the case-page assets along with the gallery's. The feed is ten. All ten were in column one, and they now sit three, two, three, two",
+      "Corrected in place rather than left standing with a note, because the entry describes what that version does and a reader has no reason to distrust it. This entry is the note. A changelog that quietly repairs itself is worth no more than one that is wrong",
+      "The numbers came from a regular expression run over the generated asset file, which holds two arrays. Both live deployments were still up — deployment protection stays off precisely so old versions remain viewable — so the before and the after were read off the pages themselves rather than re-derived",
+      "No behaviour changed. This is prose, and prose that states a measurement is a claim like any other",
+    ],
+    deployment: "https://portfolio-v2-mfd0yiml6-damilares-projects-fc682e5f.vercel.app",
+  },
+  {
     version: "1.12.0",
     date: "2026-08-26",
     title: "The columns count in one unit",
     notes: [
-      "Shots has been drawing four columns and filling one. The drift went into the running height as pixels — up to forty-two of them — and every shot after it added a bare aspect ratio of about seven tenths, so nothing a shot could weigh would ever catch a column that started pushed down. Seventeen of twenty-one landed in the first column and two of the four stood empty",
-      "The fix is not a better number, it is one unit. A column's height and its drift are both counted in cells now: a shot is the column's width in cells times its aspect ratio. Same shortest-first fill, same drift, and the feed comes out five, five, seven, four",
+      "Shots has been drawing four columns and filling one. The drift went into the running height as pixels — up to forty-two of them — and every shot after it added a bare aspect ratio of about seven tenths, so nothing a shot could weigh would ever catch a column that started pushed down. All ten shots landed in the first column and the other three stood empty",
+      "The fix is not a better number, it is one unit. A column's height and its drift are both counted in cells now: a shot is the column's width in cells times its aspect ratio. Same shortest-first fill, same drift, and the ten come out three, two, three, two",
       "It is a heuristic and it says so. The drift is a fixed offset while the shots scale with the page, so no single set of buckets is right at every width — this one is right at the full measure, which is the width the page is composed for",
       "The bucketing moves out of the component into lib/shots-layout.ts, where it can be run against a feed without a browser. The test that matters asserts the thing that broke: one shot has to outweigh the largest drift, in whatever unit both are written in",
       "Below the breakpoint the feed is bucketed into two columns instead of dealt into four and left to wrap. Four buckets in two tracks put the fifth shot beside the first, which takes a feed sorted newest-first and reads it in an order nobody sorted. Narrow is its own arrangement rather than a halved one",
