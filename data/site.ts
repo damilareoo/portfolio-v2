@@ -22,4 +22,21 @@ export const elsewhere = [
   { label: "Contra", handle: "damilareoo", href: "https://contra.com/damilareoo" },
 ];
 
+/**
+ * The record row's second line. Static and wrapped — the reference marquees
+ * its equivalent, and a marquee is exactly the ambient motion Law 4 forbids.
+ */
+export const expertise = [
+  "Product design",
+  "Interaction",
+  "Design systems",
+  "Identity",
+  "Prototyping",
+  "Motion",
+  "Next.js",
+  "React",
+  "TypeScript",
+  "Figma",
+];
+
 // Work lives in data/work.ts, tiered as selected / project / index.
