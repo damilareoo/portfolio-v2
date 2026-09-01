@@ -10,7 +10,16 @@ import type { Asset } from "@/data/assets.generated";
  * through to the next unused frame from the project's asset folder, so dropping
  * files into public/work/<slug> fills the reel in order without editing data.
  */
-export function CaseReel({ blocks, assets }: { blocks: CaseBlock[]; assets: Asset[] }) {
+export function CaseReel({
+  blocks,
+  assets,
+  firstIsPriority = true,
+}: {
+  blocks: CaseBlock[];
+  assets: Asset[];
+  /** The tail of a split reel is below the fold by definition and declines it. */
+  firstIsPriority?: boolean;
+}) {
   // Consumed in render order — a plain counter, because the fallback is
   // positional by definition.
   let next = 0;
@@ -138,7 +147,7 @@ export function CaseReel({ blocks, assets }: { blocks: CaseBlock[]; assets: Asse
                 width={resolved.width}
                 height={resolved.height}
                 ratio={block.ratio ?? "16 / 9"}
-                priority={i === 0}
+                priority={firstIsPriority && i === 0}
                 sizes="(min-width: 1024px) 62vw, 92vw"
               />
               {block.caption && (

@@ -8,6 +8,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["lib/**/*.test.ts", "components/**/*.test.tsx", "data/**/*.test.ts"],
+    setupFiles: ["./vitest.setup.ts"],
   },
   resolve: { alias: { "@": resolve(__dirname, ".") } },
 });
