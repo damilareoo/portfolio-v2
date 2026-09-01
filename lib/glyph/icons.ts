@@ -19,7 +19,8 @@ export type IconName =
   | "system"
   | "arrow-out"
   | "arrow-left"
-  | "arrow-right";
+  | "arrow-right"
+  | "chevron-down";
 
 /**
  * Which reflections an icon claims. Declared rather than inferred, so the test
@@ -112,6 +113,21 @@ export const ICONS: Record<IconName, Icon> = {
       0,0,0,0,0,1,0,
       0,0,0,0,1,0,0,
       0,0,0,1,0,0,0,
+    ],
+  },
+
+  /* The unfold's mark. Four rows rather than the arrows' seven-cell shaft: a
+     chevron says "there is more below this", where an arrow says "go". */
+  "chevron-down": {
+    symmetry: "leftRight",
+    bits: [
+      0,0,0,0,0,0,0,
+      0,0,0,0,0,0,0,
+      1,1,0,0,0,1,1,
+      0,1,1,0,1,1,0,
+      0,0,1,1,1,0,0,
+      0,0,0,1,0,0,0,
+      0,0,0,0,0,0,0,
     ],
   },
 };

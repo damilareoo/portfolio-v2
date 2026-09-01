@@ -61,4 +61,18 @@ describe("the icon set", () => {
     const middle = cells.filter((cell) => cell.y === 3).map((cell) => cell.x);
     expect(middle).toEqual([0, 1, 2, 3, 4, 5, 6]);
   });
+
+  it("carries a chevron that points down", () => {
+    // The unfold's mark. It must be mirror-symmetric or it reads as an arrow
+    // leaning, and its lowest lit cell must be the centre column or it is not
+    // pointing anywhere.
+    const bits = ICONS["chevron-down"].bits;
+    expect(ICONS["chevron-down"].symmetry).toBe("leftRight");
+    const lit = litCells("chevron-down");
+    const bottom = Math.max(...lit.map((cell) => cell.y));
+    const onBottom = lit.filter((cell) => cell.y === bottom);
+    expect(onBottom).toHaveLength(1);
+    expect(onBottom[0].x).toBe((ICON_GRID - 1) / 2);
+    expect(bits.filter(Boolean).length).toBeGreaterThan(4);
+  });
 });
