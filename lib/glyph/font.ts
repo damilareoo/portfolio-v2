@@ -58,6 +58,20 @@ const GLYPHS: Record<string, Glyph> = {
   ".": { w: 1, bits: [0, 0, 0, 0, 1] },
 };
 
+export const GLYPH_HEIGHT = HEIGHT;
+export const GLYPH_GAP = GAP;
+
+/**
+ * One character's cells, for renderers that draw rather than stamp.
+ *
+ * `stampText` writes into a canvas frame, which is what the matrix wants and
+ * what an icon standing beside a heading cannot use. Unknown characters return
+ * null so a caller skips them, exactly as `textWidth` does.
+ */
+export function glyphBits(char: string): { w: number; bits: number[] } | null {
+  return GLYPHS[char] ?? null;
+}
+
 export function textWidth(text: string): number {
   let width = 0;
   for (const char of text) {

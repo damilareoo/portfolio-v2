@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { stampText, textWidth } from "./font";
+import { GLYPH_GAP, GLYPH_HEIGHT, glyphBits, stampText, textWidth } from "./font";
 
 // glyphs.ts does not exist yet at this step, so the frame is built inline.
 const emptyFrame = (grid: number) => new Float32Array(grid * grid);
@@ -33,5 +33,31 @@ describe("micro font", () => {
     stampText(frame, grid, "8", 3, 0);
     // Column 5 does not exist, so row 1 must not be lit from a wrap.
     expect(frame[grid + 0]).toBe(0);
+  });
+});
+
+describe("glyphBits", () => {
+  it("hands back a glyph the same size the alphabet declares", () => {
+    const zero = glyphBits("0");
+    expect(zero).not.toBeNull();
+    expect(zero!.bits).toHaveLength(zero!.w * GLYPH_HEIGHT);
+  });
+
+  it("returns null for a character the alphabet does not have", () => {
+    // Callers skip what they cannot draw rather than drawing a blank box.
+    expect(glyphBits("é")).toBeNull();
+  });
+
+  it("agrees with textWidth about how wide a string is", () => {
+    // The SVG renderer lays glyphs out itself and sizes its viewBox from
+    // textWidth; if the two disagree the numerals sit off-centre in their box.
+    const text = "01";
+    let width = 0;
+    for (const char of text) {
+      const glyph = glyphBits(char)!;
+      if (width > 0) width += GLYPH_GAP;
+      width += glyph.w;
+    }
+    expect(width).toBe(textWidth(text));
   });
 });
