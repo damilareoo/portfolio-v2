@@ -32,6 +32,14 @@ export type Era = {
 /** How many blocks stand above the fold of an entry before it must be opened. */
 export const LEDE_BLOCKS = 2;
 
+/**
+ * Sort eras into reverse chronological order by end date, placing undated eras last.
+ *
+ * Ordering is derived from `sort` rather than from the authored array order,
+ * so the home always reads newest first regardless of how eras are listed in
+ * the data file. Ties fall back to authored order because Array.prototype.sort
+ * is stable, and the function does not mutate the input.
+ */
 export function orderEras(eras: Era[]): Era[] {
   return [...eras].sort((a, b) => b.sort.localeCompare(a.sort));
 }
@@ -55,6 +63,16 @@ export function blockAssetCost(block: CaseBlock): number {
   }
 }
 
+/**
+ * Split a block list into a lede and a tail, returning the asset offset the tail needs.
+ *
+ * CaseReel fills any block without a `src` from the project's asset folder using a
+ * positional counter that starts at zero. Split one reel into two and the second
+ * starts counting from zero again — the tail would re-show the frames the lede
+ * already used. `restAssetOffset` is how many assets the lede consumed, so the
+ * caller can hand the tail `assets.slice(restAssetOffset)` and have the counter
+ * pick up where the lede left off.
+ */
 export function splitBlocks(blocks: CaseBlock[], lede: number = LEDE_BLOCKS) {
   const head = blocks.slice(0, lede);
   return {

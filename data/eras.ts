@@ -3,9 +3,11 @@ import type { Era } from "@/lib/eras";
 /**
  * Work grouped by when it was made and who it was for.
  *
- * Periods and roles are the ones recorded in `data/experience.ts`; nothing here
- * invents a history. `sort` is the era's end, and side projects carry no date
- * because they never ended.
+ * The three contract eras (endgame, chessever, hex) draw their periods and roles
+ * from `data/experience.ts`; nothing here invents a history. Independent and
+ * side-projects are categories rather than roles, invented to organize work
+ * without a formal employer. `sort` is the era's end, and side projects carry
+ * no date because they never ended.
  */
 export const eras: Era[] = [
   {
