@@ -1,14 +1,10 @@
-// One model for every piece of work, tiered by how much room it earns.
+// One model for every piece of work.
 //
-//   selected — the argument. Gets a /work/[slug] case page and room on the home rail.
-//   project  — live things that link out. Tile plus one line, archive only.
-//   index    — text only: title, year, tags. No images, no room.
+// Where a piece sits is decided by its era, in data/eras.ts, which references
+// it by slug. There is no tier: two ways to say where a piece belongs is one
+// too many, and the tier that survived v1.11.0 had only ever held one name.
 //
-// Only the selected tier is occupied today, and the model carries only the
-// fields a surface actually renders. A tier or a field kept for work that might
-// arrive is furniture; when the archive is built it can be furnished then.
-//
-// See docs/specs/2026-08-13-design-language.md.
+// See docs/specs/2026-09-01-home-as-feed-design.md.
 
 export const disciplines = [
   "Product Design",
@@ -18,7 +14,6 @@ export const disciplines = [
 ] as const;
 
 export type Discipline = (typeof disciplines)[number];
-export type Tier = "selected" | "project" | "index";
 
 export type CaseMedia = {
   /** Path under public/work/<slug>/. Absent renders a labelled empty frame. */
@@ -55,7 +50,6 @@ export type WorkItem = {
   title: string;
   oneLiner: string;
   year: string;
-  tier: Tier;
   disciplines: Discipline[];
   /** The live product. Absent for work that no longer exists publicly. */
   href?: string;
@@ -84,7 +78,6 @@ export const work: WorkItem[] = [
     title: "ChessEver",
     oneLiner: "Follow professional chess in real time.",
     year: "2025",
-    tier: "selected",
     disciplines: ["Product Design", "Interaction"],
     href: "https://chessever.com",
     role: "0–1 Product Experience",
@@ -115,7 +108,6 @@ export const work: WorkItem[] = [
     title: "Sylvan",
     oneLiner: "Identity for a revenue intelligence platform. Noise into signal.",
     year: "2025",
-    tier: "selected",
     disciplines: ["Identity"],
     href: "https://sylvanlabs.com",
     role: "Brand Design, Logo Design, Web Design, Visual System",
@@ -141,8 +133,6 @@ export const work: WorkItem[] = [
     title: "Hitman's Library",
     oneLiner: "A collection of cool experiences across the web.",
     year: "2025",
-    // Promoted to the home: the four selected pieces carry the argument now.
-    tier: "selected",
     disciplines: ["Build", "Interaction"],
     href: "https://hitmanslibrary.xyz",
     role: "Design, Build",
@@ -166,8 +156,6 @@ export const work: WorkItem[] = [
     ],
   },
 ];
-
-export const selected = work.filter((w) => w.tier === "selected");
 
 export function findWork(slug: string) {
   return work.find((w) => w.slug === slug);

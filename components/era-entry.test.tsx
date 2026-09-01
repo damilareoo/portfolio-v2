@@ -20,8 +20,6 @@ const item: WorkItem = {
   title: "Example",
   oneLiner: "One line.",
   year: "2025",
-  // `tier` is still required here; Task 7 removes the field and this line with it.
-  tier: "selected",
   disciplines: ["Product Design"],
   blocks: [
     { kind: "text", body: ["Lede one."] },

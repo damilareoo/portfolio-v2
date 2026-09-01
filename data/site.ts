@@ -39,4 +39,4 @@ export const expertise = [
   "Figma",
 ];
 
-// Work lives in data/work.ts, tiered as selected / project / index.
+// Work lives in data/work.ts and is grouped into eras in data/eras.ts.
