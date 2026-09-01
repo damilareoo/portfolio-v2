@@ -6,6 +6,17 @@ import Image from "next/image";
  * An empty slot is not a collapsed one. Until art lands the frame prints what
  * is missing and what shape it will be — the same honesty rule the case pages
  * follow when a write-up does not exist yet.
+ *
+ * `panel` opts the slot into the dot-matrix sweep: it marks the wrapper
+ * `[data-frame]`, lays a canvas under the photograph, and starts the
+ * photograph at zero opacity so the sweep can dissolve it in. That last part
+ * is a known dependency, the same one the shots grid has carried since
+ * v1.10.0 — the image is invisible until `runPanelSweep` reveals it, so it
+ * must only ever be set inside a `PanelField`. Every path out of the sweep
+ * that cannot paint a panel (no cells, no decoded image, a tainted canvas,
+ * reduced motion) puts the opacity back to 1, and a frame with no `src` never
+ * takes the mark at all — there is no <img> for the sweep to hold on to, and
+ * an unmarked frame is one it never sees.
  */
 export function Frame({
   src,
@@ -16,6 +27,7 @@ export function Frame({
   label,
   sizes = "(min-width: 1024px) 50vw, 92vw",
   priority = false,
+  panel = false,
   className = "",
 }: {
   src?: string;
@@ -27,15 +39,24 @@ export function Frame({
   label?: string;
   sizes?: string;
   priority?: boolean;
+  /** Arrive as a dot-matrix panel. Only meaningful inside a `PanelField`. */
+  panel?: boolean;
   className?: string;
 }) {
   const aspect = width && height ? `${width} / ${height}` : (ratio ?? "4 / 3");
+  const swept = panel && Boolean(src);
 
   return (
     <div
       style={{ aspectRatio: aspect }}
+      data-frame={swept || undefined}
       className={`relative overflow-hidden rounded-[var(--radius-tile)] border border-line bg-surface-2 transition-colors ${className}`}
     >
+      {swept && (
+        /* Sibling of the image, not a wrapper around it: `fill` positions the
+           photograph against this box, and a wrapper would take that away. */
+        <canvas className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden />
+      )}
       {src ? (
         <Image
           src={src}
@@ -46,7 +67,7 @@ export function Frame({
           /* The optimiser flattens an animated GIF to its first frame, so a
              moving mark would arrive static. Serve those untouched. */
           unoptimized={src.endsWith(".gif")}
-          className="object-cover"
+          className={`object-cover ${swept ? "opacity-0" : ""}`}
         />
       ) : (
         <span className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-center">

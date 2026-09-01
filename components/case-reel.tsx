@@ -148,6 +148,11 @@ export function CaseReel({
                 height={resolved.height}
                 ratio={block.ratio ?? "16 / 9"}
                 priority={firstIsPriority && i === 0}
+                /* The full-bleed frame is the one that reads as arriving. A
+                   pair or an inset plate dissolving four ways at once is a
+                   performance, and nothing here moves that was not touched,
+                   arriving, or reporting. */
+                panel
                 sizes="(min-width: 1024px) 62vw, 92vw"
               />
               {block.caption && (

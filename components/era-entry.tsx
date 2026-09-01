@@ -3,8 +3,10 @@
 import { useId, useState } from "react";
 import { CaseReel } from "@/components/case-reel";
 import { GlyphIcon } from "@/components/glyph-icon";
+import { PanelField } from "@/components/panel-field";
 import { RecordRow, SectionLabel, Tags } from "@/components/ui";
 import { splitBlocks } from "@/lib/eras";
+import { useEntranceOnce } from "@/lib/reveal";
 import type { CaseBlock, WorkItem } from "@/data/work";
 import type { Asset } from "@/data/assets.generated";
 
@@ -33,6 +35,11 @@ export function EraEntry({
 }) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
+  /* The article carries `arrive`, and `arrive` is opacity 0 until something
+     sets `data-arrived` on it. Nothing did, so every entry on the home — its
+     title, its record and its frames — rendered permanently invisible. The
+     same hook `Reveal` uses puts it back; the class was always asking for it. */
+  const article = useEntranceOnce<HTMLElement>();
 
   /* Art with no blocks authored for it is still worth showing: fall back to one
      full frame per asset, in filename order — as the case page did. */
@@ -47,6 +54,7 @@ export function EraEntry({
 
   return (
     <article
+      ref={article}
       className="arrive min-w-0"
       style={{ "--arrive-delay": `${Math.min(index, 12) * 45}ms` } as React.CSSProperties}
     >
@@ -58,7 +66,11 @@ export function EraEntry({
         {item.oneLiner}
       </p>
 
-      {lede.length > 0 && <CaseReel blocks={lede} assets={assets} />}
+      {lede.length > 0 && (
+        <PanelField>
+          <CaseReel blocks={lede} assets={assets} />
+        </PanelField>
+      )}
 
       {more && (
         <>
@@ -139,11 +151,16 @@ export function EraEntry({
                 {rest.length > 0 && (
                   <div className="mt-10">
                     {/* The tail takes the assets the lede did not, or it re-shows them. */}
-                    <CaseReel
-                      blocks={rest}
-                      assets={assets.slice(restAssetOffset)}
-                      firstIsPriority={false}
-                    />
+                    {/* Keyed to `open`, because a tail collapsed to zero height
+                        has frames in the document that no observer can usefully
+                        see. The sweep is rebuilt when the fold opens. */}
+                    <PanelField revision={String(open)}>
+                      <CaseReel
+                        blocks={rest}
+                        assets={assets.slice(restAssetOffset)}
+                        firstIsPriority={false}
+                      />
+                    </PanelField>
                   </div>
                 )}
               </div>
