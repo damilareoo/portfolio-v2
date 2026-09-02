@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { GlyphIcon } from "@/components/glyph-icon";
-import { InstrumentPair } from "@/components/instrument-pair";
+import { InstrumentBank } from "@/components/instrument-bank";
 import { Product } from "@/components/product";
 import { SiteNav } from "@/components/site-nav";
 import { workAssets } from "@/data/assets.generated";
@@ -30,21 +30,24 @@ export default function Home() {
           writing about. */}
       <header className="mt-10 flex flex-wrap items-center justify-between gap-x-8 gap-y-6 pb-8">
         <div className="min-w-0">
-          <h1 className="text-lg font-medium leading-tight tracking-tight">
-            &rsquo;{site.name} <span className="text-ink-3">·</span>{" "}
-            <span className="font-normal text-ink-2">Product designer</span>
+          <h1 className="max-w-[24ch] text-xl font-medium leading-[1.15] tracking-tight">
+            I design and build the parts of a product people actually touch.
           </h1>
-          <p className="mt-1 text-sm text-ink-2">
-            Lagos ·{" "}
+          <p className="mt-4 max-w-[46ch] text-base leading-relaxed text-ink-2">
+            Interfaces, identity, and the systems underneath them — taken from
+            nothing to shipped. Most recently for chess platforms and a revenue
+            intelligence tool.
+          </p>
+          <p className="mt-5 text-sm text-ink-3">
+            &rsquo;{site.name} · Lagos ·{" "}
             <a
               href={`mailto:${site.email}`}
-              className="underline decoration-line underline-offset-4 transition-colors hover:text-ink hover:decoration-ink-3"
+              className="text-ink-2 underline decoration-line underline-offset-4 transition-colors hover:text-ink hover:decoration-ink-3"
             >
               {site.email}
             </a>
           </p>
         </div>
-        <InstrumentPair size={56} />
       </header>
 
       <div className="space-y-20">
@@ -58,7 +61,7 @@ export default function Home() {
           Elsewhere sits here rather than in the header because a reader looks
           for contact after seeing the work, not before it. */}
       <footer className="mt-8 rule-t pt-6 pb-8">
-        <InstrumentPair size={72} />
+        <InstrumentBank />
         <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2">
           <Link
             href="/shots"

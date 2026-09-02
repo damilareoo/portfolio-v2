@@ -2,14 +2,14 @@ import Link from "next/link";
 import { elsewhere, site } from "@/data/site";
 import { changelog } from "@/data/changelog";
 import { GlyphIcon } from "@/components/glyph-icon";
-import { InstrumentPair } from "@/components/instrument-pair";
+import { InstrumentBank } from "@/components/instrument-bank";
 
 export function SiteFooter() {
   const current = changelog[0];
   return (
     <footer className="mx-auto w-full max-w-6xl px-4 pb-8 sm:px-6">
       <div className="rule-t pt-6">
-        <InstrumentPair size={72} />
+        <InstrumentBank />
         <div className="mt-6 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium tracking-tight">damilareoo</span>
