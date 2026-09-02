@@ -28,7 +28,7 @@ const suisseMono = localFont({
 
 export const metadata: Metadata = {
   title: "Damilare Osofisan",
-  description: "Product designer. Selected work, experiments, and process.",
+  description: "Product designer and builder creating 0–1 experiences. Work, experiments, and process.",
 };
 
 export const viewport: Viewport = {

@@ -24,7 +24,6 @@ export type Era = {
    */
   sort: string;
   href?: string;
-  logo?: string;
   blurb: string;
   entries: string[];
 };

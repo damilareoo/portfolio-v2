@@ -4,7 +4,7 @@ import type { CaseBlock, CaseMedia } from "@/data/work";
 import type { Asset } from "@/data/assets.generated";
 
 /**
- * The centre column of a case page.
+ * The run of blocks that carries one piece of work.
  *
  * Blocks carry their own art where it is authored; anything without a src falls
  * through to the next unused frame from the project's asset folder, so dropping
@@ -13,12 +13,19 @@ import type { Asset } from "@/data/assets.generated";
 export function CaseReel({
   blocks,
   assets,
-  firstIsPriority = true,
+  preloadFirst = false,
 }: {
   blocks: CaseBlock[];
   assets: Asset[];
-  /** The tail of a split reel is below the fold by definition and declines it. */
-  firstIsPriority?: boolean;
+  /**
+   * Preload the first full-bleed frame. Off by default, and it has to be: a
+   * reel does not know where it sits. The home is one page holding every era,
+   * so `i === 0` is the top of THIS reel, not the top of the document — a
+   * default of true had all three pieces preloading a hero, two of them held at
+   * opacity 0 behind a sweep the reader may never scroll to. Only the caller
+   * that knows it leads the page may turn this on.
+   */
+  preloadFirst?: boolean;
 }) {
   // Consumed in render order — a plain counter, because the fallback is
   // positional by definition.
@@ -157,7 +164,7 @@ export function CaseReel({
               width={resolved.width}
               height={resolved.height}
               ratio={block.ratio ?? "16 / 9"}
-              priority={firstIsPriority && i === 0}
+              preload={preloadFirst && i === 0}
               /* The full-bleed frame is the one that reads as arriving. A
                  pair or an inset plate dissolving four ways at once is a
                  performance, and nothing here moves that was not touched,

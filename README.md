@@ -29,14 +29,14 @@ Four, and the nav names all four.
 
 | Route | Holds |
 |---|---|
-| `/` | Everything about the work — lockup and the selected pieces |
+| `/` | The work itself — lockup, record, then every era with its pieces inline |
 | `/shots` | The gallery. `/feed` redirects here permanently |
 | `/about` | The record about the person, and the roles behind it |
 | `/colophon` | How the site is made, and the instruments |
 
-`/work/[slug]` survives as a case page, reached from a selected card. `/system` and `/changelog` stay live and stay out of the nav; the colophon links to both.
+`/work/[slug]` is gone. The home carries the case studies now, and the three URLs that existed redirect to their era anchors — written out one per line rather than patterned, so retiring a piece is a visible edit. `/system` and `/changelog` stay live and stay out of the nav; the colophon links to both.
 
-The case route sets `dynamicParams = false`, so the set of slugs is closed at build time and an unknown one gets a real 404 from the router. It has to be settled there: the page sits behind the root `loading.tsx`, which means Next serves a prerendered shell and commits the status before the body streams, and a `notFound()` reached during the render arrives after the headers have gone. That is how a page returns 200 while showing the not-found screen, which is a lie told to crawlers rather than to readers.
+**A standing rule for any future dynamic route.** A route whose set of params is closed must set `dynamicParams = false` so an unknown one gets a real 404 from the router. It cannot be settled with `notFound()` alone: a page sitting behind the root `loading.tsx` is served as a prerendered shell, so Next commits the status before the body streams and a `notFound()` reached during the render arrives after the headers have gone. That is how a page returns 200 while showing the not-found screen, which is a lie told to crawlers rather than to readers. This cost v1.11.0 a fix; the route it fixed has since been deleted, but the trap has not moved.
 
 There is no archive surface. With selected work and the dated list both on the home page, `/work` held a filtered restatement of a page the visitor had already read — a nav entry has to earn itself, and that one was paying for a duplicate.
 
@@ -217,7 +217,7 @@ pnpm manifest
 
 `scripts/manifest.mjs` reads intrinsic dimensions straight out of the PNG, JPEG, and WebP headers — no image dependency — and writes a typed `data/assets.generated.ts`. Dimensions ship with the manifest, so no frame ever causes layout shift.
 
-Until art lands, a frame prints what is missing and the shape of the slot rather than collapsing. A case page with assets but no authored blocks falls back to one full frame per asset, in filename order.
+Until art lands, a frame prints what is missing and the shape of the slot rather than collapsing. A piece with assets but no authored blocks falls back to one full frame per asset, in filename order.
 
 ## DialKit
 
@@ -233,29 +233,30 @@ Two rules keep it working: type sizes are always `rem` so the type dial reaches 
 
 ## Work model
 
-One model in `data/work.ts`, tiered by how much room a piece earns.
+One model in `data/work.ts`, and it says nothing about where a piece goes. Placement is decided by
+era, in `data/eras.ts`, which names pieces by slug — so a piece moves between eras in a one-line
+edit and is defined in exactly one place.
 
-| Tier | Gets | Lives |
-|---|---|---|
-| `selected` | A `/work/[slug]` case page and one of the cards on the home | Home |
-| `project` | Vocabulary only. Nothing sits here | — |
-| `index` | Vocabulary only. Nothing sits here | — |
+There used to be a `tier`, and before that a `project` and an `index` tier holding pieces with data,
+live links and screenshots that rendered nowhere, waiting on an archive this site had already argued
+itself out of building — along with a tile face, a palette strip, two filters nothing imported, and
+six fields no surface read. Data kept for a surface that does not exist is not a plan; it is
+furniture. The tier that survived that purge had only ever held one name, and two ways to say where
+a piece belongs is one too many, so it went too. The same rule took `Era.logo`, which two eras set
+and nothing rendered.
 
-Only `selected` is occupied, and the model carries only the fields a surface actually renders. The
-project tier once held three pieces with data, live links and screenshots that rendered nowhere,
-waiting on an archive this site had already argued itself out of building — along with a tile face,
-a palette strip, two filters nothing imported, and six fields no surface read. Data kept for a
-surface that does not exist is not a plan; it is furniture. The words for the other two tiers stay
-because an archive may still earn itself, and then they are the right words.
+Work without written blocks renders its record and says so plainly instead of padding — the site does not pretend to depth it lacks.
 
-Selected work without written blocks says so plainly on its case page instead of padding — the site does not pretend to depth it lacks.
-
-The record rows on a case page are the same `RecordRow` that `/about` and `/colophon` use, kept in
+The record rows inside an entry are the same `RecordRow` that `/about` and `/colophon` use, kept in
 `components/ui.tsx` with the other primitives. Three surfaces once drew their own, and the case
 page's was the one that disagreed — mono uppercase labels, values ranged right — which is why it
 read as foreign rather than as under-designed. It was not the layout.
 
-A case page keeps every word in the left rail — one-liner, `intro`, the record rows, then `approach` — and gives the whole right column to the work. The rail pins on a tall viewport and scrolls within itself rather than dragging the reel down with it.
+An entry shows its title, one-liner and first two blocks, and holds the rest behind one control:
+`intro`, the record rows, `approach`, then the tail of the reel, all in one centred `34rem` column.
+There is no rail and no second column — the home is a single column of eras, and prose set beside a
+reel needs somewhere to sit. The fold collapses with grid rows rather than `hidden`, so every word
+stays crawlable and findable by cmd-F; that is the one thing retiring the case pages had to keep.
 
 | Block | Renders |
 |---|---|

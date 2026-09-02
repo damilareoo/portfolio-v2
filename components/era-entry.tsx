@@ -6,7 +6,7 @@ import { GlyphIcon } from "@/components/glyph-icon";
 import { PanelField } from "@/components/panel-field";
 import { RecordRow, SectionLabel, Tags } from "@/components/ui";
 import { splitBlocks } from "@/lib/eras";
-import { useEntranceOnce } from "@/lib/reveal";
+import { Reveal } from "@/lib/reveal";
 import type { CaseBlock, WorkItem } from "@/data/work";
 import type { Asset } from "@/data/assets.generated";
 
@@ -28,10 +28,15 @@ export function EraEntry({
   item,
   assets,
   index,
+  eraIndex,
 }: {
   item: WorkItem;
   assets: Asset[];
+  /** Position within the era — drives the arrival stagger. */
   index: number;
+  /** Position of the era on the page. Only the first entry of the first era
+      is above the fold on arrival, and only it may preload its lede frame. */
+  eraIndex: number;
 }) {
   const [open, setOpen] = useState(false);
   /* Sticky, never a toggle. The tail's `PanelField` is keyed to this, and a
@@ -43,11 +48,9 @@ export function EraEntry({
      sweep is built once and every frame arrives once. */
   const [everOpened, setEverOpened] = useState(false);
   const panelId = useId();
-  /* The article carries `arrive`, and `arrive` is opacity 0 until something
-     sets `data-arrived` on it. Nothing did, so every entry on the home — its
-     title, its record and its frames — rendered permanently invisible. The
-     same hook `Reveal` uses puts it back; the class was always asking for it. */
-  const article = useEntranceOnce<HTMLElement>();
+  /* The one frame on the page worth a preload tag: the first piece of the
+     newest era, the only one a cold load actually renders above the fold. */
+  const leadsPage = eraIndex === 0 && index === 0;
 
   /* Art with no blocks authored for it is still worth showing: fall back to one
      full frame per asset, in filename order — as the case page did. */
@@ -60,12 +63,13 @@ export function EraEntry({
   const prose = (item.intro?.length ?? 0) + (item.approach?.length ?? 0) > 0;
   const more = rest.length > 0 || prose;
 
+  /* `Reveal`, not a copy of it. The `arrive` class is opacity 0 until something
+     sets `data-arrived`, and a hand-rolled version of this — the class copied,
+     the hook forgotten — is what once shipped every entry on the home
+     permanently invisible. The contract lives in one component so it cannot be
+     half-copied again. */
   return (
-    <article
-      ref={article}
-      className="arrive min-w-0"
-      style={{ "--arrive-delay": `${Math.min(index, 12) * 45}ms` } as React.CSSProperties}
-    >
+    <Reveal as="article" index={index} className="min-w-0">
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
         <h3 className="text-[1rem] font-medium tracking-tight">{item.title}</h3>
         <SectionLabel>{item.year}</SectionLabel>
@@ -81,7 +85,7 @@ export function EraEntry({
            invisibly, and the frame would simply be there. It arrives when it is
            actually in front of the reader. */
         <PanelField rootMargin="0px">
-          <CaseReel blocks={lede} assets={assets} />
+          <CaseReel blocks={lede} assets={assets} preloadFirst={leadsPage} />
         </PanelField>
       )}
 
@@ -173,11 +177,7 @@ export function EraEntry({
                         when the fold first opens, and never rebuilt after —
                         closing must not re-run it. */}
                     <PanelField revision={everOpened ? 1 : 0} rootMargin="0px">
-                      <CaseReel
-                        blocks={rest}
-                        assets={assets.slice(restAssetOffset)}
-                        firstIsPriority={false}
-                      />
+                      <CaseReel blocks={rest} assets={assets.slice(restAssetOffset)} />
                     </PanelField>
                   </div>
                 )}
@@ -186,6 +186,6 @@ export function EraEntry({
           </div>
         </>
       )}
-    </article>
+    </Reveal>
   );
 }

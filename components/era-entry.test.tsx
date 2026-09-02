@@ -30,20 +30,20 @@ const item: WorkItem = {
 
 describe("EraEntry", () => {
   it("shows the first two blocks without being asked", () => {
-    render(<EraEntry item={item} assets={[]} index={0} />);
+    render(<EraEntry item={item} assets={[]} index={0} eraIndex={0} />);
     expect(host.textContent).toContain("Lede one.");
     expect(host.textContent).toContain("Lede two.");
   });
 
   it("keeps the collapsed tail in the DOM so it stays findable", () => {
     // Retiring the case pages cost three URLs; it must not also cost the text.
-    render(<EraEntry item={item} assets={[]} index={0} />);
+    render(<EraEntry item={item} assets={[]} index={0} eraIndex={0} />);
     expect(host.textContent).toContain("Buried treasure.");
     expect(host.querySelector("[hidden]")).toBeNull();
   });
 
   it("reports its state on the control, and flips it when touched", () => {
-    render(<EraEntry item={item} assets={[]} index={0} />);
+    render(<EraEntry item={item} assets={[]} index={0} eraIndex={0} />);
     const button = host.querySelector("button")!;
     expect(button.getAttribute("aria-expanded")).toBe("false");
     expect(button.textContent).toContain("Open");
@@ -54,7 +54,7 @@ describe("EraEntry", () => {
   });
 
   it("points the control at the region it opens", () => {
-    render(<EraEntry item={item} assets={[]} index={0} />);
+    render(<EraEntry item={item} assets={[]} index={0} eraIndex={0} />);
     const id = host.querySelector("button")!.getAttribute("aria-controls")!;
     expect(host.querySelector(`#${CSS.escape(id)}`)).not.toBeNull();
   });
@@ -82,7 +82,7 @@ describe("EraEntry", () => {
     }
     vi.stubGlobal("IntersectionObserver", Counting);
 
-    render(<EraEntry item={withArt} assets={[]} index={0} />);
+    render(<EraEntry item={withArt} assets={[]} index={0} eraIndex={0} />);
     const before = built;
     const button = host.querySelector("button")!;
 
@@ -98,7 +98,7 @@ describe("EraEntry", () => {
   });
 
   it("offers no control when there is nothing more to show", () => {
-    render(<EraEntry item={{ ...item, blocks: item.blocks!.slice(0, 2) }} assets={[]} index={0} />);
+    render(<EraEntry item={{ ...item, blocks: item.blocks!.slice(0, 2) }} assets={[]} index={0} eraIndex={0} />);
     expect(host.querySelector("button")).toBeNull();
   });
 });

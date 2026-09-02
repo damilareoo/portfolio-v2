@@ -61,6 +61,7 @@ export function EraSection({ era, index }: { era: Era; index: number }) {
               item={item}
               assets={workAssets[item.slug] ?? []}
               index={i}
+              eraIndex={index}
             />
           ))}
         </div>

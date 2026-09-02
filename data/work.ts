@@ -25,7 +25,7 @@ export type CaseMedia = {
 };
 
 /**
- * A case page is an ordered list of these. Text blocks are narrow and sit at
+ * An entry's reel is an ordered list of these. Text blocks are narrow and sit at
  * decision points, so the argument stays readable without a wall of prose
  * before the first image.
  */
@@ -58,16 +58,17 @@ export type WorkItem = {
   role?: string;
   stack?: string;
   /**
-   * Rail prose. The case page keeps every word in the left column and gives the
-   * right column entirely to the work, so these read top-down beside the reel
-   * rather than interrupting it.
+   * The written argument. Both sit inside the entry's fold, in one centred
+   * column with the record rows between them — `intro` above, `approach`
+   * below. There is no rail: the home is a single column of eras, and prose
+   * set beside a reel needs a second column to sit in.
    */
   intro?: string[];
   approach?: string[];
   /**
-   * Case study body — visual blocks only now that prose lives in the rail.
-   * Selected work without blocks renders its record and says so plainly rather
-   * than padding — the site does not pretend to depth it lacks.
+   * The reel — visual blocks only, since the prose above carries the words.
+   * Work without blocks renders its record and says so plainly rather than
+   * padding: the site does not pretend to depth it lacks.
    */
   blocks?: CaseBlock[];
 };

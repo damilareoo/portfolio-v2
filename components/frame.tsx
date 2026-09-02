@@ -26,7 +26,7 @@ export function Frame({
   ratio,
   label,
   sizes = "(min-width: 1024px) 50vw, 92vw",
-  priority = false,
+  preload = false,
   panel = false,
   className = "",
 }: {
@@ -38,7 +38,16 @@ export function Frame({
   ratio?: string;
   label?: string;
   sizes?: string;
-  priority?: boolean;
+  /**
+   * Put a `<link rel="preload">` for this image in the head.
+   *
+   * Next 16 deprecated `priority` in favour of this name because the old one
+   * described a ranking the browser does not have, while the behaviour was
+   * only ever the preload tag. Renaming it here keeps the honest word at the
+   * call site — and the call site is the only place that can know whether this
+   * frame is the LCP candidate. Exactly one frame on a page should ask.
+   */
+  preload?: boolean;
   /** Arrive as a dot-matrix panel. Only meaningful inside a `PanelField`. */
   panel?: boolean;
   className?: string;
@@ -63,7 +72,7 @@ export function Frame({
           alt={alt ?? ""}
           fill
           sizes={sizes}
-          priority={priority}
+          preload={preload}
           /* The optimiser flattens an animated GIF to its first frame, so a
              moving mark would arrive static. Serve those untouched. */
           unoptimized={src.endsWith(".gif")}
