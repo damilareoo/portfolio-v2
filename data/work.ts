@@ -1,8 +1,9 @@
 // One model for every piece of work.
 //
-// Where a piece sits is decided by its era, in data/eras.ts, which references
-// it by slug. There is no tier: two ways to say where a piece belongs is one
-// too many, and the tier that survived v1.11.0 had only ever held one name.
+// This file is the whole hierarchy. There is no tier and no era: two ways to
+// say where a piece belongs is one too many, and the era layer that grouped
+// these by employer spent two of its five sections saying it had nothing to
+// show.
 //
 // See docs/specs/2026-09-01-home-as-feed-design.md.
 
@@ -60,8 +61,8 @@ export type WorkItem = {
   /**
    * The written argument. Both sit inside the entry's fold, in one centred
    * column with the record rows between them — `intro` above, `approach`
-   * below. There is no rail: the home is a single column of eras, and prose
-   * set beside a reel needs a second column to sit in.
+   * below. There is no rail: the home is a single column of products, and
+   * prose set beside a reel needs a second column to sit in.
    */
   intro?: string[];
   approach?: string[];
@@ -73,7 +74,37 @@ export type WorkItem = {
   blocks?: CaseBlock[];
 };
 
+/**
+ * The work, newest first.
+ *
+ * **The array's order is the page's order.** There is no `sort` field and no
+ * derived ordering: four hand-ordered items do not need arithmetic to arrange
+ * them, and a field whose only job is to reorder four things is furniture. To
+ * move a product on the home, move it here.
+ */
 export const work: WorkItem[] = [
+  {
+    slug: "endgame",
+    title: "Endgame.ai",
+    oneLiner: "An online chess platform — play, train, and follow tournaments.",
+    year: "2026",
+    disciplines: ["Product Design", "Interaction"],
+    href: "https://endgame.ai",
+    /* Authored to the shape of the real material — a landing page in both
+       skins, the play screen, the daily puzzle and tournament sections, and the
+       phone screens — with no src on any of it. Frame draws an empty slot as
+       what it is: the shape the art will be, labelled, rather than a collapsed
+       gap or an invented picture. Dropping files into public/work/endgame/ and
+       running `pnpm manifest` fills these in order, with no edit here. */
+    blocks: [
+      { kind: "full", ratio: "16 / 10", alt: "Endgame — the landing page" },
+      { kind: "pair", items: [{ ratio: "16 / 10" }, { ratio: "16 / 10" }] },
+      { kind: "inset", items: [{ ratio: "16 / 10", caption: "Play online" }] },
+      { kind: "pair", items: [{ ratio: "9 / 16" }, { ratio: "9 / 16" }] },
+      { kind: "full", ratio: "16 / 10" },
+      { kind: "inset", tone: "strong", items: [{ ratio: "9 / 16" }, { ratio: "9 / 16" }] },
+    ],
+  },
   {
     slug: "chessever",
     title: "ChessEver",

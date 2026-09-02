@@ -3,15 +3,21 @@
 import { useId, useState } from "react";
 import { CaseReel } from "@/components/case-reel";
 import { GlyphIcon } from "@/components/glyph-icon";
+import { GlyphText } from "@/components/glyph-text";
 import { PanelField } from "@/components/panel-field";
 import { RecordRow, SectionLabel, Tags } from "@/components/ui";
-import { splitBlocks } from "@/lib/eras";
+import { splitBlocks } from "@/lib/case-blocks";
 import { Reveal } from "@/lib/reveal";
 import type { CaseBlock, WorkItem } from "@/data/work";
 import type { Asset } from "@/data/assets.generated";
 
 /**
- * One piece of work, inside its era.
+ * One product, numbered, on the home.
+ *
+ * This is `EraSection` and `EraEntry` merged. Eras contained entries, so it
+ * took two components to draw one piece of work; four flat products need one.
+ * The number is the era's — ordering made visible — and the head, the reel and
+ * the fold are the entry's, unchanged.
  *
  * The lede stands open; everything else — the rail prose the case page used to
  * carry, and the rest of the reel — waits behind one control. It waits in the
@@ -21,22 +27,19 @@ import type { Asset } from "@/data/assets.generated";
  *
  * The open state is deliberately not persisted. Law 3 governs layout the
  * visitor sets, as the DialKit does; a reading position is not a setting, and a
- * portfolio that reopens five dossiers on arrival has forgotten what the
+ * portfolio that reopens four dossiers on arrival has forgotten what the
  * collapsed state was for.
  */
-export function EraEntry({
+export function Product({
   item,
   assets,
   index,
-  eraIndex,
 }: {
   item: WorkItem;
   assets: Asset[];
-  /** Position within the era — drives the arrival stagger. */
+  /** Position on the page. Drives the number, the arrival stagger, and the one
+      preload — only the first product is above the fold on a cold load. */
   index: number;
-  /** Position of the era on the page. Only the first entry of the first era
-      is above the fold on arrival, and only it may preload its lede frame. */
-  eraIndex: number;
 }) {
   const [open, setOpen] = useState(false);
   /* Sticky, never a toggle. The tail's `PanelField` is keyed to this, and a
@@ -48,9 +51,7 @@ export function EraEntry({
      sweep is built once and every frame arrives once. */
   const [everOpened, setEverOpened] = useState(false);
   const panelId = useId();
-  /* The one frame on the page worth a preload tag: the first piece of the
-     newest era, the only one a cold load actually renders above the fold. */
-  const leadsPage = eraIndex === 0 && index === 0;
+  const ordinal = String(index + 1).padStart(2, "0");
 
   /* Art with no blocks authored for it is still worth showing: fall back to one
      full frame per asset, in filename order — as the case page did. */
@@ -67,14 +68,31 @@ export function EraEntry({
      sets `data-arrived`, and a hand-rolled version of this — the class copied,
      the hook forgotten — is what once shipped every entry on the home
      permanently invisible. The contract lives in one component so it cannot be
-     half-copied again. */
+     half-copied again. The id rides on it because a retired /work/<slug> URL
+     redirects to /#<slug>, and the anchor has to be the top of the product. */
   return (
-    <Reveal as="article" index={index} className="min-w-0">
-      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-        <h3 className="text-base font-medium tracking-tight">{item.title}</h3>
+    <Reveal
+      as="section"
+      id={item.slug}
+      index={index}
+      className="min-w-0 rule-t scroll-mt-6 pt-10"
+    >
+      {/* Wraps rather than truncates. At 320px the title alone is most of the
+          column, so the year drops to its own line instead of colliding with
+          it — the head is three facts, not a fixed three-column grid. */}
+      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+        <div className="flex min-w-0 items-baseline gap-3">
+          {/* The matrix numeral is an SVG of dots and is `aria-hidden`: a
+              screen reader has no use for a picture of a number. The position
+              is still information, so it is spoken here and drawn there. */}
+          <span className="sr-only">{ordinal}</span>
+          <GlyphText text={ordinal} size="0.5rem" className="shrink-0 text-ink-3" />
+          <h2 className="min-w-0 text-xl font-medium tracking-tight">{item.title}</h2>
+        </div>
         <SectionLabel>{item.year}</SectionLabel>
       </div>
-      <p className="mb-5 max-w-[42rem] text-base leading-relaxed text-ink-2">
+
+      <p className="mt-3 mb-6 max-w-[42rem] text-base leading-relaxed text-ink-2">
         {item.oneLiner}
       </p>
 
@@ -83,14 +101,24 @@ export function EraEntry({
            early arrival plus its own height is enough to fit the entire
            dissolve before it is on screen — the sweep would run, correctly and
            invisibly, and the frame would simply be there. It arrives when it is
-           actually in front of the reader. */
+           actually in front of the reader.
+
+           `preloadFirst` only for the first product: a reel does not know where
+           it sits, and every reel claiming the preload is four high-priority
+           image requests for three frames nobody has scrolled to. */
         <PanelField rootMargin="0px">
-          <CaseReel blocks={lede} assets={assets} preloadFirst={leadsPage} />
+          <CaseReel blocks={lede} assets={assets} preloadFirst={index === 0} />
         </PanelField>
       )}
 
       {more && (
         <>
+          {/* A bar, not a chip. The chip this replaces was a small grey pill
+              below the reel that read as metadata; a control spanning the
+              column, ruled off above, naming what it opens and how much is
+              behind it, reads as a door. The chevron accompanies the words —
+              it never stands in for them. Tall enough to be a comfortable
+              touch target at any width. */}
           <button
             type="button"
             onClick={() => {
@@ -99,13 +127,22 @@ export function EraEntry({
             }}
             aria-expanded={open}
             aria-controls={panelId}
-            className="mt-5 inline-flex items-center gap-1.5 rounded-[4px] bg-surface-2 px-2 py-1 font-mono text-2xs uppercase tracking-[0.08em] text-ink-2 transition-colors hover:text-ink"
+            className="rule-t mt-8 flex min-h-[2.75rem] w-full items-center justify-between gap-4 py-3 text-left font-mono text-2xs uppercase tracking-[0.08em] text-ink-2 transition-colors hover:text-ink"
           >
-            {open ? "Close" : "Open"}
-            <span
-              className={`inline-block transition-transform duration-300 ${open ? "rotate-180" : ""}`}
-            >
-              <GlyphIcon name="chevron-down" size="0.625rem" />
+            <span>{open ? "Close case study" : "Open case study"}</span>
+            <span className="flex shrink-0 items-center gap-2.5 text-ink-3">
+              {/* Silent when the fold holds only prose: "0 frames" is a count
+                  of nothing dressed as a promise. */}
+              {rest.length > 0 && (
+                <span>
+                  {rest.length} {rest.length === 1 ? "frame" : "frames"}
+                </span>
+              )}
+              <span
+                className={`inline-block transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+              >
+                <GlyphIcon name="chevron-down" size="0.625rem" />
+              </span>
             </span>
           </button>
 
@@ -177,7 +214,11 @@ export function EraEntry({
                         when the fold first opens, and never rebuilt after —
                         closing must not re-run it. */}
                     <PanelField revision={everOpened ? 1 : 0} rootMargin="0px">
-                      <CaseReel blocks={rest} assets={assets.slice(restAssetOffset)} />
+                      <CaseReel
+                        blocks={rest}
+                        assets={assets.slice(restAssetOffset)}
+                        preloadFirst={false}
+                      />
                     </PanelField>
                   </div>
                 )}

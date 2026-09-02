@@ -26,4 +26,4 @@ export const elsewhere = [
   { label: "Contra", handle: "damilareoo", href: "https://contra.com/damilareoo" },
 ];
 
-// Work lives in data/work.ts and is grouped into eras in data/eras.ts.
+// Work lives in data/work.ts, in the order the home shows it.

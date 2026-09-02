@@ -2,7 +2,7 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { EraEntry } from "@/components/era-entry";
+import { Product } from "@/components/product";
 import type { WorkItem } from "@/data/work";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -13,8 +13,6 @@ beforeEach(() => { host = document.createElement("div"); document.body.appendChi
 afterEach(() => { act(() => root.unmount()); host.remove(); vi.unstubAllGlobals(); });
 const render = (ui: React.ReactElement) => act(() => root.render(ui));
 
-/* Text blocks only: this test is about the unfold, and mounting a Frame would
-   drag next/image into a unit test that has nothing to say about it. */
 const item: WorkItem = {
   slug: "example",
   title: "Example",
@@ -28,42 +26,42 @@ const item: WorkItem = {
   ],
 };
 
-describe("EraEntry", () => {
-  it("shows the first two blocks without being asked", () => {
-    render(<EraEntry item={item} assets={[]} index={0} eraIndex={0} />);
-    expect(host.textContent).toContain("Lede one.");
-    expect(host.textContent).toContain("Lede two.");
+describe("Product", () => {
+  it("numbers itself from its position, padded", () => {
+    render(<Product item={item} assets={[]} index={0} />);
+    expect(host.textContent).toContain("01");
   });
 
-  it("keeps the collapsed tail in the DOM so it stays findable", () => {
-    // Retiring the case pages cost three URLs; it must not also cost the text.
-    render(<EraEntry item={item} assets={[]} index={0} eraIndex={0} />);
+  it("anchors on its own slug, because a retired URL lands here", () => {
+    render(<Product item={item} assets={[]} index={0} />);
+    expect(host.querySelector("#example")).not.toBeNull();
+  });
+
+  it("shows the lede and keeps the collapsed tail in the DOM", () => {
+    render(<Product item={item} assets={[]} index={0} />);
+    expect(host.textContent).toContain("Lede one.");
     expect(host.textContent).toContain("Buried treasure.");
     expect(host.querySelector("[hidden]")).toBeNull();
   });
 
-  it("reports its state on the control, and flips it when touched", () => {
-    render(<EraEntry item={item} assets={[]} index={0} eraIndex={0} />);
+  it("labels the unfold with what is behind it", () => {
+    // The chip this replaces was easy to miss; a bar that says what it opens
+    // and how much of it is not.
+    render(<Product item={item} assets={[]} index={0} />);
     const button = host.querySelector("button")!;
+    expect(button.textContent).toMatch(/open case study/i);
     expect(button.getAttribute("aria-expanded")).toBe("false");
-    expect(button.textContent).toContain("Open");
-
     act(() => { button.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
     expect(button.getAttribute("aria-expanded")).toBe("true");
-    expect(button.textContent).toContain("Close");
+    expect(button.textContent).toMatch(/close/i);
   });
 
-  it("points the control at the region it opens", () => {
-    render(<EraEntry item={item} assets={[]} index={0} eraIndex={0} />);
-    const id = host.querySelector("button")!.getAttribute("aria-controls")!;
-    expect(host.querySelector(`#${CSS.escape(id)}`)).not.toBeNull();
-  });
-
-  /* The tail's PanelField is keyed to whether the fold has ever opened, so the
-     sweep is built once. A revision that came back down on close rebuilt the
-     observer while the tail was still at nearly full height, and every frame
-     that had already arrived arrived again. Counted through the observer
-     because that is the thing the rebuild creates. */
+  /* Carried over from era-entry.test.tsx, which this file replaces. The tail's
+     PanelField is keyed to whether the fold has ever opened, so the sweep is
+     built once. A revision that came back down on close rebuilt the observer
+     while the tail was still at nearly full height, and every frame that had
+     already arrived arrived again. Counted through the observer because that is
+     the thing the rebuild creates. */
   it("builds the tail's sweep once, and not again when the fold closes", () => {
     const withArt: WorkItem = {
       ...item,
@@ -82,7 +80,7 @@ describe("EraEntry", () => {
     }
     vi.stubGlobal("IntersectionObserver", Counting);
 
-    render(<EraEntry item={withArt} assets={[]} index={0} eraIndex={0} />);
+    render(<Product item={withArt} assets={[]} index={0} />);
     const before = built;
     const button = host.querySelector("button")!;
 
@@ -97,8 +95,8 @@ describe("EraEntry", () => {
     expect(built).toBe(afterOpen);
   });
 
-  it("offers no control when there is nothing more to show", () => {
-    render(<EraEntry item={{ ...item, blocks: item.blocks!.slice(0, 2) }} assets={[]} index={0} eraIndex={0} />);
+  it("offers no bar when there is nothing more to show", () => {
+    render(<Product item={{ ...item, blocks: item.blocks!.slice(0, 2) }} assets={[]} index={1} />);
     expect(host.querySelector("button")).toBeNull();
   });
 });

@@ -1,24 +1,25 @@
 import Link from "next/link";
-import { EraSection } from "@/components/era-section";
 import { GlyphBay } from "@/components/glyph-bay";
 import { GlyphIcon } from "@/components/glyph-icon";
 import { InstrumentPair } from "@/components/instrument-pair";
+import { Product } from "@/components/product";
 import { SiteNav } from "@/components/site-nav";
-import { orderEras } from "@/lib/eras";
-import { eras } from "@/data/eras";
+import { workAssets } from "@/data/assets.generated";
 import { elsewhere, site } from "@/data/site";
+import { work } from "@/data/work";
 
 /**
  * The home is the work.
  *
- * There is no index and no selected grid: a lockup, a short record, then the
- * eras themselves. The reference this came from removes its nav for the same
- * reason — if the work is the page, there is nowhere else it could be. The nav
- * stays here only because /shots, /about and /colophon still exist.
+ * There is no index and no selected grid: a lockup, a short record, then four
+ * products, numbered, in the order `data/work.ts` lists them. The era layer
+ * that used to group them by employer is gone — it spent two of its five
+ * sections announcing it had nothing to show, which is furniture arguing with
+ * itself. The reference this came from removes its nav for the same reason —
+ * if the work is the page, there is nowhere else it could be. The nav stays
+ * here only because /shots, /about and /colophon still exist.
  */
 export default function Home() {
-  const ordered = orderEras(eras);
-
   return (
     <main className="mx-auto w-full max-w-[1240px] px-5 py-4 sm:px-6">
       <SiteNav current="/" />
@@ -47,9 +48,9 @@ export default function Home() {
         <InstrumentPair size={56} />
       </header>
 
-      <div className="mt-14 space-y-16">
-        {ordered.map((era, i) => (
-          <EraSection key={era.id} era={era} index={i} />
+      <div className="space-y-20">
+        {work.map((item, i) => (
+          <Product key={item.slug} item={item} assets={workAssets[item.slug] ?? []} index={i} />
         ))}
       </div>
 

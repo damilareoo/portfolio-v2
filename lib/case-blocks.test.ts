@@ -1,30 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { blockAssetCost, orderEras, splitBlocks, type Era } from "./eras";
+import { blockAssetCost, splitBlocks } from "./case-blocks";
 import type { CaseBlock } from "@/data/work";
-
-const era = (id: string, sort: string): Era => ({
-  id, name: id, period: "", sort, blurb: "", entries: [],
-});
-
-describe("orderEras", () => {
-  it("puts the most recently ended era first", () => {
-    const ordered = orderEras([era("old", "2025-04"), era("new", "2026-08")]);
-    expect(ordered.map((e) => e.id)).toEqual(["new", "old"]);
-  });
-
-  it("sorts an undated era last, however it was authored", () => {
-    // Side projects have no end date and must not float to the top of a page
-    // whose whole argument is reverse chronology.
-    const ordered = orderEras([era("side", ""), era("dated", "2025-04")]);
-    expect(ordered.map((e) => e.id)).toEqual(["dated", "side"]);
-  });
-
-  it("breaks a tie on authored order, and does not mutate its input", () => {
-    const input = [era("first", "2026-04"), era("second", "2026-04")];
-    expect(orderEras(input).map((e) => e.id)).toEqual(["first", "second"]);
-    expect(input.map((e) => e.id)).toEqual(["first", "second"]);
-  });
-});
 
 describe("blockAssetCost", () => {
   it("costs nothing for a block that carries no media", () => {

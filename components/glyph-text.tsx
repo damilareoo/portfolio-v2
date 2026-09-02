@@ -10,7 +10,7 @@ const { side, radius, offset } = pixelGeometry(1);
  *
  * Sized off the text height so the type dial reaches it, and `aria-hidden`
  * because it never says anything a heading beside it has not already said —
- * an era's index is ordering made visible, not information.
+ * a product's number is ordering made visible, not information.
  */
 export function GlyphText({
   text,

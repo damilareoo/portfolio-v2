@@ -19,9 +19,9 @@ export function CaseReel({
   assets: Asset[];
   /**
    * Preload the first full-bleed frame. Off by default, and it has to be: a
-   * reel does not know where it sits. The home is one page holding every era,
-   * so `i === 0` is the top of THIS reel, not the top of the document — a
-   * default of true had all three pieces preloading a hero, two of them held at
+   * reel does not know where it sits. The home is one page holding every
+   * product, so `i === 0` is the top of THIS reel, not the top of the document
+   * — a default of true had every piece preloading a hero, all but one held at
    * opacity 0 behind a sweep the reader may never scroll to. Only the caller
    * that knows it leads the page may turn this on.
    */

@@ -51,11 +51,15 @@ export function useEntranceOnce<T extends HTMLElement>() {
  * never leaves the last tile waiting seconds to exist.
  */
 export function Reveal({
+  id,
   index = 0,
   as: Tag = "div",
   className = "",
   children,
 }: {
+  /** Anchor, when the revealed element is also a link target. A product is
+      both: it arrives once, and a retired /work URL lands on it. */
+  id?: string;
   index?: number;
   as?: "div" | "li" | "section" | "article";
   className?: string;
@@ -68,6 +72,7 @@ export function Reveal({
 
   return (
     <Component
+      id={id}
       ref={ref}
       style={{ "--arrive-delay": `${Math.min(index, 12) * 45}ms` } as React.CSSProperties}
       className={`arrive ${className}`}
