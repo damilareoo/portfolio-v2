@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { EraSection } from "@/components/era-section";
 import { GlyphBay } from "@/components/glyph-bay";
+import { InstrumentPair } from "@/components/instrument-pair";
 import { SiteNav } from "@/components/site-nav";
-import { RecordRow } from "@/components/ui";
 import { orderEras } from "@/lib/eras";
 import { eras } from "@/data/eras";
-import { elsewhere, expertise, site } from "@/data/site";
+import { site } from "@/data/site";
 
 /**
  * The home is the work.
@@ -22,47 +22,28 @@ export default function Home() {
     <main className="mx-auto w-full max-w-[1240px] px-5 py-4 sm:px-6">
       <SiteNav current="/" />
 
-      {/* The lockup. The apostrophe is the mark — a name in quotation. */}
-      <header className="mt-12">
-        <h1 className="text-lg font-medium leading-tight tracking-tight">
-          &rsquo;{site.name}
-        </h1>
-        <p className="mt-1.5 max-w-[38rem] text-base font-medium leading-snug text-ink">
-          Product designer and builder creating 0&ndash;1 experiences.
-        </p>
-        <p className="max-w-[38rem] text-base leading-snug text-ink-2">
-          Specialising in interfaces, systems, and shipping them.
-        </p>
-
-        {/* The record the reference carries under its lockup. Static: a marquee
-            is exactly the ambient motion Law 4 forbids. */}
-        <div className="mt-8 max-w-[44rem]">
-          <RecordRow label="Location">{site.coordinates} &middot; Lagos</RecordRow>
-          <RecordRow label="Expertise">{expertise.join(" · ")}</RecordRow>
-          <RecordRow label="Contact">
+      {/* One band, not a section. The record table it replaces read as a form,
+          and ten comma-separated skills was the least evidential thing on the
+          page — the work below argues it better. Contact and Elsewhere moved to
+          the footer, where a reader looks once they have seen something worth
+          writing about. */}
+      <header className="mt-10 flex flex-wrap items-center justify-between gap-x-8 gap-y-6 pb-8">
+        <div className="min-w-0">
+          <h1 className="text-lg font-medium leading-tight tracking-tight">
+            &rsquo;{site.name} <span className="text-ink-3">·</span>{" "}
+            <span className="font-normal text-ink-2">Product designer</span>
+          </h1>
+          <p className="mt-1 text-sm text-ink-2">
+            Lagos ·{" "}
             <a
               href={`mailto:${site.email}`}
-              className="underline decoration-line underline-offset-4 transition-colors hover:decoration-ink-3"
+              className="underline decoration-line underline-offset-4 transition-colors hover:text-ink hover:decoration-ink-3"
             >
               {site.email}
             </a>
-          </RecordRow>
-          <RecordRow label="Elsewhere">
-            <span className="flex flex-wrap gap-x-3 gap-y-1">
-              {elsewhere.map((place) => (
-                <a
-                  key={place.label}
-                  href={place.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-ink-2 transition-colors hover:text-ink"
-                >
-                  {place.label}
-                </a>
-              ))}
-            </span>
-          </RecordRow>
+          </p>
         </div>
+        <InstrumentPair size={56} />
       </header>
 
       <div className="mt-14 space-y-16">
