@@ -23,6 +23,18 @@ export type CaseMedia = {
   caption?: string;
   /** Slot shape while there is no art to measure, e.g. "4 / 3". */
   ratio?: string;
+  /**
+   * How the artwork is presented. A screen capture reads as the thing it was
+   * captured from — a hairline and a radius in the site's own tokens, never an
+   * imitation of chrome and never a shadow.
+   */
+  frame?: "phone" | "browser";
+  /**
+   * One frame per case may break the column and run the full measure. Which one
+   * is authored: a computed "widest image wins" would put the emphasis wherever
+   * the export happened to be largest.
+   */
+  bleed?: true;
 };
 
 /**
@@ -99,14 +111,39 @@ export const work: WorkItem[] = [
       "So each entry is taken apart. Every site carries its own palette, its typefaces, and its assets alongside the capture, and the whole collection is searchable and sortable — newest, oldest, alphabetical, most looked at.",
       "The interface stays out of the way: a category rail, a grid, and a preview panel. It is built to be opened while you are working on something else, which is the only way a reference library ever gets used twice.",
     ],
+    /* Presentation is authored here, frame by frame. The rule, applied across
+       all three cases: a capture of a whole window or a whole screen held up
+       on a plate gets the device treatment; a capture used as an
+       edge-to-edge field does not, because the field is already the gesture;
+       and a crop never does, since a device frame around a crop claims you
+       are seeing the whole page. */
     blocks: [
-      { kind: "full", ratio: "16 / 10", alt: "Hitman's Library — the collection" },
+      {
+        kind: "full",
+        ratio: "16 / 10",
+        alt: "Hitman's Library — the collection",
+        bleed: true,
+        caption: "A rail, a grid, and a preview panel",
+      },
       { kind: "pair", items: [{}, {}] },
-      { kind: "inset", items: [{}] },
+      { kind: "inset", items: [{ frame: "browser", caption: "The grid, further down" }] },
       { kind: "full" },
-      { kind: "inset", items: [{ caption: "A single entry, taken apart" }] },
-      { kind: "inset", items: [{}, {}] },
-      { kind: "inset", tone: "strong", items: [{ caption: "Mobile" }] },
+      /* No frame: this one is a crop, not a window. It also used to be
+         captioned "A single entry, taken apart", which describes the preview
+         panel — a different screen than the one that lands here. */
+      { kind: "inset", items: [{ caption: "One card: title, domain, palette, category" }] },
+      {
+        kind: "inset",
+        items: [
+          { frame: "phone", caption: "The rail becomes a row of chips" },
+          { frame: "phone", caption: "The filter row holds while the grid scrolls" },
+        ],
+      },
+      {
+        kind: "inset",
+        tone: "strong",
+        items: [{ frame: "phone", caption: "Still one column, all the way down" }],
+      },
     ],
   },
   {
@@ -126,9 +163,24 @@ export const work: WorkItem[] = [
       "Keep it simple, but make it mean something. The system had to communicate clarity without feeling cold or technical. Every piece of it reinforces the one idea: Sylvan turns noise into signal.",
     ],
     blocks: [
-      { kind: "full", ratio: "16 / 10", alt: "Sylvan — the signal mark in motion" },
-      { kind: "inset", items: [{ ratio: "16 / 10", caption: "sylvanlabs.com" }] },
-      { kind: "inset", items: [{ ratio: "16 / 10" }] },
+      {
+        kind: "full",
+        ratio: "16 / 10",
+        alt: "Sylvan — the signal mark in motion",
+        bleed: true,
+        caption: "The signal mark, moving",
+      },
+      {
+        kind: "inset",
+        items: [{ ratio: "16 / 10", frame: "browser", caption: "sylvanlabs.com" }],
+      },
+      /* The art that lands here is a 430-wide capture and carries its own
+         portrait dimensions, so the declared ratio only shapes the slot while
+         the folder is empty. */
+      {
+        kind: "inset",
+        items: [{ ratio: "16 / 10", frame: "phone", caption: "The same page at phone width" }],
+      },
       { kind: "pair", items: [{ ratio: "4 / 3" }, { ratio: "4 / 3" }] },
       { kind: "full", ratio: "16 / 10" },
       { kind: "inset", tone: "strong", items: [{ ratio: "4 / 3" }, { ratio: "4 / 3" }] },
@@ -156,7 +208,17 @@ export const work: WorkItem[] = [
       /* Declared ratios only shape a slot while it is empty — real art carries
          its own dimensions — so these stay shallow rather than opening a
          portrait-sized void on a page whose art has not landed yet. */
-      { kind: "full", ratio: "16 / 10", alt: "ChessEver — real-time chess tournament tracking" },
+      /* No `frame` on this one, and it is the one frame on the site that most
+         looks like it wants one: the export is key art with a handset already
+         drawn into it. A phone treatment here would be a second device around
+         the first. */
+      {
+        kind: "full",
+        ratio: "16 / 10",
+        alt: "ChessEver — real-time chess tournament tracking",
+        bleed: true,
+        caption: "Round 4, live: clocks running, favourites pinned",
+      },
       { kind: "pair", items: [{ ratio: "4 / 3" }, { ratio: "4 / 3" }] },
       { kind: "inset", items: [{ ratio: "16 / 10" }] },
       { kind: "pair", items: [{ ratio: "4 / 3" }, { ratio: "4 / 3" }] },
