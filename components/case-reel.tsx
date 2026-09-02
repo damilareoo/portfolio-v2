@@ -43,13 +43,13 @@ export function CaseReel({
           return (
             <Reveal key={i} index={i} as="section" className="mx-auto max-w-[34rem] py-8">
               {block.heading && (
-                <h2 className="font-mono text-[0.625rem] uppercase tracking-wider text-ink-3">
+                <h2 className="font-mono text-xs uppercase tracking-wider text-ink-3">
                   {block.heading}
                 </h2>
               )}
               <div className="mt-3 space-y-4">
                 {block.body.map((paragraph) => (
-                  <p key={paragraph} className="text-[0.9375rem] leading-relaxed">
+                  <p key={paragraph} className="text-base leading-relaxed">
                     {paragraph}
                   </p>
                 ))}
@@ -61,9 +61,9 @@ export function CaseReel({
         if (block.kind === "quote") {
           return (
             <Reveal key={i} index={i} as="section" className="mx-auto max-w-[34rem] py-8">
-              <p className="text-[1.125rem] leading-relaxed">{block.body}</p>
+              <p className="text-lg leading-relaxed">{block.body}</p>
               {block.attribution && (
-                <p className="mt-3 font-mono text-[0.625rem] uppercase tracking-wider text-ink-3">
+                <p className="mt-3 font-mono text-xs uppercase tracking-wider text-ink-3">
                   {block.attribution}
                 </p>
               )}
@@ -99,7 +99,7 @@ export function CaseReel({
                           sizes="(min-width: 640px) 36vw, 74vw"
                         />
                         {media.caption && (
-                          <figcaption className="mt-2 font-mono text-[0.5625rem] uppercase tracking-wider text-ink-3">
+                          <figcaption className="mt-2 font-mono text-2xs uppercase tracking-wider text-ink-3">
                             {media.caption}
                           </figcaption>
                         )}
@@ -133,7 +133,7 @@ export function CaseReel({
                       sizes="(min-width: 640px) 45vw, 92vw"
                     />
                     {media.caption && (
-                      <figcaption className="mt-2 font-mono text-[0.5625rem] uppercase tracking-wider text-ink-3">
+                      <figcaption className="mt-2 font-mono text-2xs uppercase tracking-wider text-ink-3">
                         {media.caption}
                       </figcaption>
                     )}
@@ -173,7 +173,7 @@ export function CaseReel({
               sizes="(min-width: 1024px) 62vw, 92vw"
             />
             {block.caption && (
-              <figcaption className="mt-2 font-mono text-[0.5625rem] uppercase tracking-wider text-ink-3">
+              <figcaption className="mt-2 font-mono text-2xs uppercase tracking-wider text-ink-3">
                 {block.caption}
               </figcaption>
             )}

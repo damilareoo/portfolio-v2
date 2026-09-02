@@ -24,13 +24,13 @@ export default function Home() {
 
       {/* The lockup. The apostrophe is the mark — a name in quotation. */}
       <header className="mt-12">
-        <h1 className="text-[1.25rem] font-medium leading-tight tracking-tight">
+        <h1 className="text-lg font-medium leading-tight tracking-tight">
           &rsquo;{site.name}
         </h1>
-        <p className="mt-1.5 max-w-[38rem] text-[0.9375rem] font-medium leading-snug text-ink">
+        <p className="mt-1.5 max-w-[38rem] text-base font-medium leading-snug text-ink">
           Product designer and builder creating 0&ndash;1 experiences.
         </p>
-        <p className="max-w-[38rem] text-[0.9375rem] leading-snug text-ink-2">
+        <p className="max-w-[38rem] text-base leading-snug text-ink-2">
           Specialising in interfaces, systems, and shipping them.
         </p>
 
@@ -76,13 +76,13 @@ export default function Home() {
       <footer className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 rule-t pt-5 pb-8">
         <Link
           href="/shots"
-          className="text-[0.6875rem] text-ink-2 transition-colors hover:text-ink"
+          className="text-xs text-ink-2 transition-colors hover:text-ink"
         >
           Shots
         </Link>
         <Link
           href="/colophon"
-          className="text-[0.6875rem] text-ink-2 transition-colors hover:text-ink"
+          className="text-xs text-ink-2 transition-colors hover:text-ink"
         >
           Colophon
         </Link>

@@ -27,7 +27,7 @@ export function EraSection({ era, index }: { era: Era; index: number }) {
             size="0.5rem"
             className="shrink-0 text-ink-3"
           />
-          <h2 className="text-[1.125rem] font-medium tracking-tight">
+          <h2 className="text-lg font-medium tracking-tight">
             {era.href ? (
               <a
                 href={era.href}
@@ -51,7 +51,7 @@ export function EraSection({ era, index }: { era: Era; index: number }) {
         <SectionLabel>{era.period}</SectionLabel>
       </div>
 
-      <p className="max-w-[44rem] text-[0.875rem] leading-relaxed text-ink-2">{era.blurb}</p>
+      <p className="max-w-[44rem] text-base leading-relaxed text-ink-2">{era.blurb}</p>
 
       {entries.length > 0 ? (
         <div className="mt-9 space-y-16">
@@ -66,7 +66,7 @@ export function EraSection({ era, index }: { era: Era; index: number }) {
           ))}
         </div>
       ) : (
-        <p className="mt-6 rounded-[var(--radius-tile)] border border-dashed border-line p-[var(--pad)] font-mono text-[0.625rem] uppercase tracking-wider text-ink-3">
+        <p className="mt-6 rounded-[var(--radius-tile)] border border-dashed border-line p-[var(--pad)] font-mono text-xs uppercase tracking-wider text-ink-3">
           Nothing public from this one yet.
         </p>
       )}

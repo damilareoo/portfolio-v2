@@ -80,10 +80,10 @@ export function Frame({
         />
       ) : (
         <span className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-center">
-          <span className="font-mono text-[0.5625rem] uppercase tracking-wider text-ink-3">
+          <span className="font-mono text-2xs uppercase tracking-wider text-ink-3">
             {label ?? "Awaiting art"}
           </span>
-          <span className="font-mono text-[0.5625rem] text-ink-3 opacity-60">
+          <span className="font-mono text-2xs text-ink-3 opacity-60">
             {aspect.replace(" / ", ":")}
           </span>
         </span>

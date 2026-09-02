@@ -10,6 +10,16 @@
   --radius-window: 16px;
   --radius-tile: 12px;
 
+  /* The type scale. Seven steps, every one of them used — a reserved eighth for
+     work that might arrive is furniture, which is what the tier vocabulary was.
+     In rem, or --type-scale cannot reach them. */
+  --text-2xs: 0.5625rem;
+  --text-xs: 0.6875rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.875rem;
+
   /* One cell of a rule, and how much of it the dot fills. The fill is the same
      number lib/glyph/pixel.ts draws every pixel with — CSS cannot import it, so
      pixel.test.ts asserts the two agree. */
@@ -55,6 +65,12 @@
   --color-strong: var(--fill-strong);
   --color-miss: var(--miss);
   --color-on-strong: var(--on-strong);
+  --text-2xs: var(--text-2xs);
+  --text-xs: var(--text-xs);
+  --text-sm: var(--text-sm);
+  --text-base: var(--text-base);
+  --text-lg: var(--text-lg);
+  --text-xl: var(--text-xl);
   --font-sans: var(--font-suisse), system-ui, sans-serif;
   --font-mono: var(--font-suisse-mono), ui-monospace, monospace;
 }

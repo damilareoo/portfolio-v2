@@ -14,7 +14,7 @@ export function Chip({
   }[variant];
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-1 font-mono text-[0.625rem] uppercase tracking-wider ${styles}`}
+      className={`inline-flex items-center rounded-full px-2.5 py-1 font-mono text-xs uppercase tracking-wider ${styles}`}
     >
       {children}
     </span>
@@ -23,7 +23,7 @@ export function Chip({
 
 export function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <p className="font-mono text-[0.625rem] uppercase tracking-wider text-ink-3">{children}</p>
+    <p className="font-mono text-xs uppercase tracking-wider text-ink-3">{children}</p>
   );
 }
 
@@ -44,8 +44,8 @@ export function Sheet({
 export function Meta({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div>
-      <p className="text-[0.8125rem] text-ink-2">{label}</p>
-      <p className="mt-1 text-[0.9375rem] font-medium">{value}</p>
+      <p className="text-sm text-ink-2">{label}</p>
+      <p className="mt-1 text-base font-medium">{value}</p>
     </div>
   );
 }
@@ -59,8 +59,8 @@ export function Meta({ label, value }: { label: string; value: ReactNode }) {
 export function RecordRow({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-x-5 rule-b py-2.5 last:bg-none sm:grid-cols-[96px_minmax(0,1fr)]">
-      <span className="text-[0.6875rem] text-ink-3">{label}</span>
-      <span className="text-[0.75rem] text-ink">{children}</span>
+      <span className="text-xs text-ink-3">{label}</span>
+      <span className="text-sm text-ink">{children}</span>
     </div>
   );
 }
@@ -68,7 +68,7 @@ export function RecordRow({ label, children }: { label: string; children: ReactN
 /** Discipline tags — the metadata is the aesthetic, so it is never decoration. */
 export function Tags({ items }: { items: readonly string[] }) {
   return (
-    <span className="font-mono text-[0.5625rem] uppercase tracking-wider text-ink-3">
+    <span className="font-mono text-2xs uppercase tracking-wider text-ink-3">
       {items.join(" · ")}
     </span>
   );

@@ -71,10 +71,10 @@ export function EraEntry({
   return (
     <Reveal as="article" index={index} className="min-w-0">
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-        <h3 className="text-[1rem] font-medium tracking-tight">{item.title}</h3>
+        <h3 className="text-base font-medium tracking-tight">{item.title}</h3>
         <SectionLabel>{item.year}</SectionLabel>
       </div>
-      <p className="mb-5 max-w-[42rem] text-[0.875rem] leading-relaxed text-ink-2">
+      <p className="mb-5 max-w-[42rem] text-base leading-relaxed text-ink-2">
         {item.oneLiner}
       </p>
 
@@ -99,7 +99,7 @@ export function EraEntry({
             }}
             aria-expanded={open}
             aria-controls={panelId}
-            className="mt-5 inline-flex items-center gap-1.5 rounded-[4px] bg-surface-2 px-2 py-1 font-mono text-[0.5625rem] uppercase tracking-[0.08em] text-ink-2 transition-colors hover:text-ink"
+            className="mt-5 inline-flex items-center gap-1.5 rounded-[4px] bg-surface-2 px-2 py-1 font-mono text-2xs uppercase tracking-[0.08em] text-ink-2 transition-colors hover:text-ink"
           >
             {open ? "Close" : "Open"}
             <span
@@ -121,7 +121,7 @@ export function EraEntry({
                     <SectionLabel>Overview</SectionLabel>
                     <div className="mt-2.5 space-y-3">
                       {item.intro.map((paragraph) => (
-                        <p key={paragraph} className="text-[0.8125rem] leading-[1.6] text-ink-2">
+                        <p key={paragraph} className="text-sm leading-[1.6] text-ink-2">
                           {paragraph}
                         </p>
                       ))}
@@ -160,7 +160,7 @@ export function EraEntry({
                     <SectionLabel>Approach</SectionLabel>
                     <div className="mt-2.5 space-y-3">
                       {item.approach.map((paragraph) => (
-                        <p key={paragraph} className="text-[0.8125rem] leading-[1.6] text-ink-2">
+                        <p key={paragraph} className="text-sm leading-[1.6] text-ink-2">
                           {paragraph}
                         </p>
                       ))}
