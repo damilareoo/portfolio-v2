@@ -7,6 +7,10 @@ export const site = {
   github: "https://github.com/damilareoo",
   // Printed under the email on the home lockup. Lagos.
   coordinates: "6.5244° N, 3.3792° E",
+  /* The same place the coordinates string names, as numbers. The string is a
+     label; parsing it back would make a label load-bearing. */
+  latitude: 6.5244,
+  longitude: 3.3792,
   // The line the steps card fills toward. A round number, not a prescription.
   stepGoal: 10000,
 };
