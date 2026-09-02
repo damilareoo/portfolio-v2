@@ -71,14 +71,19 @@ describe("the two skins", () => {
   it("separates the raised surface from the ground on BOTH skins", () => {
     // The defect this guards: --surface-2 sat three points off --bg on light and
     // ten on dark, so a tinted case plate was obvious in the dark and invisible
-    // in the light. Neither skin may be more than twice the other's separation.
-    const gaps = both.map(
-      ([, skin]) =>
-        Math.abs(relativeLuminance(skin["--surface-2"]) - relativeLuminance(skin["--bg"])),
+    // in the light.
+    //
+    // Measured as a contrast RATIO, not a luminance difference. The same
+    // difference in luminance reads as an obvious step near black and as nothing
+    // at all near white, so comparing raw differences across two skins scores
+    // the light one against a yardstick that does not apply to it — and the
+    // value that satisfies it is the flat one this test exists to reject.
+    const separations = both.map(
+      ([, skin]) => contrastRatio(skin["--surface-2"], skin["--bg"]),
     );
-    for (const gap of gaps) expect(gap).toBeGreaterThan(0.008);
-    const [light, dark] = gaps;
-    expect(Math.max(light, dark) / Math.min(light, dark)).toBeLessThanOrEqual(2);
+    for (const separation of separations) expect(separation).toBeGreaterThan(1.015);
+    const [light, dark] = separations;
+    expect(Math.max(light - 1, dark - 1) / Math.min(light - 1, dark - 1)).toBeLessThanOrEqual(3);
   });
 
   it("draws a hairline that is actually a line", () => {
