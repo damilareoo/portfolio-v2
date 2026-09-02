@@ -45,7 +45,11 @@ Each card carries its reading and one mono label beneath, in the same slot on ev
 
 Two-up at 320px puts a card at roughly 140px, which is ample for a face that is legible at 56px today. If measurement contradicts that at the narrowest width, **the card shrinks and the two-column grid holds** — a one-column bank is the thing this section exists to prevent.
 
-**The existing `GlyphBay` is absorbed.** It is a three-face pager holding the Spotify disc, the steps faces and a hidden fourth page. Its faces become cards in the bank; its hidden page — the glyph matrix easter egg, shipped in v1.3.0 — is preserved exactly, reachable by the same means and advertised by none of them. That easter egg is not up for redesign.
+**The existing `GlyphBay` is absorbed.** It is a layout wrapper around two instruments — the Spotify disc and a three-face step pager. Both become cards in the bank; the wrapper retires.
+
+**The hidden fourth page is removed.** The step pager carried an unadvertised page past the week, holding a drawn mark — the glyph-matrix easter egg shipped in v1.3.0. The user has asked for it gone. A page nothing points at was defensible when the pager was a curiosity in the corner; in a bank of four readings it is a card that lies about how many faces it has. The pager returns to its three real faces, and `data/glyph.ts` and the `HIDDEN_FACE` vocabulary go with it.
+
+The `/colophon` forge — where a visitor draws a glyph — is a **visible** section on a page this document does not touch. It stays. Removing it is a separate decision about a separate surface.
 
 ### Interaction
 
@@ -86,7 +90,7 @@ The case reel's blocks — `full`, `pair`, `inset`, `text`, `quote` — stay as 
 
 ## Out of scope
 
-`/shots` and its mosaic. `/about`, `/colophon`, `/changelog`, `/system`. The DialKit. The glyph matrix easter egg and its hidden page, which are preserved as-is. The redirects. The type scale and the retuned skins, both settled and tested. `data/changelog.ts` and `docs/specs/`, which are historical records.
+`/shots` and its mosaic. `/about`, `/colophon`, `/changelog`, `/system` — including the colophon's visible glyph forge, which is untouched. The DialKit. The redirects. The type scale and the retuned skins, both settled and tested. `data/changelog.ts` and `docs/specs/`, which are historical records.
 
 ## Success criteria
 
@@ -98,4 +102,4 @@ The case reel's blocks — `full`, `pair`, `inset`, `text`, `quote` — stay as 
 6. The home shows exactly three products, ordered Hitman's Library, Sylvan, ChessEver.
 7. Every case frame is presented — plated, captioned, or framed — rather than sitting flat on the page.
 8. No route scrolls horizontally at any width from 320px up, and the bank is legible on a phone.
-9. The glyph matrix easter egg remains reachable exactly as before, by the same means, advertised by none of them.
+9. The step pager offers exactly three faces, each reachable and each advertised by its own indicator dot. No page is unlisted.
