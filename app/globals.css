@@ -16,14 +16,14 @@
   --pixel-fill: 0.74;
   --rule-cell: 2px;
 
-  --bg: #f4f4f4;
+  --bg: #f2f2f2;
   --surface: #ffffff;
-  --surface-2: #f7f7f7;
-  --border: #e9e9e9;
-  --text-1: #111111;
-  --text-2: #6f6f6f;
-  --text-3: #b0b0b0;
-  --fill-strong: #111111;
+  --surface-2: #f4f4f4;
+  --border: #dedede;
+  --text-1: #0f0f0f;
+  --text-2: #5c5c5c;
+  --text-3: #7d7d7d;
+  --fill-strong: #0f0f0f;
   /* The one hue on the site, and it earns it by carrying a single meaning: a
      day the goal was missed. Deeper on the light skin so it holds its weight
      against a pale ground, brighter on the dark one so it does not go muddy. */
@@ -33,12 +33,12 @@
 
 .dark {
   --bg: #0a0a0a;
-  --surface: #141414;
-  --surface-2: #1c1c1c;
-  --border: #262626;
+  --surface: #161616;
+  --surface-2: #1f1f1f;
+  --border: #2e2e2e;
   --text-1: #f5f5f5;
-  --text-2: #8a8a8a;
-  --text-3: #4d4d4d;
+  --text-2: #9a9a9a;
+  --text-3: #6b6b6b;
   --fill-strong: #f5f5f5;
   --miss: #ff4d4d;
   --on-strong: #111111;
