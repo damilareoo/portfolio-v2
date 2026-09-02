@@ -75,34 +75,63 @@ export type WorkItem = {
 };
 
 /**
- * The work, newest first.
+ * The work, in the order the home shows it.
  *
- * **The array's order is the page's order.** There is no `sort` field and no
- * derived ordering: four hand-ordered items do not need arithmetic to arrange
- * them, and a field whose only job is to reorder four things is furniture. To
- * move a product on the home, move it here.
+ * Authored rather than derived: all three are 2025, so a date cannot order
+ * them and a `sort` field invented to justify a hand-picked sequence would be
+ * a field that exists to be overridden. The array is the order.
  */
 export const work: WorkItem[] = [
   {
-    slug: "endgame",
-    title: "Endgame.ai",
-    oneLiner: "An online chess platform — play, train, and follow tournaments.",
-    year: "2026",
-    disciplines: ["Product Design", "Interaction"],
-    href: "https://endgame.ai",
-    /* Authored to the shape of the real material — a landing page in both
-       skins, the play screen, the daily puzzle and tournament sections, and the
-       phone screens — with no src on any of it. Frame draws an empty slot as
-       what it is: the shape the art will be, labelled, rather than a collapsed
-       gap or an invented picture. Dropping files into public/work/endgame/ and
-       running `pnpm manifest` fills these in order, with no edit here. */
+    slug: "hitmans-library",
+    title: "Hitman's Library",
+    oneLiner: "A collection of cool experiences across the web.",
+    year: "2025",
+    disciplines: ["Build", "Interaction"],
+    href: "https://hitmanslibrary.xyz",
+    role: "Design, Build",
+    stack: "Next.js",
+    intro: [
+      "Hitman's Library is a catalogue of websites worth studying — just under two hundred of them, filed by what they are rather than by how they look. SaaS, finance, commerce, portfolios, and a long tail of everything else.",
+      "Most inspiration sites are a wall of screenshots. You scroll, you feel something, you leave with nothing you can use. The problem is not a shortage of pretty pages; it is that the useful part of a reference — what the colours actually are, what the type is doing — is the part a screenshot throws away.",
+    ],
+    approach: [
+      "So each entry is taken apart. Every site carries its own palette, its typefaces, and its assets alongside the capture, and the whole collection is searchable and sortable — newest, oldest, alphabetical, most looked at.",
+      "The interface stays out of the way: a category rail, a grid, and a preview panel. It is built to be opened while you are working on something else, which is the only way a reference library ever gets used twice.",
+    ],
     blocks: [
-      { kind: "full", ratio: "16 / 10", alt: "Endgame — the landing page" },
-      { kind: "pair", items: [{ ratio: "16 / 10" }, { ratio: "16 / 10" }] },
-      { kind: "inset", items: [{ ratio: "16 / 10", caption: "Play online" }] },
-      { kind: "pair", items: [{ ratio: "9 / 16" }, { ratio: "9 / 16" }] },
+      { kind: "full", ratio: "16 / 10", alt: "Hitman's Library — the collection" },
+      { kind: "pair", items: [{}, {}] },
+      { kind: "inset", items: [{}] },
+      { kind: "full" },
+      { kind: "inset", items: [{ caption: "A single entry, taken apart" }] },
+      { kind: "inset", items: [{}, {}] },
+      { kind: "inset", tone: "strong", items: [{ caption: "Mobile" }] },
+    ],
+  },
+  {
+    slug: "sylvan",
+    title: "Sylvan",
+    oneLiner: "Identity for a revenue intelligence platform. Noise into signal.",
+    year: "2025",
+    disciplines: ["Identity"],
+    href: "https://sylvanlabs.com",
+    role: "Brand Design, Logo Design, Web Design, Visual System",
+    intro: [
+      "Sylvan helps teams understand what actually drives revenue by making customer data simple to read. Most analytics tools bury you in reports and slow dashboards. Sylvan cuts through that.",
+      "Revenue teams need to spot the small changes in customer behaviour that matter, and most platforms make that harder rather than easier. The identity had to feel like the opposite of a cluttered analytics tool.",
+    ],
+    approach: [
+      "We created the signal mark — a visual system that shows how customer actions create patterns over time. It shifts and adapts, the way real opportunities surface in a customer journey. The mark became the core of the identity.",
+      "Keep it simple, but make it mean something. The system had to communicate clarity without feeling cold or technical. Every piece of it reinforces the one idea: Sylvan turns noise into signal.",
+    ],
+    blocks: [
+      { kind: "full", ratio: "16 / 10", alt: "Sylvan — the signal mark in motion" },
+      { kind: "inset", items: [{ ratio: "16 / 10", caption: "sylvanlabs.com" }] },
+      { kind: "inset", items: [{ ratio: "16 / 10" }] },
+      { kind: "pair", items: [{ ratio: "4 / 3" }, { ratio: "4 / 3" }] },
       { kind: "full", ratio: "16 / 10" },
-      { kind: "inset", tone: "strong", items: [{ ratio: "9 / 16" }, { ratio: "9 / 16" }] },
+      { kind: "inset", tone: "strong", items: [{ ratio: "4 / 3" }, { ratio: "4 / 3" }] },
     ],
   },
   {
@@ -133,58 +162,6 @@ export const work: WorkItem[] = [
       { kind: "pair", items: [{ ratio: "4 / 3" }, { ratio: "4 / 3" }] },
       { kind: "full", ratio: "16 / 10" },
       { kind: "inset", tone: "strong", items: [{ ratio: "4 / 3" }, { ratio: "4 / 3" }] },
-    ],
-  },
-  {
-    slug: "sylvan",
-    title: "Sylvan",
-    oneLiner: "Identity for a revenue intelligence platform. Noise into signal.",
-    year: "2025",
-    disciplines: ["Identity"],
-    href: "https://sylvanlabs.com",
-    role: "Brand Design, Logo Design, Web Design, Visual System",
-    intro: [
-      "Sylvan helps teams understand what actually drives revenue by making customer data simple to read. Most analytics tools bury you in reports and slow dashboards. Sylvan cuts through that.",
-      "Revenue teams need to spot the small changes in customer behaviour that matter, and most platforms make that harder rather than easier. The identity had to feel like the opposite of a cluttered analytics tool.",
-    ],
-    approach: [
-      "We created the signal mark — a visual system that shows how customer actions create patterns over time. It shifts and adapts, the way real opportunities surface in a customer journey. The mark became the core of the identity.",
-      "Keep it simple, but make it mean something. The system had to communicate clarity without feeling cold or technical. Every piece of it reinforces the one idea: Sylvan turns noise into signal.",
-    ],
-    blocks: [
-      { kind: "full", ratio: "16 / 10", alt: "Sylvan — the signal mark in motion" },
-      { kind: "inset", items: [{ ratio: "16 / 10", caption: "sylvanlabs.com" }] },
-      { kind: "inset", items: [{ ratio: "16 / 10" }] },
-      { kind: "pair", items: [{ ratio: "4 / 3" }, { ratio: "4 / 3" }] },
-      { kind: "full", ratio: "16 / 10" },
-      { kind: "inset", tone: "strong", items: [{ ratio: "4 / 3" }, { ratio: "4 / 3" }] },
-    ],
-  },
-  {
-    slug: "hitmans-library",
-    title: "Hitman's Library",
-    oneLiner: "A collection of cool experiences across the web.",
-    year: "2025",
-    disciplines: ["Build", "Interaction"],
-    href: "https://hitmanslibrary.xyz",
-    role: "Design, Build",
-    stack: "Next.js",
-    intro: [
-      "Hitman's Library is a catalogue of websites worth studying — just under two hundred of them, filed by what they are rather than by how they look. SaaS, finance, commerce, portfolios, and a long tail of everything else.",
-      "Most inspiration sites are a wall of screenshots. You scroll, you feel something, you leave with nothing you can use. The problem is not a shortage of pretty pages; it is that the useful part of a reference — what the colours actually are, what the type is doing — is the part a screenshot throws away.",
-    ],
-    approach: [
-      "So each entry is taken apart. Every site carries its own palette, its typefaces, and its assets alongside the capture, and the whole collection is searchable and sortable — newest, oldest, alphabetical, most looked at.",
-      "The interface stays out of the way: a category rail, a grid, and a preview panel. It is built to be opened while you are working on something else, which is the only way a reference library ever gets used twice.",
-    ],
-    blocks: [
-      { kind: "full", ratio: "16 / 10", alt: "Hitman's Library — the collection" },
-      { kind: "pair", items: [{}, {}] },
-      { kind: "inset", items: [{}] },
-      { kind: "full" },
-      { kind: "inset", items: [{ caption: "A single entry, taken apart" }] },
-      { kind: "inset", items: [{}, {}] },
-      { kind: "inset", tone: "strong", items: [{ caption: "Mobile" }] },
     ],
   },
 ];
