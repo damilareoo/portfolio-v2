@@ -163,9 +163,20 @@ would now resolve correctly — and is still refused, because it would also send
 never existed to the top of the home page. A URL that was never real should 404, and three
 explicit lines say which three were.
 
-**Endgame.ai has no art in the repository.** Until files land in `public/work/endgame/` and
-`pnpm manifest` runs, `01` renders its record and says so plainly. It does not get a placeholder
-frame; v1.9.1 deleted one of those on purpose.
+**Endgame.ai has no art in the repository yet, and is authored with its frames waiting.** Its reel
+is a real block list — a full frame, a pair, an inset, a pair, a full — with no `src` on any of
+them. `Frame` already draws that state: an empty slot is not a collapsed one, and it prints what is
+missing and the shape it will be. Dropping files into `public/work/endgame/` and running
+`pnpm manifest` fills them in order, with no data edit.
+
+This is not the thing v1.9.1 removed. That was a fabricated *project* — Endgame.ai mobile, with
+art drawn in the site's own tokens standing in for work nobody could see, which is padding wearing
+the shape of evidence. This is a real engagement whose slots admit they are empty. The first states
+something untrue; the second states something true and unfinished.
+
+The user may replace Endgame with a different project entirely. The reel is therefore authored so
+the piece's identity lives wholly in `data/work.ts` — swapping it is a data edit and a folder
+rename, never a component change.
 
 ## 4 · The feed
 
@@ -202,12 +213,14 @@ the specs directory, which are historical records.
 
 ## Open dependencies
 
-1. **Endgame.ai artwork** — the user supplies it; `01` is honest until then.
+1. **Endgame.ai artwork** — the user supplies it later, and may swap the project for another
+   entirely. Its frames stand empty and labelled until then, filled by `pnpm manifest` alone.
 2. **The red dot** — ships monochrome unless the design language is deliberately amended.
 
 ## Success criteria
 
 1. The first screen carries an identity line, two live instruments, and the start of `01`.
+   `01` shows its waiting frames, each printing the shape it will be, and no invented artwork.
 2. `--text-3` reaches at least 3:1 against `--bg` on both skins, and no component sets a font size
    outside the scale.
 3. A tinted case plate is as visible on the light skin as on the dark.
