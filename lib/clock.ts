@@ -14,6 +14,25 @@ export type Hands = { hour: number; minute: number };
 
 const DEFAULT_ZONE = "Africa/Lagos";
 
+/**
+ * The same time, as digits — `HH:MM`, 24-hour, in the same zone the hands read.
+ *
+ * The card under the face needs a *reading*, and an em dash there means "this
+ * instrument cannot read". A clock whose hands are visibly ticking beside a
+ * dash is that sentence contradicting itself. Formatted the way
+ * `components/live-clock.tsx` formats it, minus the seconds: a value that
+ * changes every second in a label row is a thing that moves for no reason
+ * anybody can use.
+ */
+export function clockReading(at: Date, timeZone: string = DEFAULT_ZONE): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(at);
+}
+
 export function handAngles(at: Date, timeZone: string = DEFAULT_ZONE): Hands {
   const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone,

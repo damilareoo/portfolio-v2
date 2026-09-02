@@ -1,11 +1,13 @@
 // components/instrument-bank.tsx
 "use client";
 
+import { useEffect, useState } from "react";
 import { ClockFace } from "@/components/clock-face";
 import { Pedometer } from "@/components/glyph-bay";
 import { CARD_FACE, InstrumentCard } from "@/components/instrument-card";
 import { NowPlayingDisc } from "@/components/now-playing-disc";
 import { WeatherFace } from "@/components/weather-face";
+import { clockReading } from "@/lib/clock";
 import { Reveal } from "@/lib/reveal";
 import { useWeather } from "@/lib/use-weather";
 
@@ -23,6 +25,20 @@ import { useWeather } from "@/lib/use-weather";
 export function InstrumentBank({ className = "" }: { className?: string }) {
   const reading = useWeather();
 
+  /* Null until mounted, and the card prints its dash meanwhile — because at
+     that moment the instrument genuinely does not know. The server cannot know
+     the time either, and one time rendered there against another rendered here
+     is a hydration mismatch. Ticked every second rather than every minute so
+     the readout turns over *on* the minute; React drops the render when the
+     string has not changed, which for 59 of every 60 ticks it has not. */
+  const [time, setTime] = useState<string | null>(null);
+  useEffect(() => {
+    const tick = () => setTime(clockReading(new Date()));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <div
       data-bank
@@ -30,7 +46,7 @@ export function InstrumentBank({ className = "" }: { className?: string }) {
     >
       {/* The stagger is the law's "arriving" clause, once and never again. */}
       <Reveal index={0}>
-        <InstrumentCard label="Lagos" reading={undefined}>
+        <InstrumentCard label="Lagos" reading={time ?? undefined}>
           <ClockFace size={CARD_FACE} />
         </InstrumentCard>
       </Reveal>

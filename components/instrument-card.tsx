@@ -33,6 +33,7 @@ export function InstrumentCard({
   label,
   reading,
   onPress,
+  pressLabel,
   children,
 }: {
   label: string;
@@ -41,6 +42,11 @@ export function InstrumentCard({
   /** Present only when the card has a second face to turn to; its presence
    *  is what makes the card a control — see the docblock above. */
   onPress?: () => void;
+  /** The button's accessible name, when "turn this card" is not the whole
+   *  story. A pager has to say which face it is on and how many there are,
+   *  and that sentence cannot be derived from `label` alone. Ignored on a
+   *  card with no `onPress`, which is not a control and has no name to give. */
+  pressLabel?: string;
   children: ReactNode;
 }) {
   const interactive = typeof onPress === "function";
@@ -92,7 +98,7 @@ export function InstrumentCard({
       /* The face's children plus the label and reading would otherwise
          concatenate into whatever the face happens to render — a jumble, not
          a name. Say what pressing the button does instead. */
-      aria-label={`Turn the ${label} card to its other face`}
+      aria-label={pressLabel ?? `Turn the ${label} card to its other face`}
       className={`${lift} min-h-[2.75rem] cursor-pointer`}
     >
       {body}

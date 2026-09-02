@@ -315,11 +315,11 @@ export function Pedometer() {
   /* Every page counts itself now, because every page is one somebody was told
      about. The count and the three dots say the same thing, which is the whole
      reason the fourth page had to go. */
-  const turning = "Press the card to turn the page.";
+  const turning = "Press the card, or use the arrow keys, to turn the page.";
   const label = `Steps, page ${page + 1} of ${PAGES}: ${FACES[page]}. ${said}. ${turning}`;
 
   const cardLabel = detailDay
-    ? `${longDate(detailDay.date)}: ${groupDigits(detailDay.steps ?? 0)} steps, ${share(detailDay.steps, goal)} of the goal. Press the card to go back to the month.`
+    ? `${longDate(detailDay.date)}: ${groupDigits(detailDay.steps ?? 0)} steps, ${share(detailDay.steps, goal)} of the goal. Press the card, or use the arrow keys, to go back to the month.`
     : label;
 
   /* One press, one turn. A day card is left the same way every other page is —
@@ -334,6 +334,19 @@ export function Pedometer() {
     setPage((current) => (current + 1) % PAGES);
   };
 
+  /* And back. A pager you can only step one way round is a worse instrument
+     than one you can step both ways — a visitor who overshoots the record has
+     to walk the whole ring to get back to it. A day card is left in either
+     direction, because leaving is not a direction. */
+  const retreat = () => {
+    if (detail) {
+      setDetail(null);
+      setPage(2);
+      return;
+    }
+    setPage((current) => (current + PAGES - 1) % PAGES);
+  };
+
   /* What the label row reports: the day being looked at, if one is, and
      otherwise today. Never a stale number and never a blank — `undefined`
      hands the card its em dash, which is the honest reading for a store that
@@ -342,14 +355,34 @@ export function Pedometer() {
 
   return (
     <div
-      /* Escape still leaves a day card. The press that opens one lands on a day
-         inside the field, so the way back has to be reachable from the focus
-         that press left behind — which is now the card, one element further
-         out. The handler sits on the wrapper so it catches the key either way. */
+      /* The keyboard, all of it, in one place.
+     
+         Enter and Space advance because the card is a real button and that is
+         what buttons do. The arrows are here because they are the only way to
+         page without a pointer, and losing them when the gesture moved off the
+         field would have left the instrument steppable in one direction only.
+         Both axes are accepted — a page indicator is a horizontal idea and a
+         card in a grid is a vertical one, and a visitor should not have to
+         guess which this is — and both are prevented, or the page scrolls out
+         from under whoever is reading it.
+     
+         The handler sits on the wrapper rather than on the button so the card
+         keeps the API it was given; a keydown on the button is a keydown here
+         one bubble later, and nothing else in this wrapper can take focus. */
       onKeyDown={(event) => {
         if (event.key === "Escape" && detail) {
           event.preventDefault();
           setDetail(null);
+          return;
+        }
+        if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+          event.preventDefault();
+          advance();
+          return;
+        }
+        if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+          event.preventDefault();
+          retreat();
         }
       }}
     >
@@ -357,6 +390,10 @@ export function Pedometer() {
         label="Steps"
         reading={shown === null ? undefined : groupDigits(shown)}
         onPress={advance}
+        /* The dots are `aria-hidden`, so "page 2 of 3" has to reach the button's
+           own name — otherwise the one thing a screen-reader user cannot get at
+           is which of the three faces they are looking at. */
+        pressLabel={cardLabel}
       >
         {/* The field, and under it the strip the page indicator lives in. Both
             sit inside the card's face, so the pedometer's footprint is exactly
