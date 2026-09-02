@@ -45,8 +45,8 @@ describe("the two skins", () => {
   ] as const;
 
   it("keeps tertiary text legible, which is the whole point of this floor", () => {
-    // --text-3 carries every label, year and caption at 0.625rem. Below 3:1 it
-    // is decoration that happens to contain words.
+    // --text-3 carries every label, year and caption at --text-xs, 0.6875rem.
+    // Below 3:1 it is decoration that happens to contain words.
     for (const [name, skin] of both) {
       expect(contrastRatio(skin["--text-3"], skin["--bg"]), name).toBeGreaterThanOrEqual(3);
     }

@@ -2,9 +2,9 @@
  * WCAG contrast, computed rather than eyeballed.
  *
  * The site's tertiary ink carries every label, year and caption it has, at
- * 0.625rem. Whether that is legible is a measurement, not a matter of taste,
- * and a retune that breaks it should fail a test rather than ship and be
- * noticed by somebody squinting.
+ * --text-xs, 0.6875rem. Whether that is legible is a measurement, not a matter
+ * of taste, and a retune that breaks it should fail a test rather than ship and
+ * be noticed by somebody squinting.
  */
 
 function channels(hex: string): [number, number, number] {

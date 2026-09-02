@@ -56,6 +56,18 @@ describe("Product", () => {
     expect(button.textContent).toMatch(/close/i);
   });
 
+  /* Dropped when EraSection and EraEntry were merged into this component, and
+     the code kept it. aria-expanded on its own says a control opens something
+     without saying what: the tail stays in the DOM whether the fold is open or
+     shut, so the only thing tying the bar to the panel it drives is this id. */
+  it("points the control at the panel it actually opens", () => {
+    render(<Product item={item} assets={[]} index={0} />);
+    const button = host.querySelector("button")!;
+    const controls = button.getAttribute("aria-controls");
+    expect(controls).toBeTruthy();
+    expect(host.querySelector(`#${CSS.escape(controls!)}`)).not.toBeNull();
+  });
+
   /* Carried over from era-entry.test.tsx, which this file replaces. The tail's
      PanelField is keyed to whether the fold has ever opened, so the sweep is
      built once. A revision that came back down on close rebuilt the observer

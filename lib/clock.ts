@@ -26,8 +26,9 @@ export function handAngles(at: Date, timeZone: string = DEFAULT_ZONE): Hands {
   const part = (type: "hour" | "minute" | "second") =>
     Number(parts.find((p) => p.type === type)?.value ?? 0);
 
-  /* Intl renders midnight as 24 in en-GB, which is the same instant as 0 and a
-     different number. */
+  /* en-GB with hour12:false is h23, so midnight comes back as "00" — the % 12
+     is here for the other end of the dial, where 13 through 23 have to come
+     down to a twelve-hour face. */
   const hours = part("hour") % 12;
   const minutes = part("minute") + part("second") / 60;
 

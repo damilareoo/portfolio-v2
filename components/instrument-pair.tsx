@@ -10,10 +10,12 @@ import { useWeather } from "@/lib/use-weather";
  *
  * One component so the hero and the footer cannot drift apart: the page opens
  * and closes on the same instruments, which is what gives the footer a design
- * language rather than a second one invented for it.
+ * language rather than a second one invented for it. The reading behind it is
+ * shared too — see lib/use-weather.ts — so two pairs on one page cannot show
+ * two different temperatures.
  */
 export function InstrumentPair({ size = 64 }: { size?: number }) {
-  const { reading } = useWeather();
+  const reading = useWeather();
 
   return (
     <div className="flex items-center gap-4">

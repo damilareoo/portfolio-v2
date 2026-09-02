@@ -65,4 +65,32 @@ describe("InstrumentPair", () => {
     expect(host.textContent).not.toMatch(/\d+°/);
     expect(host.textContent).toMatch(/—/);
   });
+
+  /* The defect this holds shut: the hero and the footer each fetched their own
+     forecast, and Open-Meteo rate-limits by IP. One throttled request and the
+     page opened on 29° and closed on an admission it could not read — from a
+     single mount, with nothing actually wrong. The echo is only an echo if it
+     is the same reading. */
+  it("shares one reading between every pair on the page, and asks once", async () => {
+    const asked = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ current: { temperature_2m: 29, weather_code: 2 } }),
+    }));
+    vi.stubGlobal("fetch", asked);
+
+    render(
+      <>
+        <InstrumentPair size={56} />
+        <InstrumentPair size={72} />
+      </>,
+    );
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(asked).toHaveBeenCalledTimes(1);
+    expect(host.textContent?.match(/29°/g)).toHaveLength(2);
+  });
 });

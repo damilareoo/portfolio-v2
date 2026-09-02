@@ -29,18 +29,18 @@ Four, and the nav names all four.
 
 | Route | Holds |
 |---|---|
-| `/` | The work itself — lockup, record, then every era with its pieces inline |
+| `/` | The work itself — a lockup carrying two live instruments, then four numbered products, each unfolding in place |
 | `/shots` | The gallery. `/feed` redirects here permanently |
 | `/about` | The record about the person, and the roles behind it |
 | `/colophon` | How the site is made, and the instruments |
 
-`/work/[slug]` is gone. The home carries the case studies now, and the three URLs that existed redirect to their era anchors — written out one per line rather than patterned, so retiring a piece is a visible edit. `/system` and `/changelog` stay live and stay out of the nav; the colophon links to both.
+`/work/[slug]` is gone. The home carries the case studies now, and the three URLs that existed redirect to the product that holds them — `/#<slug>`, the anchor on the product's own section. Written out one per line rather than patterned: slug and anchor are now identical, so `/work/:slug -> /#:slug` would resolve correctly and would also send every slug that never existed to the top of the home page. A URL that was never real should 404, and three explicit lines say which three were. `/system` and `/changelog` stay live and stay out of the nav; the colophon links to both.
 
 **A standing rule for any future dynamic route.** A route whose set of params is closed must set `dynamicParams = false` so an unknown one gets a real 404 from the router. It cannot be settled with `notFound()` alone: a page sitting behind the root `loading.tsx` is served as a prerendered shell, so Next commits the status before the body streams and a `notFound()` reached during the render arrives after the headers have gone. That is how a page returns 200 while showing the not-found screen, which is a lie told to crawlers rather than to readers. This cost v1.11.0 a fix; the route it fixed has since been deleted, but the trap has not moved.
 
-There is no archive surface. With selected work and the dated list both on the home page, `/work` held a filtered restatement of a page the visitor had already read — a nav entry has to earn itself, and that one was paying for a duplicate.
+There is no archive surface and no index. `/work` held a filtered restatement of a page the visitor had already read; the dated list beside the selected pieces made the same argument twice, once as an argument and once as an inventory. Both are gone, and so is the era layer that grouped the pieces by employer — it spent two of its five sections announcing it had nothing to show.
 
-The dated list has since gone too. The selected pieces with room read as an argument; the same pieces as a list read as an inventory, and the page was making both cases at once. Roles moved to `/about`, where they belong: they are a fact about the person, not a piece of work.
+What is left is the work itself: four products, numbered by position, each showing a title, a one-liner and the first two blocks of its reel, with the rest behind one control. Roles moved to `/about`, where they belong: they are a fact about the person, not a piece of work.
 
 ## The icon language
 
@@ -67,37 +67,30 @@ Nothing here animates. An icon neither reports nor arrives, so Law 4 leaves it s
 
 The gallery renamed from `/feed`, and the one surface where a photograph is put through the matrix.
 
-The layout drifts: four columns, each pushed down by a whole number of cells and filled
-shortest-first, so the tops stagger while the bottom stays roughly level. Whole cells because a
-drift measured in pixels somebody liked the look of is arbitrary, and arbitrary is the opposite of
-placed — quantised to the pitch, every shot on the page sits on one invisible matrix.
+The layout is a **band mosaic**, and it is formless on purpose. `lib/mosaic.ts` deals the shots into
+bands that each span the full twelve-column measure, taking widths from a fixed vocabulary — `7 5`,
+`4 8`, `3 5 4`, `5 7`, `8 4`, `4 3 5`. Two-item bands are the feed's big moments; three-item bands
+are its rests. No band opens on the width the one above it closed on, which is what keeps the page
+reading as organic rather than as a repeating pattern. A shot's height is never authored: it is the
+shot's own aspect ratio, at whatever width its band gave it.
 
-Filling shortest-first only works if a column's running height and its drift are counted in the
-same unit, and for two versions they were not: the drift went in as pixels while each shot added a
-bare aspect ratio, so no single shot could outweigh a six-cell head start and column one took all
-ten. `lib/shots-layout.ts` counts both in cells — a shot is `COLUMN_CELLS` times its aspect ratio,
-the column's width at the full measure — and the ten split 3·2·3·2.
-The heuristic is exact at the full measure only, because the drift is a fixed offset while the
-shots scale; that is the width worth being right at.
+Nothing about it is random. A shuffled mosaic would hydrate into a different page than the server
+rendered, so the composition is a function of position alone and the tests hold that composing twice
+gives the same answer. A lone shot at the end takes the whole measure rather than a fraction of one.
 
-The feed is built for thirty. Shortest-first gives exactly one guarantee and it is worth stating
-plainly: a column takes a shot only while it is the shortest, so it can finish at most one shot
-taller than the shortest column. Mixing a portrait into a feed of landscapes therefore buys a
-taller ragged edge, not an unbounded one — the bound is the tallest shot, at any count, and the
-tests hold it at every length from one to thirty.
+The reference this came from builds its mosaic by hand — every shot given a column and row span in
+the markup. That reads well and asks for a decision every time a shot is added. This asks for none:
+drop a file into `public/feed`, run `pnpm manifest`, and it is placed.
 
-Thirty shots also means thirty panels, and one front crosses all the visible ones at once. A panel
+Below the large breakpoint the grid is two columns and every shot takes one of them. Narrow gets its
+own arrangement rather than a squeezed twelve, and the feed stays read newest-first.
+
+Thirty shots means thirty panels, and one front crosses all the visible ones at once. A panel
 drives sixteen brightness levels and no more, so `paintPanel` collects every emitter at a level
 into one path and lays it down in a single fill: a field of thirteen hundred emitters costs sixteen
 fills rather than thirteen hundred. Frames are measured once when a tile arrives, in page
 coordinates — scroll-invariant, so the sweep never asks the document where anything is — and the
 ink is read once per front rather than once per tile per frame.
-
-The columns are filled in JavaScript and drawn by CSS, so both read one breakpoint, `WIDE_QUERY`.
-Below it the feed is bucketed into two columns rather than dealt into four and left to wrap — four
-buckets in two tracks would put the fifth shot beside the first, and a feed sorted newest-first
-that is not read newest-first is just an unsorted feed. Narrow gets its own arrangement, not a
-halved one.
 
 A shot arrives on an **LED panel**, not through a halftone, and the difference is the whole of it:
 
@@ -162,14 +155,14 @@ Semantic tokens only. Components never reference raw hex values; light and dark 
 
 | Token | Light | Dark |
 |---|---|---|
-| `--bg` | #F4F4F4 | #0A0A0A |
-| `--surface` | #FFFFFF | #141414 |
-| `--surface-2` | #F7F7F7 | #1C1C1C |
-| `--border` | #E9E9E9 | #262626 |
-| `--text-1` | #111111 | #F5F5F5 |
-| `--text-2` | #6F6F6F | #8A8A8A |
-| `--text-3` | #B0B0B0 | #4D4D4D |
-| `--fill-strong` | #111111 | #F5F5F5 |
+| `--bg` | #F2F2F2 | #0A0A0A |
+| `--surface` | #FFFFFF | #161616 |
+| `--surface-2` | #FBFBFB | #1F1F1F |
+| `--border` | #DEDEDE | #2E2E2E |
+| `--text-1` | #0F0F0F | #F5F5F5 |
+| `--text-2` | #5C5C5C | #9A9A9A |
+| `--text-3` | #7D7D7D | #6B6B6B |
+| `--fill-strong` | #0F0F0F | #F5F5F5 |
 
 Dark mode inverts the strong fill: primary buttons become light pills with dark labels.
 
@@ -233,17 +226,18 @@ Two rules keep it working: type sizes are always `rem` so the type dial reaches 
 
 ## Work model
 
-One model in `data/work.ts`, and it says nothing about where a piece goes. Placement is decided by
-era, in `data/eras.ts`, which names pieces by slug — so a piece moves between eras in a one-line
-edit and is defined in exactly one place.
+One model in `data/work.ts`, and it is the whole hierarchy. Order on the page is the order of the
+array; the number a product wears is its position, padded — so reordering the work is reordering one
+list, and a piece is defined in exactly one place.
 
 There used to be a `tier`, and before that a `project` and an `index` tier holding pieces with data,
 live links and screenshots that rendered nowhere, waiting on an archive this site had already argued
 itself out of building — along with a tile face, a palette strip, two filters nothing imported, and
 six fields no surface read. Data kept for a surface that does not exist is not a plan; it is
 furniture. The tier that survived that purge had only ever held one name, and two ways to say where
-a piece belongs is one too many, so it went too. The same rule took `Era.logo`, which two eras set
-and nothing rendered.
+a piece belongs is one too many, so it went too. The era layer went last, and took `data/eras.ts`
+with it: a grouping that spent two of its five sections saying it had nothing to show was the same
+furniture one level up.
 
 Work without written blocks renders its record and says so plainly instead of padding — the site does not pretend to depth it lacks.
 
@@ -252,10 +246,11 @@ The record rows inside an entry are the same `RecordRow` that `/about` and `/col
 page's was the one that disagreed — mono uppercase labels, values ranged right — which is why it
 read as foreign rather than as under-designed. It was not the layout.
 
-An entry shows its title, one-liner and first two blocks, and holds the rest behind one control:
+A product shows its title, one-liner and first two blocks, and holds the rest behind one full-width
+bar that names what it opens:
 `intro`, the record rows, `approach`, then the tail of the reel, all in one centred `34rem` column.
-There is no rail and no second column — the home is a single column of eras, and prose set beside a
-reel needs somewhere to sit. The fold collapses with grid rows rather than `hidden`, so every word
+There is no rail and no second column — the home is a single column of products, and prose set
+beside a reel needs somewhere to sit. The fold collapses with grid rows rather than `hidden`, so every word
 stays crawlable and findable by cmd-F; that is the one thing retiring the case pages had to keep.
 
 | Block | Renders |
@@ -313,11 +308,10 @@ Environment: `KV_REST_API_URL` and `KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_*
 
 ## Status
 
-v1.13.0: four surfaces, three selected pieces with case pages, Shots on the LED panel across four balanced columns, and a work model that carries nothing it does not render.
+Four surfaces. The home is the work: a lockup carrying two live instruments, then four numbered products, each unfolding in place behind a full-width bar. Both skins are tuned against a measured contrast floor that `lib/contrast.test.ts` holds, type comes from one six-step scale, and Shots is a band mosaic. The version record is `data/changelog.ts`, rendered at `/changelog`.
 
 Outstanding, and worth being exact about:
 
-- **The fourth card.** Only three pieces are `selected`, so the home grid reads `03 PIECES` with an empty cell. A fourth is intended.
 - **Two roles.** Endgame AI, ChessEver and HEX carry exact dates. SmallChess and an early-career role sit commented out in `data/experience.ts` — dates unknown, and the site does not invent them.
 - **Frames.** Hitman's Library has nine real captures. Sylvan has two: its site is a single near-empty viewport. ChessEver has one, its existing hero — `chessever.com` answers automated requests with a bot check rather than the product, so its reel is labelled empty frames until real art lands.
 - Shots are still captures of the live products and of portfolio-v1, standing in until real artwork is dropped into `public/feed`. The directory keeps its old name; only the surface was renamed.

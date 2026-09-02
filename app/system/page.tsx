@@ -1,26 +1,19 @@
 import type { Metadata } from "next";
 import { Chip, SectionLabel, Sheet } from "@/components/ui";
 import { SiteFooter } from "@/components/site-footer";
+import { VALUE_LADDER } from "@/lib/value-ladder";
 
 export const metadata: Metadata = {
   title: "System — Damilare Osofisan",
   description: "The living design system behind this site.",
 };
 
-const ladder = [
-  { token: "bg", cls: "bg-bg", light: "#F4F4F4", dark: "#0A0A0A" },
-  { token: "surface", cls: "bg-surface", light: "#FFFFFF", dark: "#141414" },
-  { token: "surface-2", cls: "bg-surface-2", light: "#F7F7F7", dark: "#1C1C1C" },
-  { token: "border", cls: "bg-line", light: "#E9E9E9", dark: "#262626" },
-  { token: "text-3", cls: "bg-ink-3", light: "#B0B0B0", dark: "#4D4D4D" },
-  { token: "text-2", cls: "bg-ink-2", light: "#6F6F6F", dark: "#8A8A8A" },
-  { token: "text-1", cls: "bg-ink", light: "#111111", dark: "#F5F5F5" },
-  { token: "fill-strong", cls: "bg-strong", light: "#111111", dark: "#F5F5F5" },
-];
-
+/* Uppercased in CSS, not in the data: the ladder holds the hex exactly as
+   app/globals.css declares it, so the test comparing the two compares strings
+   nobody has reformatted on the way past. */
 function Hex({ light, dark }: { light: string; dark: string }) {
   return (
-    <span className="font-mono text-[0.6875rem] text-ink-3">
+    <span className="font-mono text-[0.6875rem] uppercase text-ink-3">
       <span className="dark:hidden">{light}</span>
       <span className="hidden dark:inline">{dark}</span>
     </span>
@@ -47,7 +40,7 @@ export default function SystemPage() {
             <SectionLabel>Value ladder</SectionLabel>
           </div>
           <ul className="mt-3 space-y-2">
-            {ladder.map((s) => (
+            {VALUE_LADDER.map((s) => (
               <li key={s.token} className="flex items-center gap-3">
                 <span className={`size-5 rounded-md border border-line ${s.cls}`} />
                 <span className="flex-1 font-mono text-[0.6875rem] text-ink-2">--{s.token}</span>

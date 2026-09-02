@@ -5,7 +5,7 @@ export const site = {
   email: "dosofisan7@gmail.com",
   x: "https://x.com/damilareoo",
   github: "https://github.com/damilareoo",
-  // Printed under the email on the home lockup. Lagos.
+  // Printed under the email in the /about header. The home lockup says "Lagos".
   coordinates: "6.5244° N, 3.3792° E",
   /* The same place the coordinates string names, as numbers. The string is a
      label; parsing it back would make a label load-bearing. */

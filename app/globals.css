@@ -10,7 +10,7 @@
   --radius-window: 16px;
   --radius-tile: 12px;
 
-  /* The type scale. Seven steps, every one of them used — a reserved eighth for
+  /* The type scale. Six steps, every one of them used — a reserved seventh for
      work that might arrive is furniture, which is what the tier vocabulary was.
      In rem, or --type-scale cannot reach them. */
   --text-2xs: 0.5625rem;

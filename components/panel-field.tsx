@@ -6,10 +6,10 @@ import { runPanelSweep } from "@/lib/glyph/sweep";
 /**
  * Any group of frames that should arrive as panels.
  *
- * `revision` rebuilds the sweep: the shots grid passes its column count, because
- * crossing the breakpoint rebuilds the columns and the observer has to be
- * rebuilt with them or it spends the rest of the page watching frames that are
- * no longer in the document. An unfolding entry passes whether it has ever been
+ * `revision` rebuilds the sweep: the shots field passes `shots.length`, because
+ * a change to the feed rebuilds the mosaic and the observer has to be rebuilt
+ * with it or it spends the rest of the page watching frames that are no longer
+ * in the document. An unfolding entry passes whether it has ever been
  * opened, because frames that were collapsed when the effect ran were never
  * observed — and because a revision that came back down would rebuild the
  * observer mid-collapse and sweep arrived frames a second time. A revision
@@ -17,7 +17,7 @@ import { runPanelSweep } from "@/lib/glyph/sweep";
  *
  * `rootMargin` is passed straight to the sweep's observer, and only a caller
  * whose frames are full-bleed has any business setting it. Omitted, it is the
- * shots grid's 220px lead, unchanged.
+ * shots field's 220px lead, unchanged.
  */
 export function PanelField({
   revision,
