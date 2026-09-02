@@ -463,3 +463,196 @@ git commit -m "Three products, in the order they are meant to be read"
 ```
 
 Expected: the three redirects in `next.config.ts` are unaffected — Endgame never had one — and `data/eras.test.ts` no longer exists to complain about coverage.
+
+---
+
+### Task 5: The frames get presented
+
+**Files:**
+- Modify: `data/work.ts` (the `CaseMedia` model and the three block lists), `components/case-reel.tsx`
+- Test: `components/case-reel.test.tsx` (new)
+
+**Interfaces:**
+- Produces: `frame?: "phone" | "browser"` and `bleed?: true` on `CaseMedia`; `plate` handling in `CaseReel`.
+
+The complaint is that frames sit flat on the page. Three treatments fix that, and all three are authored per frame rather than computed — the site's own rule is that placement is a decision, not a heuristic.
+
+- [ ] **Step 1: Extend the media model**
+
+In `data/work.ts`, add to `CaseMedia`:
+
+```ts
+  /**
+   * How the artwork is presented. A screen capture reads as the thing it was
+   * captured from — a hairline and a radius in the site's own tokens, never an
+   * imitation of chrome and never a shadow.
+   */
+  frame?: "phone" | "browser";
+  /**
+   * One frame per case may break the column and run the full measure. Which one
+   * is authored: a computed "widest image wins" would put the emphasis wherever
+   * the export happened to be largest.
+   */
+  bleed?: true;
+```
+
+- [ ] **Step 2: Write the failing test**
+
+```tsx
+// components/case-reel.test.tsx
+// @vitest-environment jsdom
+import { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { CaseReel } from "@/components/case-reel";
+import type { CaseBlock } from "@/data/work";
+
+(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+
+let host: HTMLDivElement;
+let root: Root;
+beforeEach(() => { host = document.createElement("div"); document.body.appendChild(host); root = createRoot(host); });
+afterEach(() => { act(() => root.unmount()); host.remove(); });
+const render = (ui: React.ReactElement) => act(() => root.render(ui));
+
+describe("CaseReel presentation", () => {
+  it("prints a caption where one is authored", () => {
+    const blocks: CaseBlock[] = [{ kind: "full", caption: "The board, mid-game" }];
+    render(<CaseReel blocks={blocks} assets={[]} />);
+    expect(host.textContent).toContain("The board, mid-game");
+  });
+
+  it("gives a framed capture the frame it asks for", () => {
+    const blocks: CaseBlock[] = [{ kind: "full", frame: "phone" }];
+    render(<CaseReel blocks={blocks} assets={[]} />);
+    expect(host.querySelector("[data-frame-style='phone']")).not.toBeNull();
+  });
+
+  it("leaves an unframed capture unframed", () => {
+    // The treatment is authored per frame. Framing everything is the same
+    // flatness with more decoration.
+    const blocks: CaseBlock[] = [{ kind: "full" }];
+    render(<CaseReel blocks={blocks} assets={[]} />);
+    expect(host.querySelector("[data-frame-style]")).toBeNull();
+  });
+
+  it("lets one frame break the column", () => {
+    const blocks: CaseBlock[] = [{ kind: "full", bleed: true }];
+    render(<CaseReel blocks={blocks} assets={[]} />);
+    expect(host.querySelector("[data-bleed]")).not.toBeNull();
+  });
+});
+```
+
+- [ ] **Step 3: Run it to make sure it fails**
+
+Run: `pnpm exec vitest run components/case-reel.test.tsx`
+Expected: FAIL — the props do not exist and nothing renders those attributes.
+
+- [ ] **Step 4: Implement the treatments in `CaseReel`**
+
+Three changes to `components/case-reel.tsx`, all in the `full` branch and the shared figure rendering:
+
+1. **Frame.** When `media.frame` is set, wrap the `Frame` in a div carrying `data-frame-style={media.frame}` and the treatment: `rounded-[var(--radius-window)] border border-line p-1.5` for `browser`, `rounded-[1.75rem] border border-line p-2` for `phone`, plus `bg-surface` beneath. Tokens only — no imitation chrome, no shadow, per the design language.
+2. **Bleed.** When `media.bleed` is set, the figure carries `data-bleed` and breaks the column: `-mx-5 sm:-mx-6 lg:-mx-12`, so it runs the full measure without the page scrolling sideways. Verify at 320px.
+3. **Captions.** The existing `figcaption` already renders `media.caption` in the mono micro-label style. Leave the styling; the work is authoring captions in the data.
+
+- [ ] **Step 5: Author the presentation across the three cases**
+
+In `data/work.ts`, for each of `hitmans-library`, `sylvan` and `chessever`: give **one** block `bleed: true` (the frame that carries the piece), set `frame: "browser"` on site captures and `frame: "phone"` on phone captures, and write a caption for every frame that benefits from one. Captions are short and plain, in the register the changelog uses — say what the frame shows, not what it means.
+
+- [ ] **Step 6: Verify and commit**
+
+```bash
+pnpm exec vitest run components/case-reel.test.tsx && pnpm test && pnpm exec tsc --noEmit && pnpm lint && pnpm build
+git add -A
+git commit -m "The work is presented, not pasted"
+```
+
+Then look at all three cases opened, at 320px and at full measure, and confirm no page scrolls sideways — a negative margin is the likeliest cause of the overflow this branch has already fixed twice.
+
+---
+
+### Task 6: The copy pass
+
+**Files:**
+- Modify: `data/work.ts` (one-liners), `app/page.tsx` (unfold bar, footer), `components/instrument-bank.tsx` (labels), `app/layout.tsx` and each page's `metadata`
+
+The rule this project already keeps: one line per idea, plain, no literary narration. Short is not the goal — *specific* is. "A collection of cool experiences across the web" is short and says nothing.
+
+- [ ] **Step 1: Rewrite the three one-liners**
+
+In `data/work.ts`, replace each `oneLiner` with something that says what the thing is and what was hard about it. Drafts, for the user to edit:
+
+- Hitman's Library — `A library of the web's best-made things, catalogued and kept current.`
+- Sylvan — `Identity for a revenue intelligence platform: turning noise into signal, and looking like it.`
+- ChessEver — `Professional chess as it happens — live boards, tournaments, and the app that carries them.`
+
+- [ ] **Step 2: Check every user-facing string on the home**
+
+Read `app/page.tsx` and `components/product.tsx` end to end and fix anything clumsy: the unfold bar, the footer links, the empty-state text, the metadata description in `app/layout.tsx`. Every string a visitor can read is in scope. Do not touch `data/changelog.ts`.
+
+- [ ] **Step 3: Verify and commit**
+
+```bash
+pnpm exec tsc --noEmit && pnpm lint && pnpm test && pnpm build
+git add -A
+git commit -m "Say it plainly, and say something"
+```
+
+---
+
+### Task 7: The responsive pass
+
+**Files:** whichever the measurement finds wanting.
+
+The bank is new and is the most likely thing to break narrow. Measure; do not eyeball.
+
+- [ ] **Step 1: Measure**
+
+Start your own server and drive a headless browser you launch yourself. **Do not** run `screencapture`, drive the user's Safari or Chrome, or use the `claude-in-chrome` tools — an earlier agent on this branch captured the user's real desktop that way. Verify you are talking to your own build before trusting a number: a stale `next start` has already produced false results on this repo.
+
+At `320, 360, 390, 414, 480, 640, 768, 834, 1024, 1280, 1440, 1920, 2560`, on `/`, `/shots`, `/about`, `/colophon`, record `document.documentElement.scrollWidth` against `clientWidth`. Any width where they differ is a defect; find the offending element by walking the DOM for nodes wider than the viewport.
+
+- [ ] **Step 2: Check the bank specifically**
+
+Two columns at 320px puts a card near 140px. Confirm every face is legible there, the labels do not collide with their readings, and no card distorts. If a card cannot hold its square at 320px, shrink the face — **the two-column grid holds**, because a one-column bank is the thing the spec exists to prevent.
+
+- [ ] **Step 3: Check the opened case studies**
+
+Open every product's fold and re-measure. A bled frame's negative margin is the likeliest new source of horizontal overflow.
+
+- [ ] **Step 4: Fix, re-measure, commit**
+
+Fix mobile-first — give the narrow viewport its own arrangement rather than scaling the wide one down. Re-measure every width and route, confirm zero overflow.
+
+```bash
+pnpm exec tsc --noEmit && pnpm lint && pnpm test && pnpm build
+git add -A
+git commit -m "Every width, again"
+```
+
+---
+
+### Task 8: Ship — DO NOT RUN WITHOUT THE USER'S EXPLICIT GO-AHEAD
+
+Withheld deliberately: it pushes to a shared branch and deploys to production.
+
+- [ ] Update `README.md` for the bank, the three products and the removed hidden page.
+- [ ] Add the `2.0.0` entry to `data/changelog.ts`, newest first, `deployment` empty.
+- [ ] `vercel deploy --prod`, record the immutable URL in the entry's `deployment`.
+- [ ] Commit, `git tag v2.0.0`, `git push origin home-as-feed --tags`.
+- [ ] `./scripts/deploy.sh` — never a plain `vercel deploy --prod` against the portfolio project.
+- [ ] Confirm on the deployed URL, not localhost.
+
+## Success criteria
+
+1. Every card in the bank has identical footprint, radius, padding and label placement; only the reading differs.
+2. The bank reflows to two columns on a tablet and two on a phone, and no card distorts at any width.
+3. A card that cannot read says so; no card is ever blank, and no stale reading is shown as current.
+4. Nothing in the footer moves except under touch, while reporting live state, or in the single arrival.
+5. The hero carries a statement about the work and no instruments.
+6. The home shows exactly three products, ordered Hitman's Library, Sylvan, ChessEver.
+7. Every case frame is presented — plated, captioned, or framed — rather than sitting flat on the page.
+8. No route scrolls horizontally at any width from 320px up, and the bank is legible on a phone.
+9. The step pager offers exactly three faces, each advertised by its own indicator dot. No page is unlisted.
