@@ -34,6 +34,14 @@ export function EraEntry({
   index: number;
 }) {
   const [open, setOpen] = useState(false);
+  /* Sticky, never a toggle. The tail's `PanelField` is keyed to this, and a
+     revision that came back down on close rebuilt the sweep while the fold was
+     still collapsing: the tail is at full height for most of the 500ms row
+     transition, so a fresh observer fired at once and frames that had already
+     arrived swept a second time, in full view through the shrinking clip. It
+     goes false → true the first time the fold opens and stays there, so the
+     sweep is built once and every frame arrives once. */
+  const [everOpened, setEverOpened] = useState(false);
   const panelId = useId();
   /* The article carries `arrive`, and `arrive` is opacity 0 until something
      sets `data-arrived` on it. Nothing did, so every entry on the home — its
@@ -67,7 +75,12 @@ export function EraEntry({
       </p>
 
       {lede.length > 0 && (
-        <PanelField>
+        /* No lead. A full-bleed frame is most of the viewport tall, so 220px of
+           early arrival plus its own height is enough to fit the entire
+           dissolve before it is on screen — the sweep would run, correctly and
+           invisibly, and the frame would simply be there. It arrives when it is
+           actually in front of the reader. */
+        <PanelField rootMargin="0px">
           <CaseReel blocks={lede} assets={assets} />
         </PanelField>
       )}
@@ -76,7 +89,10 @@ export function EraEntry({
         <>
           <button
             type="button"
-            onClick={() => setOpen((was) => !was)}
+            onClick={() => {
+              setOpen((was) => !was);
+              setEverOpened(true);
+            }}
             aria-expanded={open}
             aria-controls={panelId}
             className="mt-5 inline-flex items-center gap-1.5 rounded-[4px] bg-surface-2 px-2 py-1 font-mono text-[0.5625rem] uppercase tracking-[0.08em] text-ink-2 transition-colors hover:text-ink"
@@ -151,10 +167,12 @@ export function EraEntry({
                 {rest.length > 0 && (
                   <div className="mt-10">
                     {/* The tail takes the assets the lede did not, or it re-shows them. */}
-                    {/* Keyed to `open`, because a tail collapsed to zero height
-                        has frames in the document that no observer can usefully
-                        see. The sweep is rebuilt when the fold opens. */}
-                    <PanelField revision={String(open)}>
+                    {/* Keyed to whether the fold has EVER opened, because a
+                        tail collapsed to zero height has frames in the document
+                        that no observer can usefully see. The sweep is built
+                        when the fold first opens, and never rebuilt after —
+                        closing must not re-run it. */}
+                    <PanelField revision={everOpened ? 1 : 0} rootMargin="0px">
                       <CaseReel
                         blocks={rest}
                         assets={assets.slice(restAssetOffset)}

@@ -42,6 +42,16 @@ function measure(frame: HTMLElement): PanelBox {
 }
 
 /**
+ * How early a frame is told to arrive.
+ *
+ * The shots grid's own value, and its default: a tile that begins resolving a
+ * little before it is on screen is settled by the time it is read, which is
+ * what a grid of small tiles wants. A single full-bleed frame wants the
+ * opposite — see `rootMargin` on the options.
+ */
+const LEAD = "220px 0px";
+
+/**
  * Sweep a dot-matrix front across every `[data-frame]` inside `host`.
  *
  * Lifted out of ShotsField unchanged: the effect never knew what a shot was, it
@@ -58,7 +68,27 @@ function measure(frame: HTMLElement): PanelBox {
  * unobserved the moment it is queued: a frame arrives once, and a sweep that
  * fires twice for the same photograph is a performance rather than an arrival.
  */
-export function runPanelSweep(host: HTMLElement): () => void {
+export function runPanelSweep(
+  host: HTMLElement,
+  {
+    /**
+     * How far outside the viewport a frame starts arriving.
+     *
+     * The default is the shots grid's, and the shots grid is why it exists: a
+     * batch of small tiles shares one front that crosses all of them, so the
+     * wave is on screen even though each tile started early.
+     *
+     * A lone full-bleed frame has no such batch. Its front spans only its own
+     * box, so the whole 620ms dissolve fits inside the 220px of lead plus the
+     * frame's own height — measured on the home at a 700px/s scroll, the
+     * photograph was already at full opacity when 60px of the frame had
+     * entered the viewport, and the panel was never seen. Such a caller passes
+     * "0px" and the frame arrives when it is actually somewhere a reader is
+     * looking.
+     */
+    rootMargin = LEAD,
+  }: { rootMargin?: string } = {},
+): () => void {
   const panels = new WeakMap<HTMLElement, Panel>();
 
   /* Sampling reads the decoded image back out of a canvas, which taints on a
@@ -188,9 +218,24 @@ export function runPanelSweep(host: HTMLElement): () => void {
         if (!tile) return;
         io.unobserve(entry.target);
         if (tile.img.complete && tile.img.naturalWidth) enqueue(tile);
-        else tile.img.addEventListener("load", () => enqueue(tile), { once: true });
+        /* A photograph that will never decode is the one case where waiting is
+           worse than giving up: the image starts at opacity 0 and only this
+           function ever puts it back, so a `load` that cannot fire leaves an
+           empty frame on the page for good. Both halves of that are covered —
+           an image that has already failed is `complete` with no intrinsic
+           width and gets its opacity now, and one still in flight gets an
+           `error` beside its `load`. */
+        else if (tile.img.complete) tile.img.style.setProperty("opacity", "1");
+        else {
+          tile.img.addEventListener("load", () => enqueue(tile), { once: true });
+          tile.img.addEventListener(
+            "error",
+            () => tile.img.style.setProperty("opacity", "1"),
+            { once: true },
+          );
+        }
       }),
-    { rootMargin: "220px 0px", threshold: 0.01 },
+    { rootMargin, threshold: 0.01 },
   );
   tiles.forEach((t) => io.observe(t.frame));
 

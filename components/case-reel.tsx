@@ -138,29 +138,46 @@ export function CaseReel({
         }
 
         const resolved = take(block);
-        return (
+        /* A full-bleed frame with art arrives BY the sweep, so it does not also
+           get Reveal's fade. Two arrival mechanisms on one element raced each
+           other: Reveal holds the block at opacity 0 until it is 8% into the
+           viewport and then for up to 540ms of stagger, while the sweep's
+           observer fires 220px early and the dissolve runs 620ms. The panel
+           finished behind the fade, so the lattice — the whole point of the
+           frame arriving this way — was never seen. One mechanism, once.
+
+           A frame with no art has no sweep to arrive by (`Frame` only marks
+           `[data-frame]` when it has a src), so it keeps the fade. */
+        const swept = Boolean(resolved.src);
+        const plate = (
+          <>
+            <Frame
+              src={resolved.src}
+              alt={block.alt ?? ""}
+              width={resolved.width}
+              height={resolved.height}
+              ratio={block.ratio ?? "16 / 9"}
+              priority={firstIsPriority && i === 0}
+              /* The full-bleed frame is the one that reads as arriving. A
+                 pair or an inset plate dissolving four ways at once is a
+                 performance, and nothing here moves that was not touched,
+                 arriving, or reporting. */
+              panel
+              sizes="(min-width: 1024px) 62vw, 92vw"
+            />
+            {block.caption && (
+              <figcaption className="mt-2 font-mono text-[0.5625rem] uppercase tracking-wider text-ink-3">
+                {block.caption}
+              </figcaption>
+            )}
+          </>
+        );
+
+        return swept ? (
+          <figure key={i}>{plate}</figure>
+        ) : (
           <Reveal key={i} index={i}>
-            <figure>
-              <Frame
-                src={resolved.src}
-                alt={block.alt ?? ""}
-                width={resolved.width}
-                height={resolved.height}
-                ratio={block.ratio ?? "16 / 9"}
-                priority={firstIsPriority && i === 0}
-                /* The full-bleed frame is the one that reads as arriving. A
-                   pair or an inset plate dissolving four ways at once is a
-                   performance, and nothing here moves that was not touched,
-                   arriving, or reporting. */
-                panel
-                sizes="(min-width: 1024px) 62vw, 92vw"
-              />
-              {block.caption && (
-                <figcaption className="mt-2 font-mono text-[0.5625rem] uppercase tracking-wider text-ink-3">
-                  {block.caption}
-                </figcaption>
-              )}
-            </figure>
+            <figure>{plate}</figure>
           </Reveal>
         );
       })}

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EraEntry } from "@/components/era-entry";
 import type { WorkItem } from "@/data/work";
 
@@ -10,7 +10,7 @@ import type { WorkItem } from "@/data/work";
 let host: HTMLDivElement;
 let root: Root;
 beforeEach(() => { host = document.createElement("div"); document.body.appendChild(host); root = createRoot(host); });
-afterEach(() => { act(() => root.unmount()); host.remove(); });
+afterEach(() => { act(() => root.unmount()); host.remove(); vi.unstubAllGlobals(); });
 const render = (ui: React.ReactElement) => act(() => root.render(ui));
 
 /* Text blocks only: this test is about the unfold, and mounting a Frame would
@@ -57,6 +57,44 @@ describe("EraEntry", () => {
     render(<EraEntry item={item} assets={[]} index={0} />);
     const id = host.querySelector("button")!.getAttribute("aria-controls")!;
     expect(host.querySelector(`#${CSS.escape(id)}`)).not.toBeNull();
+  });
+
+  /* The tail's PanelField is keyed to whether the fold has ever opened, so the
+     sweep is built once. A revision that came back down on close rebuilt the
+     observer while the tail was still at nearly full height, and every frame
+     that had already arrived arrived again. Counted through the observer
+     because that is the thing the rebuild creates. */
+  it("builds the tail's sweep once, and not again when the fold closes", () => {
+    const withArt: WorkItem = {
+      ...item,
+      blocks: [
+        { kind: "text", body: ["Lede one."] },
+        { kind: "text", body: ["Lede two."] },
+        { kind: "full", src: "/work/example/tail.png", alt: "Tail" },
+      ],
+    };
+    let built = 0;
+    class Counting {
+      constructor() { built++; }
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+    vi.stubGlobal("IntersectionObserver", Counting);
+
+    render(<EraEntry item={withArt} assets={[]} index={0} />);
+    const before = built;
+    const button = host.querySelector("button")!;
+
+    act(() => { button.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+    const afterOpen = built;
+    expect(afterOpen).toBeGreaterThan(before);
+
+    act(() => { button.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+    expect(built).toBe(afterOpen);
+
+    act(() => { button.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+    expect(built).toBe(afterOpen);
   });
 
   it("offers no control when there is nothing more to show", () => {
