@@ -152,7 +152,13 @@ export function TypeSpecimen({
               max={72}
               value={size}
               onChange={(event) => setSize(Number(event.target.value))}
-              className="h-1 flex-1 cursor-ew-resize appearance-none rounded-full bg-surface-2 accent-ink"
+              /* min-w-0 or the row runs off the page: a range input carries a
+                 UA intrinsic width of ~129px, and flex-1 alone cannot shrink a
+                 flex item below that. In the two-column layout at 1024px the
+                 specimen row is 212px wide against 249px of content, and the
+                 px readout was pushed 37px past the column — a 13px sideways
+                 scroll on /colophon at exactly that one width. */
+              className="h-1 min-w-0 flex-1 cursor-ew-resize appearance-none rounded-full bg-surface-2 accent-ink"
             />
             <span className="w-10 shrink-0 text-right font-mono text-[0.625rem] tabular-nums text-ink-2">
               {size}px

@@ -45,8 +45,8 @@ describe("Product", () => {
   });
 
   it("labels the unfold with what is behind it", () => {
-    // The chip this replaces was easy to miss; a bar that says what it opens
-    // and how much of it is not.
+    // The chip this replaces was easy to miss; a full-width bar that names
+    // what it opens, and renames itself once open, is not.
     render(<Product item={item} assets={[]} index={0} />);
     const button = host.querySelector("button")!;
     expect(button.textContent).toMatch(/open case study/i);

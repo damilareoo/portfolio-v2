@@ -115,10 +115,14 @@ export function Product({
         <>
           {/* A bar, not a chip. The chip this replaces was a small grey pill
               below the reel that read as metadata; a control spanning the
-              column, ruled off above, naming what it opens and how much is
-              behind it, reads as a door. The chevron accompanies the words —
-              it never stands in for them. Tall enough to be a comfortable
-              touch target at any width. */}
+              column, ruled off above, naming what it opens, reads as a door.
+              The chevron accompanies the words — it never stands in for them.
+              Tall enough to be a comfortable touch target at any width.
+
+              No count rides alongside. It read "N FRAMES" while counting
+              blocks, and a block is not a frame — a four-block tail can hold
+              six image slots — so the one number on the control was the one
+              thing on it that could be wrong. */}
           <button
             type="button"
             onClick={() => {
@@ -130,19 +134,10 @@ export function Product({
             className="rule-t mt-8 flex min-h-[2.75rem] w-full items-center justify-between gap-4 py-3 text-left font-mono text-2xs uppercase tracking-[0.08em] text-ink-2 transition-colors hover:text-ink"
           >
             <span>{open ? "Close case study" : "Open case study"}</span>
-            <span className="flex shrink-0 items-center gap-2.5 text-ink-3">
-              {/* Silent when the fold holds only prose: "0 frames" is a count
-                  of nothing dressed as a promise. */}
-              {rest.length > 0 && (
-                <span>
-                  {rest.length} {rest.length === 1 ? "frame" : "frames"}
-                </span>
-              )}
-              <span
-                className={`inline-block transition-transform duration-300 ${open ? "rotate-180" : ""}`}
-              >
-                <GlyphIcon name="chevron-down" size="0.625rem" />
-              </span>
+            <span
+              className={`inline-block shrink-0 text-ink-3 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+            >
+              <GlyphIcon name="chevron-down" size="0.625rem" />
             </span>
           </button>
 
