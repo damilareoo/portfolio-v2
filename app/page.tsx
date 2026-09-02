@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { EraSection } from "@/components/era-section";
 import { GlyphBay } from "@/components/glyph-bay";
+import { GlyphIcon } from "@/components/glyph-icon";
 import { InstrumentPair } from "@/components/instrument-pair";
 import { SiteNav } from "@/components/site-nav";
 import { orderEras } from "@/lib/eras";
 import { eras } from "@/data/eras";
-import { site } from "@/data/site";
+import { elsewhere, site } from "@/data/site";
 
 /**
  * The home is the work.
@@ -54,19 +55,42 @@ export default function Home() {
 
       <GlyphBay className="mt-20" />
 
-      <footer className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 rule-t pt-5 pb-8">
-        <Link
-          href="/shots"
-          className="text-xs text-ink-2 transition-colors hover:text-ink"
-        >
-          Shots
-        </Link>
-        <Link
-          href="/colophon"
-          className="text-xs text-ink-2 transition-colors hover:text-ink"
-        >
-          Colophon
-        </Link>
+      {/* Closes on the same two readings the header opened on — larger, so the
+          echo reads as deliberate rather than a re-used component by accident.
+          Elsewhere sits here rather than in the header because a reader looks
+          for contact after seeing the work, not before it. */}
+      <footer className="mt-8 rule-t pt-6 pb-8">
+        <InstrumentPair size={72} />
+        <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2">
+          <Link
+            href="/shots"
+            className="text-xs text-ink-2 transition-colors hover:text-ink"
+          >
+            Shots
+          </Link>
+          <Link
+            href="/colophon"
+            className="text-xs text-ink-2 transition-colors hover:text-ink"
+          >
+            Colophon
+          </Link>
+          {elsewhere.map((place) => (
+            <a
+              key={place.label}
+              href={place.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-ink-2 transition-colors hover:text-ink"
+            >
+              {place.label}{" "}
+              <GlyphIcon
+                name="arrow-out"
+                size="0.5rem"
+                className="inline-block align-baseline"
+              />
+            </a>
+          ))}
+        </div>
       </footer>
     </main>
   );
