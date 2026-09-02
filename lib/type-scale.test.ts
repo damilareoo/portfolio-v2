@@ -16,6 +16,7 @@ const GOVERNED = [
   "components/site-footer.tsx",
   "components/product.tsx",
   "components/instrument-pair.tsx",
+  "components/instrument-card.tsx",
   "components/clock-face.tsx",
   "components/weather-face.tsx",
 ];
