@@ -21,6 +21,13 @@ import { useWeather } from "@/lib/use-weather";
  *
  * Two columns is the floor. A single column of four cards is a list, and a list
  * of readings is the thing this is not.
+ *
+ * Four columns arrive at `sm`, not at `lg`. Measured: the two-column grid at
+ * 768px gave 352px cells holding a 96px face — cells wider than the 286px the
+ * four-up gets at 1440, and only two of them to a row. That is not restraint,
+ * it is a bank laid out for a phone and left there; the reading drifted a
+ * quarter of the screen from the face it belongs to. At 640 the four-up is
+ * 136px a cell, which still clears the face by 40px.
  */
 export function InstrumentBank({ className = "" }: { className?: string }) {
   const reading = useWeather();
@@ -42,7 +49,7 @@ export function InstrumentBank({ className = "" }: { className?: string }) {
   return (
     <div
       data-bank
-      className={`grid grid-cols-2 gap-[var(--pg-gap)] lg:grid-cols-4 ${className}`}
+      className={`grid grid-cols-2 gap-[var(--pg-gap)] sm:grid-cols-4 ${className}`}
     >
       {/* The stagger is the law's "arriving" clause, once and never again. */}
       <Reveal index={0}>

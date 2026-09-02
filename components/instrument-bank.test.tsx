@@ -41,8 +41,17 @@ describe("InstrumentBank", () => {
     render(<InstrumentBank />);
     const grid = host.querySelector("[data-bank]")!;
     expect(grid.className).toContain("grid-cols-2");
-    expect(grid.className).toContain("lg:grid-cols-4");
     expect(grid.className).not.toMatch(/grid-cols-1\b/);
+  });
+
+  it("goes four-up at sm, where the cell would otherwise dwarf the face", () => {
+    // Measured at 768: two columns gave 352px cells around a 96px face — wider
+    // than the 286px cell the four-up gets at 1440. The four-up has to arrive
+    // while the cells are still close to the face, not a viewport later.
+    render(<InstrumentBank />);
+    const grid = host.querySelector("[data-bank]")!;
+    expect(grid.className).toContain("sm:grid-cols-4");
+    expect(grid.className).not.toContain("lg:grid-cols-4");
   });
 
   it("tells the time rather than a dash, because the clock can always read", () => {

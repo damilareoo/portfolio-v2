@@ -2,6 +2,17 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* A phone held sideways, and the short browser window that measures the same.
+   Height is the scarce axis there, not width: measured at 800×400 the hero band
+   ended 363px down a 400px screen — 91% of the device spent before the first
+   piece of work had begun. These two exist so a short viewport can be given its
+   own arrangement rather than the tall one scrolled. `short` tightens what a
+   short screen spends vertically; `short-wide` is the half of it that may also
+   turn a stacked band into two columns, and it carries the min-width because a
+   340px column is not a column, it is a squeeze. */
+@custom-variant short (@media (max-height: 540px));
+@custom-variant short-wide (@media (max-height: 540px) and (min-width: 600px));
+
 :root {
   /* Tuned live by the DialKit — see lib/settings.tsx */
   --type-scale: 1;

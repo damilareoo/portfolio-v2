@@ -138,15 +138,26 @@ function columnOf(date: string): number {
   return (new Date(at).getUTCDay() + 6) % 7;
 }
 
-/** A label the dot alphabet cannot set, laid over the band the number left it. */
+/**
+ * A label the dot alphabet cannot set, laid over the band the number left it.
+ *
+ * Sized off the scale's smallest step rather than off a literal. It was written
+ * at 0.5rem for a card 144–176px wide; the bank draws this field at 84px, and
+ * measured there "TOTAL TODAY" came to 53px against a value of 19px in 72px of
+ * usable width — the label ended exactly where the reading began, and the
+ * seven-day row overlapped by a pixel. Two fixes, because either alone would
+ * have been a near miss: the names are now as short as the reading they name,
+ * and `--text-2xs` is the floor every other label in the bank already sits on,
+ * so this one is no longer the only type on the site below the scale.
+ */
 function RecordLabel({ top, name, value }: { top: string; name: string; value: string }) {
   return (
     <div
       style={{ top }}
-      className="absolute inset-x-0 flex items-baseline justify-between px-[7%] text-[0.5rem] font-medium uppercase tracking-[0.06em] text-ink"
+      className="absolute inset-x-0 flex items-baseline justify-between gap-1 px-[7%] text-2xs font-medium uppercase tracking-[0.06em] text-ink"
     >
-      <span>{name}</span>
-      <span>{value}</span>
+      <span className="truncate">{name}</span>
+      <span className="shrink-0 tabular-nums">{value}</span>
     </div>
   );
 }
@@ -371,8 +382,12 @@ export function Pedometer() {
             >
               {page === 1 ? (
                 <>
-                  <RecordLabel top="34%" name="Total today" value={share(today, goal)} />
-                  <RecordLabel top="86%" name="7-day average" value={share(average, goal)} />
+                  {/* "Total today" and "7-day average" were written for a card
+                      twice this wide. The sr-only block below still says them
+                      in full; the face has 72px to work with and says the same
+                      thing in the space it has. */}
+                  <RecordLabel top="34%" name="Today" value={share(today, goal)} />
+                  <RecordLabel top="86%" name="7-day" value={share(average, goal)} />
                 </>
               ) : null}
 
@@ -421,7 +436,7 @@ export function Pedometer() {
                     <span
                       key={col}
                       style={{ left: `${COL_X + col * COL_STEP}%`, top: "85%" }}
-                      className="absolute -translate-x-1/2 text-[0.5rem] font-medium uppercase tracking-[0.04em] text-ink"
+                      className="absolute -translate-x-1/2 text-2xs font-medium uppercase tracking-[0.04em] text-ink"
                     >
                       {letter}
                     </span>

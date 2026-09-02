@@ -27,9 +27,15 @@ export default function ChangelogPage() {
 
       <div className="mt-10 space-y-5">
         {changelog.map((entry, i) => (
-          <Sheet key={entry.version} className="p-6 sm:p-7">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2.5">
+          <Sheet key={entry.version} className="p-5 sm:p-7">
+            {/* Wraps rather than holds one line. Measured at 320: three chips
+                and a date came to more than the sheet's inner width, and the
+                "View this version" link — which could neither shrink nor drop
+                — was pushed 7px past the viewport, giving every visit on the
+                narrowest phone a horizontal scrollbar. The meta and the link
+                are two things, so they are allowed to be two lines. */}
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+              <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-2">
                 <Chip variant="quiet">v{entry.version}</Chip>
                 <span className="font-mono text-[0.6875rem] text-ink-3">{entry.date}</span>
                 {i === 0 && <Chip variant="solid">Current</Chip>}
@@ -39,7 +45,9 @@ export default function ChangelogPage() {
                   href={entry.deployment}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-full border border-line px-3 py-1.5 text-[0.75rem] font-medium text-ink-2 transition-colors hover:text-ink"
+                  /* The site's own floor for something you press, the same one
+                     the case-study bar and the instrument cards use. */
+                  className="inline-flex min-h-[2.75rem] items-center rounded-full border border-line px-3.5 text-[0.75rem] font-medium text-ink-2 transition-colors hover:text-ink"
                 >
                   View this version
                 </a>

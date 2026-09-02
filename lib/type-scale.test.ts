@@ -13,12 +13,18 @@ const GOVERNED = [
   "components/case-reel.tsx",
   "components/frame.tsx",
   "components/site-nav.tsx",
+  "components/site-header.tsx",
   "components/site-footer.tsx",
   "components/product.tsx",
   "components/instrument-card.tsx",
   "components/instrument-bank.tsx",
   "components/clock-face.tsx",
   "components/weather-face.tsx",
+  /* The pedometer's overlay type. It sat at a literal 0.5rem — the one size on
+     the site below the scale's own floor — laid over an 84px field where it
+     collided with the reading it labelled. Governed now, so it cannot drift
+     back off the scale the next time the face is retuned. */
+  "components/glyph-bay.tsx",
 ];
 
 describe("the type scale", () => {
