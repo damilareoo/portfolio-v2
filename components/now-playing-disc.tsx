@@ -97,7 +97,11 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
           if (!cancelled) setTrack(d);
         })
         .catch(() => {
-          if (!cancelled) setTrack({ isPlaying: false });
+          /* Null, not `{ isPlaying: false }`. A refused or throttled request
+             means we do not know what is playing — which is a different thing
+             from knowing that nothing is, and the card prints a different
+             answer for each. */
+          if (!cancelled) setTrack(null);
         });
 
     read();
@@ -238,6 +242,25 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
     [playing, paintArc],
   );
 
+  /**
+   * What the card's label row says, and the three things it can mean.
+   *
+   * The em dash means "this instrument cannot read", per the card's own
+   * docblock — so it belongs to the case where Spotify has not answered, or
+   * answered with a failure, and to the odd case where it says something is
+   * playing but will not name it. It does *not* belong to silence: nothing
+   * playing is a perfectly good reading, and printing ignorance where the
+   * instrument in fact read fine is the same lie the Lagos card was telling
+   * with a ticking clock beside a dash.
+   */
+  const reading = track === null
+    ? undefined
+    : playing
+      ? track.title
+      : track.isPlaying
+        ? undefined
+        : "Silent";
+
   const label = playing
     ? `Now playing: ${track!.title} by ${track!.artist}. Click the disc to ripple it.`
     : "Nothing playing. Click the disc to ripple it.";
@@ -248,7 +271,7 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
        track on Spotify. The card's label row carries the title instead — and a
        link would have fought the disc for the same click, which already means
        "ripple it". */
-    <InstrumentCard label="Playing" reading={playing ? track!.title : undefined}>
+    <InstrumentCard label="Playing" reading={reading}>
       <div className="relative" style={{ width: DISC }}>
         <GlyphCell
           grid={GRID}

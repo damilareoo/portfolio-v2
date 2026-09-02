@@ -20,7 +20,6 @@ import {
   UNREPORTED,
   walkFrame,
 } from "@/lib/glyph/steps-frames";
-import { traceFor, tracePath } from "@/lib/glyph/trace";
 import type { StepsDay, StepsReading } from "@/lib/steps";
 
 const GRID = 25; // dots across
@@ -139,33 +138,6 @@ function columnOf(date: string): number {
   return (new Date(at).getUTCDay() + 6) % 7;
 }
 
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
-
-/** "Friday, 8 August" — the way a day is named when you are looking at just it. */
-function longDate(date: string): string {
-  const at = Date.parse(`${date}T00:00:00Z`);
-  if (Number.isNaN(at)) return date;
-  const d = new Date(at);
-  return `${WEEKDAYS[d.getUTCDay()]}, ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
-}
-
-/** One reading on the day card: what it is called, and what it was. */
-function DayStat({ top, name, value }: { top: string; name: string; value: string }) {
-  return (
-    <div style={{ top }} className="absolute inset-x-0 px-[8%]">
-      {/* One size, not two. The card no longer grows at `sm` — it is `CARD_FACE`
-          at every width — so a second, larger step had nothing left to answer to. */}
-      <p className="text-[0.4375rem] font-medium uppercase tracking-[0.08em] text-ink-3">
-        {name}
-      </p>
-      <p className="text-[0.8125rem] font-medium leading-none text-ink">{value}</p>
-    </div>
-  );
-}
-
 /** A label the dot alphabet cannot set, laid over the band the number left it. */
 function RecordLabel({ top, name, value }: { top: string; name: string; value: string }) {
   return (
@@ -265,16 +237,25 @@ export function Pedometer() {
     return () => cancelAnimationFrame(raf);
   }, [page, progress]);
 
-  /* A day the visitor asked to see. A page of its own rather than a panel over
-     the calendar, so the card keeps its one job of showing one thing and going
-     back is a page turn like any other. */
-  const [detail, setDetail] = useState<string | null>(null);
+  /* There used to be a fourth thing here: a day the visitor asked to see, drawn
+     as a page of its own. It was reached by pressing a day on the month face,
+     through an invisible target of `COL_STEP * 0.48` — about 19px across when
+     the card was 144–176px wide, and about 11px across now that the field is
+     84px inside `CARD_FACE`. Against a 44px floor that is not a control, it is
+     a dare; and it was never keyboard-reachable, so it was a dare offered to
+     some visitors and not others.
+     
+     A 7×6 calendar of 44px targets cannot fit inside a 96px face at any
+     arrangement, so the interaction could not be made honest at this size and
+     was removed rather than shrunk. The month face is a display now: the dots
+     say met, missed, quiet and ahead, which is what the face was always for,
+     and the sr-only block below carries every day of the month in text —
+     which is more than the day card ever gave a screen reader. */
 
   const monthDays = reading?.month ?? [];
   const todayDate = days[days.length - 1]?.date ?? "";
   /* Which column the 1st falls in, so the rest of the month lays out by counting
      from it rather than by parsing every date twice. */
-  const detailDay = detail ? monthDays.find((day) => day.date === detail) : undefined;
   const firstColumn = monthDays.length > 0 ? columnOf(monthDays[0].date) : 0;
   const todayIndex = monthDays.findIndex((day) => day.date === todayDate);
   const todayColumn = todayIndex >= 0 ? columnOf(todayDate) : 0;
@@ -283,8 +264,6 @@ export function Pedometer() {
   /* Memoised on the values rather than the reading, so a poll that comes back
      saying the same thing hands the field the same array and wakes nothing. */
   const frame = useMemo(() => {
-    // A day card is carried by its line; the dot field stays out of its way.
-    if (detailDay) return emptyFrame(GRID);
     if (page === 2) return emptyFrame(GRID); // the week is drawn over the field
     if (page === 1) {
       if (today === null && average === null) return placeholderFrame(GRID);
@@ -292,7 +271,7 @@ export function Pedometer() {
     }
     if (progress === null) return placeholderFrame(GRID);
     return walkFrame(GRID, walked);
-  }, [page, today, average, progress, walked, detailDay]);
+  }, [page, today, average, progress, walked]);
 
   const todaySaid =
     today === null
@@ -318,40 +297,15 @@ export function Pedometer() {
   const turning = "Press the card, or use the arrow keys, to turn the page.";
   const label = `Steps, page ${page + 1} of ${PAGES}: ${FACES[page]}. ${said}. ${turning}`;
 
-  const cardLabel = detailDay
-    ? `${longDate(detailDay.date)}: ${groupDigits(detailDay.steps ?? 0)} steps, ${share(detailDay.steps, goal)} of the goal. Press the card, or use the arrow keys, to go back to the month.`
-    : label;
+  const cardLabel = label;
 
-  /* One press, one turn. A day card is left the same way every other page is —
-     the press that would have advanced the pager puts the month back instead,
-     so going back is not a control that exists only there. */
-  const advance = () => {
-    if (detail) {
-      setDetail(null);
-      setPage(2);
-      return;
-    }
-    setPage((current) => (current + 1) % PAGES);
-  };
+  /* One press, one turn. */
+  const advance = () => setPage((current) => (current + 1) % PAGES);
 
   /* And back. A pager you can only step one way round is a worse instrument
      than one you can step both ways — a visitor who overshoots the record has
-     to walk the whole ring to get back to it. A day card is left in either
-     direction, because leaving is not a direction. */
-  const retreat = () => {
-    if (detail) {
-      setDetail(null);
-      setPage(2);
-      return;
-    }
-    setPage((current) => (current + PAGES - 1) % PAGES);
-  };
-
-  /* What the label row reports: the day being looked at, if one is, and
-     otherwise today. Never a stale number and never a blank — `undefined`
-     hands the card its em dash, which is the honest reading for a store that
-     has not answered. */
-  const shown = detailDay ? detailDay.steps : today;
+     to walk the whole ring to get back to it. */
+  const retreat = () => setPage((current) => (current + PAGES - 1) % PAGES);
 
   return (
     <div
@@ -370,11 +324,6 @@ export function Pedometer() {
          keeps the API it was given; a keydown on the button is a keydown here
          one bubble later, and nothing else in this wrapper can take focus. */
       onKeyDown={(event) => {
-        if (event.key === "Escape" && detail) {
-          event.preventDefault();
-          setDetail(null);
-          return;
-        }
         if (event.key === "ArrowRight" || event.key === "ArrowDown") {
           event.preventDefault();
           advance();
@@ -388,7 +337,7 @@ export function Pedometer() {
     >
       <InstrumentCard
         label="Steps"
-        reading={shown === null ? undefined : groupDigits(shown)}
+        reading={today === null ? undefined : groupDigits(today)}
         onPress={advance}
         /* The dots are `aria-hidden`, so "page 2 of 3" has to reach the button's
            own name — otherwise the one thing a screen-reader user cannot get at
@@ -420,58 +369,14 @@ export function Pedometer() {
               label={cardLabel}
               className="w-full text-ink select-none"
             >
-              {detailDay ? (
-                <>
-                  <div className="absolute inset-x-0 top-[7%] px-[8%]">
-                    <p className="text-[0.4375rem] font-medium uppercase tracking-[0.08em] text-ink">
-                      {longDate(detailDay.date)}
-                    </p>
-                  </div>
-                  <DayStat top="26%" name="Steps" value={groupDigits(detailDay.steps ?? 0)} />
-                  <DayStat top="52%" name="Of goal" value={share(detailDay.steps, goal)} />
-
-                  {/* The day's line. Not a route and never labelled as one: nothing
-                      here knows where anybody went. Its length is the day's
-                      walking, and its shape is fixed by the date, so a day drawn
-                      once is drawn the same way for good. */}
-                  <svg viewBox="0 0 100 100" aria-hidden className="absolute inset-0 h-full w-full">
-                    <path
-                      d={tracePath(traceFor(detailDay.date, detailDay.steps ?? 0), 58, 4)}
-                      transform="translate(40, 26)"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={1.6}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      opacity={0.9}
-                    />
-                    {(() => {
-                      const line = traceFor(detailDay.date, detailDay.steps ?? 0);
-                      if (line.length === 0) return null;
-                      const start = line[0];
-                      return (
-                        <circle
-                          cx={40 + 4 + start.x * 50}
-                          cy={26 + 4 + start.y * 50}
-                          r={2.2}
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={1.4}
-                        />
-                      );
-                    })()}
-                  </svg>
-                </>
-              ) : null}
-
-              {page === 1 && !detailDay ? (
+              {page === 1 ? (
                 <>
                   <RecordLabel top="34%" name="Total today" value={share(today, goal)} />
                   <RecordLabel top="86%" name="7-day average" value={share(average, goal)} />
                 </>
               ) : null}
 
-              {page === 2 && !detailDay ? (
+              {page === 2 ? (
                 <>
                   <svg viewBox="0 0 100 100" className="pointer-events-none absolute inset-0 h-full w-full">
                     {monthDays.map((day) => {
@@ -481,37 +386,19 @@ export function Pedometer() {
                       if (row >= WEEK_ROWS) return null;
                       const state = dayState(day, goal, todayDate);
                       const style = DAY_STYLE[state];
-                      const known = state === "met" || state === "missed";
+                      /* A dot and nothing else. It used to carry an invisible
+                         press target too; at this size that target was 11px
+                         across, which is a control in name only. Nothing here
+                         takes a pointer now, so nothing implies it can. */
                       return (
-                        <g key={day.date}>
-                          <circle
-                            cx={COL_X + col * COL_STEP}
-                            cy={ROW_Y + row * ROW_STEP}
-                            r={DOT_R * style.scale}
-                            fill={state === "missed" ? "var(--color-miss)" : "currentColor"}
-                            opacity={style.opacity}
-                          />
-                          {/* A day with something to say is a control. Its target is
-                              far larger than the dot and invisible with it, because
-                              a three-unit dot is not something a finger can be asked
-                              to hit. The press is swallowed so the card does not
-                              also turn the page under it. */}
-                          {known ? (
-                            <circle
-                              cx={COL_X + col * COL_STEP}
-                              cy={ROW_Y + row * ROW_STEP}
-                              r={COL_STEP * 0.48}
-                              fill="transparent"
-                              className="pointer-events-auto cursor-pointer"
-                              onPointerDown={(event) => event.stopPropagation()}
-                              onPointerUp={(event) => event.stopPropagation()}
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                setDetail(day.date);
-                              }}
-                            />
-                          ) : null}
-                        </g>
+                        <circle
+                          key={day.date}
+                          cx={COL_X + col * COL_STEP}
+                          cy={ROW_Y + row * ROW_STEP}
+                          r={DOT_R * style.scale}
+                          fill={state === "missed" ? "var(--color-miss)" : "currentColor"}
+                          opacity={style.opacity}
+                        />
                       );
                     })}
 
@@ -564,7 +451,12 @@ export function Pedometer() {
 
       {/* Every value the field carries, in text, so nothing here depends on
           being able to see a canvas. It sits outside the card because the card
-          already names itself; this is the reading, not the control. */}
+          already names itself; this is the reading, not the control.
+
+          The month is listed here too. It used to be reachable only by pressing
+          a day — a target no keyboard could ever land on — so removing that
+          press cost a screen reader nothing and this list gives it what the
+          press never did: every day of the month, in order, in words. */}
       <div className="sr-only">
         <p>Steps today: {todaySaid}.</p>
         <p>Seven-day average: {averageSaid}.</p>
@@ -579,6 +471,21 @@ export function Pedometer() {
             );
           })}
         </ul>
+        {monthDays.length > 0 ? (
+          <>
+            <p>This month, day by day:</p>
+            <ul>
+              {monthDays.map((day) => (
+                <li key={day.date}>
+                  {day.date}:{" "}
+                  {day.steps === null
+                    ? "not reported"
+                    : `${groupDigits(day.steps)} steps, ${share(day.steps, goal)} of the goal`}
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : null}
       </div>
     </div>
   );

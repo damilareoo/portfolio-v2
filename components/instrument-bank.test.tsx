@@ -18,6 +18,11 @@ beforeEach(() => {
 afterEach(() => { act(() => root.unmount()); host.remove(); vi.unstubAllGlobals(); });
 const render = (ui: React.ReactElement) => act(() => root.render(ui));
 
+const card = (label: string) =>
+  [...host.querySelectorAll("[data-card]")].find((el) =>
+    (el.textContent ?? "").includes(label),
+  )!;
+
 describe("InstrumentBank", () => {
   it("shows every instrument as a card", () => {
     render(<InstrumentBank />);
@@ -44,9 +49,7 @@ describe("InstrumentBank", () => {
     // The dash means "this instrument cannot read". A clock whose hands are
     // ticking beside one is the card contradicting its own face.
     render(<InstrumentBank />);
-    const lagos = [...host.querySelectorAll("[data-card]")].find((card) =>
-      (card.textContent ?? "").includes("Lagos"),
-    )!;
+    const lagos = card("Lagos");
     expect(lagos.textContent).toMatch(/\d{2}:\d{2}/);
     expect(lagos.textContent).not.toContain("—");
   });
@@ -71,6 +74,82 @@ describe("InstrumentBank", () => {
     // And it wraps, rather than stopping at an end nothing announced.
     press("ArrowLeft");
     expect(face()).toContain("page 3 of 3");
+  });
+
+  it("says it is silent when Spotify reports silence, rather than dashing", async () => {
+    // The dash means "this instrument cannot read". Spotify answering "nothing
+    // is playing" is a reading, not a failure to take one.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: unknown) =>
+        String(url).includes("now-playing")
+          ? Promise.resolve({ ok: true, json: () => Promise.resolve({ isPlaying: false }) })
+          : new Promise(() => {}),
+      ),
+    );
+    await act(async () => {
+      root.render(<InstrumentBank />);
+    });
+    const playing = card("Playing");
+    expect(playing.textContent).toContain("Silent");
+    expect(playing.textContent).not.toContain("—");
+  });
+
+  it("keeps the dash for the read it could not take", async () => {
+    // And the other half of the distinction: a refused request is ignorance,
+    // and must not be dressed up as silence.
+    vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new Error("refused"))));
+    await act(async () => {
+      root.render(<InstrumentBank />);
+    });
+    const playing = card("Playing");
+    expect(playing.textContent).toContain("—");
+    expect(playing.textContent).not.toContain("Silent");
+  });
+
+  it("does not offer a day of the month as a control it cannot size honestly", async () => {
+    // A 7x6 calendar of 44px targets does not fit inside a 96px face, so the
+    // month face is a display: dots that say met, missed, quiet and ahead, and
+    // nothing on it that takes a pointer. The month has to be populated for
+    // this to mean anything — an empty calendar draws no days to press.
+    const month = Array.from({ length: 28 }, (_, i) => ({
+      date: `2026-09-${String(i + 1).padStart(2, "0")}`,
+      steps: 12_000,
+    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: unknown) =>
+        String(url).includes("steps")
+          ? Promise.resolve({
+              ok: true,
+              json: () =>
+                Promise.resolve({
+                  today: 12_000,
+                  days: month.slice(-7),
+                  month,
+                  average7: 12_000,
+                  updatedAt: 0,
+                  goal: 10_000,
+                }),
+            })
+          : new Promise(() => {}),
+      ),
+    );
+    await act(async () => {
+      root.render(<InstrumentBank />);
+    });
+
+    const steps = host.querySelector("button[data-card]")!;
+    act(() => {
+      steps.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
+    });
+    expect(steps.getAttribute("aria-label")).toContain("page 3 of 3");
+    // The month is drawn — otherwise the two assertions below prove nothing.
+    expect(steps.querySelectorAll("svg circle").length).toBeGreaterThan(20);
+    expect(steps.querySelectorAll("[class*=cursor-pointer]")).toHaveLength(0);
+    expect(steps.querySelectorAll("[class*=pointer-events-auto]")).toHaveLength(0);
+    // And every day of the month still reaches a screen reader, in words.
+    expect(host.textContent).toContain("This month, day by day");
   });
 
   it("gives every card the same shell", () => {
