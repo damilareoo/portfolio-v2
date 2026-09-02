@@ -86,15 +86,29 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
   const arcRef = useRef<SVGCircleElement | null>(null);
 
   /* Poll on the same cadence as the counters. Nothing playing is a normal
-     answer, not an error — the cells simply return to the mark. */
+     answer, not an error — the cells simply return to the mark.
+
+     The reading is checked twice before it is believed, the way the pedometer
+     checks its own: the response has to have succeeded, and the body has to
+     carry the one field that makes it a reading. `isPlaying` is that field.
+     The route says `{ configured: false }` when it could not hear Spotify at
+     all, and a route that failed some other way says whatever a failure says —
+     neither has an `isPlaying`, and a missing `isPlaying` is falsy, so an
+     unchecked body would have printed "Silent" for both. That is the same lie
+     told from the client end. */
   useEffect(() => {
     let cancelled = false;
 
     const read = () =>
       fetch("/api/now-playing")
-        .then((r) => r.json())
-        .then((d: NowPlaying) => {
-          if (!cancelled) setTrack(d);
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data: unknown) => {
+          if (cancelled) return;
+          const ok =
+            Boolean(data) &&
+            typeof data === "object" &&
+            typeof (data as NowPlaying).isPlaying === "boolean";
+          setTrack(ok ? (data as NowPlaying) : null);
         })
         .catch(() => {
           /* Null, not `{ isPlaying: false }`. A refused or throttled request

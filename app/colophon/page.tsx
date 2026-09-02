@@ -181,12 +181,9 @@ export default function ColophonPage() {
                 them were written for this site.
               </p>
               <p>
-                The line on a day card is not a route. There is no GPS on this
-                site and none is planned. It is drawn from the one thing that is
-                known about the day &mdash; how far it went &mdash; so a longer
-                day draws a longer, more wandering line, and the figure is fixed
-                by the date, which is what makes it a record rather than a
-                decoration. It says nothing whatever about where anybody was.
+                The steps card reports how far a day went and nothing else.
+                There is no GPS on this site and none is planned; no reading
+                here has ever said anything about where anybody was.
               </p>
               <p>
                 Spotify&rsquo;s <span className="font-mono text-[0.75rem]">audio-features</span>{" "}

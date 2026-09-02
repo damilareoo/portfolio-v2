@@ -21,7 +21,7 @@ The "reporting" clause is narrower still. An instrument displaying live external
 
 Still forbidden: parallax, scroll-linked transforms, autoplay, ambient loops, and anything that keeps moving while the visitor is still. A page at rest holds no running animation, and a page at rest with nothing playing holds none either.
 
-Specs: `docs/specs/2026-08-17-v1-surfaces.md` (surfaces, motion law, case model), `docs/specs/2026-08-13-design-language.md` (language, feel) and `docs/specs/2026-08-10-portfolio-v2-design.md` (tokens, typography, stack).
+Specs, newest first: `docs/specs/2026-09-02-the-instrument-bank.md` (binding — the bank, three products, the hero statement), `docs/specs/2026-09-02-instrument-and-mosaic-design.md` (the instrument, the product, the mosaic), `docs/specs/2026-09-01-home-as-feed-design.md` (the home is the work), `docs/specs/2026-08-17-v1-surfaces.md` (surfaces, motion law, case model), `docs/specs/2026-08-13-design-language.md` (language, feel) and `docs/specs/2026-08-10-portfolio-v2-design.md` (tokens, typography, stack).
 
 ## Surfaces
 
@@ -29,7 +29,7 @@ Four, and the nav names all four.
 
 | Route | Holds |
 |---|---|
-| `/` | The work itself — a lockup carrying two live instruments, then four numbered products, each unfolding in place |
+| `/` | The work itself — a hero statement, then three numbered products, each unfolding in place, and the instrument bank at the foot |
 | `/shots` | The gallery. `/feed` redirects here permanently |
 | `/about` | The record about the person, and the roles behind it |
 | `/colophon` | How the site is made, and the instruments |
@@ -40,7 +40,7 @@ Four, and the nav names all four.
 
 There is no archive surface and no index. `/work` held a filtered restatement of a page the visitor had already read; the dated list beside the selected pieces made the same argument twice, once as an argument and once as an inventory. Both are gone, and so is the era layer that grouped the pieces by employer — it spent two of its five sections announcing it had nothing to show.
 
-What is left is the work itself: four products, numbered by position, each showing a title, a one-liner and the first two blocks of its reel, with the rest behind one control. Roles moved to `/about`, where they belong: they are a fact about the person, not a piece of work.
+What is left is the work itself: three products, numbered by position, each showing a title, a one-liner and the first two blocks of its reel, with the rest behind one control. Roles moved to `/about`, where they belong: they are a fact about the person, not a piece of work.
 
 ## The icon language
 
@@ -113,6 +113,34 @@ value and never the journey to it.
 No labels. A shot's name lives in its `alt` text, where it serves a reader who needs it without
 being drawn over the work.
 
+## The instrument bank
+
+Every reading the site takes, in one grid at the foot of the home page. What it replaced: a large disc, a medium steps card, a small clock and a medium weather face, split across two zones by a rule, at four sizes and on no shared baseline — four widgets somebody collected rather than a bank of instruments.
+
+| Card | Reads | Source |
+|---|---|---|
+| Lagos | The time, on an analogue face | The visitor's clock, ticked every second so the readout turns over *on* the minute |
+| Weather | Lagos conditions and temperature | `/api/weather`, on a 15-minute cadence |
+| Music | The track playing, as the dithered disc | `/api/now-playing`, every 30s |
+| Steps | Today against the goal | `/api/steps`, every 30s |
+
+One shape, one measure: `CARD_FACE` in `components/instrument-card.tsx` is the single number every face is drawn at, applied to the face itself rather than to a grid cell around it, so a card rendered outside the grid is still the right size. The card owns footprint, radius and label position; the face inside owns only what it reads.
+
+Two columns is the floor — a single column of four cards is a list, and a list of readings is the thing this is not. Four columns arrive at `sm` rather than `lg`: measured, the two-up at 768px gave 352px cells around a 96px face, wider than the 286px the four-up gets at 1440.
+
+Whether a card is a control is derived from whether it was given a press handler, never from a boolean that could disagree with one. Only the steps card has a second face, so only the steps card is a button. The bank plays one staggered arrival the first time it enters the viewport, under Law 4's "arriving" clause, and never again.
+
+### An instrument that cannot read says so
+
+The hard rule of the bank, and it has two halves that have to agree.
+
+- **An em dash means the instrument could not read.** No credentials, an upstream that refused or threw, a store that is not configured, a body that will not parse, a value that has not arrived yet.
+- **A word means it read fine and the answer was nothing.** "Silent" on the music card is a reading: Spotify answered, and what it said was that nothing is playing.
+
+Collapsing the two is the worst failure available here, and both API routes are written to make it impossible. `/api/steps` answers `{ configured: false }` when it has nothing to report; `/api/now-playing` says the same words for the same reason, and keeps `{ isPlaying: false }` for silence it actually heard. A failure never leaves either route wearing the shape of a reading.
+
+The clients do not take the routes on trust. Each checks that the response succeeded and that the body carries the one field that makes it a reading — `days` for the pedometer, a boolean `isPlaying` for the disc — and falls to the dash on anything else, because a missing field is falsy and an unchecked body is how an outage gets printed as silence.
+
 ## The glyph matrix
 
 One engine draws every dot field on the site: a matrix of cells with a spring apiece, a dot font, and a frame loop that stops itself. What a field says is the caller's business — it hands over a frame, and the field migrates to it.
@@ -120,12 +148,12 @@ One engine draws every dot field on the site: a matrix of cells with a spring ap
 | Field | Reports |
 |---|---|
 | The disc | The track playing, as dithered album artwork, with a ring struck on the playhead's period |
-| The pedometer | Three faces of one field — the walk, the record, and the week |
+| The pedometer | Three faces of one field — the walk, the record, and the month |
 | The forge | Nothing. It is the one field the visitor drives, on `/colophon` |
 
 ### The three faces
 
-The pedometer is one field wearing three faces, turned by swipe, click, or arrow key.
+The pedometer is one field wearing three faces, turned by click or arrow key. The swipe went when the gesture moved off the canvas and onto the card: the card is a real button, so a press anywhere on it turns the page, and the arrows step both ways for anyone without a pointer.
 
 | Face | Shows |
 |---|---|
@@ -133,13 +161,16 @@ The pedometer is one field wearing three faces, turned by swipe, click, or arrow
 | The record | Today's total and the seven-day average, set in the 3×5 dot alphabet, each under a mono label and its percentage |
 | The month | A calendar of the month you are standing in — seven columns, six rows, day letters ruled along the bottom |
 
-The calendar has three states and no more, so it reads at a glance:
+The calendar has four states, and each has to be told apart at a glance:
 
-- **Ink** — the goal was met
-- **`--miss` red** — the day ran out of hours without meeting it
-- **A quiet half-size dot** — nothing is known: a day not yet reached, or one nobody reported
+- **Ink** — `met`. The goal was made
+- **`--miss` red** — `missed`. The day ran out of hours without meeting it
+- **A mid-grey dot** — `quiet`. The day happened; nobody reported it
+- **A small faint dot** — `ahead`. Not reached yet, and nothing to say about it
 
-Opening a reported day draws **the day's line**: a figure whose length is that day's walking, seeded from the date so the same day always draws the same shape. It is deliberately *not* a route — there is no GPS here — and the colophon says so on the page rather than only in the code.
+The last two both mean "unknown" and are still drawn differently, because a day that went by unrecorded and a day that has not happened are not the same admission, and drawing them alike would flatten the month.
+
+The month face is a display, not a control. A day used to open a page of its own through an invisible target; inside a 96px card face that target measured about 11px, and no keyboard could ever land on it. A 7×6 grid of 44px targets does not fit in a 96px face at any arrangement, so the interaction was removed rather than shrunk. Every day of the month reaches a screen reader in words instead, which is more than the press ever gave one.
 
 Today wears a pill. Today is never red: a day still being walked has not been missed, which is the same rule as an unreported day not being a day of no walking, applied to the one day still happening.
 
@@ -282,12 +313,12 @@ The site reports on itself with real data, so it is never identical twice.
 | Counter | Source | Behaviour |
 |---|---|---|
 | Dials turned | Upstash Redis, shared by every visitor | Read once on mount; moves only when you turn a dial |
-| Now playing | Spotify, refreshed every 30s | The halftone disc, bottom right |
+| Now playing | Spotify, refreshed every 30s | The dithered disc, third card in the instrument bank |
 | Build | `VERCEL_GIT_COMMIT_SHA` at build time | Version and short commit |
 
 Law 4 governs all three: the dial count never polls and never climbs on its own, and the roll animation fires only for a turn the visitor caused.
 
-Now-playing is the halftone disc, sitting in the home layout beside the work list. Album artwork is converted to grayscale and rendered as an ordered-dither dot field, which is what lets real artwork onto a site with no accent hue — dithering discards the colour rather than suppressing it, and what survives is the one thing the palette trades in.
+Now-playing is the dithered disc, a card in the instrument bank at the foot of the home page. Not a halftone — dot size is constant and brightness carries the tone, the same way a shot arrives on the panel above. Album artwork is converted to grayscale and rendered as an ordered-dither dot field, which is what lets real artwork onto a site with no accent hue — dithering discards the colour rather than suppressing it, and what survives is the one thing the palette trades in.
 
 | State | Disc |
 |---|---|
@@ -308,7 +339,7 @@ Environment: `KV_REST_API_URL` and `KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_*
 
 ## Status
 
-Four surfaces. The home is the work: a lockup carrying two live instruments, then four numbered products, each unfolding in place behind a full-width bar. Both skins are tuned against a measured contrast floor that `lib/contrast.test.ts` holds, type comes from one six-step scale, and Shots is a band mosaic. The version record is `data/changelog.ts`, rendered at `/changelog`.
+Four surfaces. The home is the work: a hero statement, then three numbered products, each unfolding in place behind a full-width bar, and the instrument bank in the footer. Both skins are tuned against a measured contrast floor that `lib/contrast.test.ts` holds, type comes from one six-step scale, and Shots is a band mosaic. The version record is `data/changelog.ts`, rendered at `/changelog`.
 
 Outstanding, and worth being exact about:
 

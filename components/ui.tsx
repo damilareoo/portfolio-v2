@@ -51,10 +51,11 @@ export function Meta({ label, value }: { label: string; value: ReactNode }) {
 }
 
 /**
- * A fact, recorded. The site keeps facts in label/value rows on `/about`, on
- * `/colophon`, and on a case page, and until now each surface drew its own —
- * which is why the case page read as foreign rather than as under-designed.
- * This is the shape the majority already used.
+ * A fact, recorded. The site keeps facts in label/value rows on `/about` and
+ * on `/colophon`, and each surface used to draw its own — which is how two
+ * pages saying the same kind of thing ended up looking unrelated. One shape,
+ * the one the majority already used. It outlived the case pages that were its
+ * third caller, because the argument for it never depended on them.
  */
 export function RecordRow({ label, children }: { label: string; children: ReactNode }) {
   return (

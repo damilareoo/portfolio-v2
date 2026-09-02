@@ -25,7 +25,7 @@ import type { StepsDay, StepsReading } from "@/lib/steps";
 const GRID = 25; // dots across
 const SIZE = 300; // canvas units; CSS scales it
 
-/** The walk, the record, the week — in that order, because that is their order. */
+/** The walk, the record, the month — in that order, because that is their order. */
 const FACES = ["the walk", "the record", "the month"] as const;
 
 /**
@@ -100,14 +100,6 @@ function weekday(day: StepsDay | undefined, index: number): { letter: string; na
 /**
  * What a day is, on the calendar face.
  *
- * Three states and no more, because the face has to be read at a glance from
- * across a room: the goal was met, the goal was missed, or nothing is known.
- * A day nobody has reached yet and a day nobody reported are both "unknown" —
- * they are drawn alike because they mean alike, that the site cannot say.
- */
-/**
- * What a day is, on the calendar face.
- *
  * Four states, and each has to be told apart at a glance on either skin:
  *
  * - `met`     full ink. The goal was made.
@@ -167,10 +159,9 @@ function RecordLabel({ top, name, value }: { top: string; name: string; value: s
  *
  * The walk carries the idea: a figure on a path, ground covered behind it at
  * full size and brightness, the road ahead small and dim. The record states the
- * numbers. The week sets today against the six days behind it, and says whether
- * each was met without spending a hue on it — a missed day is an absence, and
- * an open ring is what an absence looks like in a field of dots. There is no
- * fourth page any more; see `PAGES`.
+ * numbers. The month lays out the month you are standing in and says, day by
+ * day, which of the four things each one was — met, missed, quiet, ahead; see
+ * `DayState`. There is no fourth page any more; see `PAGES`.
  *
  * It wears an `InstrumentCard` like every other reading on the site, and the
  * card is what turns it: the press target is the whole card rather than the
@@ -308,8 +299,6 @@ export function Pedometer() {
   const turning = "Press the card, or use the arrow keys, to turn the page.";
   const label = `Steps, page ${page + 1} of ${PAGES}: ${FACES[page]}. ${said}. ${turning}`;
 
-  const cardLabel = label;
-
   /* One press, one turn. */
   const advance = () => setPage((current) => (current + 1) % PAGES);
 
@@ -353,7 +342,7 @@ export function Pedometer() {
         /* The dots are `aria-hidden`, so "page 2 of 3" has to reach the button's
            own name — otherwise the one thing a screen-reader user cannot get at
            is which of the three faces they are looking at. */
-        pressLabel={cardLabel}
+        pressLabel={label}
       >
         {/* The field, and under it the strip the page indicator lives in. Both
             sit inside the card's face, so the pedometer's footprint is exactly
@@ -377,7 +366,7 @@ export function Pedometer() {
                  and this is the drawing. A press anywhere on the card turns the
                  page, including a press on the field itself, which is the same
                  click it always was. */
-              label={cardLabel}
+              label={label}
               className="w-full text-ink select-none"
             >
               {page === 1 ? (

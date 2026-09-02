@@ -7,7 +7,14 @@ import { resolve } from "node:path";
 export default defineConfig({
   test: {
     environment: "node",
-    include: ["lib/**/*.test.ts", "components/**/*.test.tsx", "data/**/*.test.ts"],
+    // Route handlers are here too: what a route answers when it cannot read is
+    // half of the honesty rule, and the client half is worth little on its own.
+    include: [
+      "app/**/*.test.ts",
+      "lib/**/*.test.ts",
+      "components/**/*.test.tsx",
+      "data/**/*.test.ts",
+    ],
     setupFiles: ["./vitest.setup.ts"],
   },
   resolve: { alias: { "@": resolve(__dirname, ".") } },

@@ -65,10 +65,12 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Closes on the same two readings the header opened on — larger, so the
-          echo reads as deliberate rather than a re-used component by accident.
-          Elsewhere sits here rather than in the header because a reader looks
-          for contact after seeing the work, not before it. */}
+      {/* Every reading the site takes, in one place, and only here. They used to
+          be duplicated in the header, which spent the first screen on something
+          nobody came for and made the pair at the foot read as an echo rather
+          than as the instruments themselves. Elsewhere sits here rather than in
+          the header for the same reason: a reader looks for contact after
+          seeing the work, not before it. */}
       <footer className="mt-8 rule-t pt-6 pb-8">
         <InstrumentBank />
         <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2">
