@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GlyphCell } from "@/components/glyph-cell";
+import { CARD_FACE, InstrumentCard } from "@/components/instrument-card";
 import { artFrame, spotifyMark } from "@/lib/glyph/glyphs";
 import { TUNING } from "@/lib/glyph/matrix";
 import { fingerprint, pulsesBetween } from "@/lib/glyph/pulse";
@@ -24,6 +25,13 @@ const GRID = 48; // dots across
    across the artwork with no meaning attached to it. */
 const ARC_SCALE = 1.09; // just clear of the dots, at any size the disc is set to
 
+/* How wide the disc is drawn inside the card's face. The arc is a share of the
+   disc and hangs outside it, and the card's face clips at its own edge — a disc
+   drawn at the full measure would have its progress arc sliced off at four
+   points. So the disc gives back what the arc needs, and the pair of them
+   together is what fills the face. */
+const DISC = Math.floor(CARD_FACE / ARC_SCALE) - 4;
+
 /* How much harder a playhead pulse strikes than a fingertip.
    The engine's damping is close to critical, so a ring at force 1 displaces the
    field by about a fifth of a canvas unit — under a tenth of a pixel at the size
@@ -42,11 +50,6 @@ const PULSE_FORCE = 24;
 const ARC_RADIUS = 47;
 const ARC_LENGTH = 2 * Math.PI * ARC_RADIUS;
 
-function clock(ms: number) {
-  const total = Math.round(ms / 1000);
-  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
-}
-
 /**
  * Now-playing as an ordered-dither disc.
  *
@@ -64,12 +67,15 @@ function clock(ms: number) {
  * position Spotify reports and nothing else. It is not on the beat, and cannot
  * be: `audio-features` and `audio-analysis` answer 403 for this application,
  * so there is no tempo here to be on. When the music stops, so does all of it.
+ *
+ * It renders its own `InstrumentCard`, because the shell is what makes four
+ * readings a bank rather than four widgets — a disc that sized itself was half
+ * the defect this replaces.
  */
 export function NowPlayingDisc({ className = "" }: { className?: string }) {
   const markRef = useRef<Float32Array | null>(null);
   const [frame, setFrame] = useState<Float32Array | null>(null);
   const [track, setTrack] = useState<NowPlaying | null>(null);
-  const [open, setOpen] = useState(false);
 
   const trackRef = useRef<NowPlaying | null>(null);
   /* When the reading in `trackRef` was taken, so the playhead can be carried
@@ -237,14 +243,13 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
     : "Nothing playing. Click the disc to ripple it.";
 
   return (
-    <div className={`flex flex-col items-center gap-3 ${className}`}>
-      {/* The record answers to the disc alone, so the reveal is wired here and
-          not on the column — the block below must not reveal itself. */}
-      <div
-        className="relative"
-        onPointerEnter={() => setOpen(true)}
-        onPointerLeave={() => setOpen(false)}
-      >
+    /* The disc wears the same card as every other reading. What went with the
+       old column: the hover-revealed record line under it, and the link to the
+       track on Spotify. The card's label row carries the title instead — and a
+       link would have fought the disc for the same click, which already means
+       "ripple it". */
+    <InstrumentCard label="Playing" reading={playing ? track!.title : undefined}>
+      <div className="relative" style={{ width: DISC }}>
         <GlyphCell
           grid={GRID}
           size={SIZE}
@@ -252,7 +257,7 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
           frame={frame}
           onTick={onTick}
           label={label}
-          className="w-[144px] cursor-pointer text-ink sm:w-[176px]"
+          className={`w-full cursor-pointer text-ink ${className}`}
         />
 
         {/* How far through the track, as a hairline outside the dots. Nothing
@@ -278,44 +283,6 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
           />
         </svg>
       </div>
-
-      {/* The record. Present in the layout at all times so revealing it never
-          shifts anything around it. */}
-      {/* Wider than the 128px disc on purpose — the track line has to fit
-          without crushing, and the block is always present so revealing it
-          never shifts the layout. On a phone it gives that width back: the
-          pedometer stands beside it there, and the pair has to fit. */}
-      <div className="h-9 w-[9rem] max-w-full text-center sm:w-[15rem]">
-        <div
-          className={`transition-opacity duration-200 ${open || playing ? "opacity-100" : "opacity-0"}`}
-        >
-          <p className="font-mono text-[0.5rem] uppercase tracking-[0.08em] text-ink-3">
-            {playing ? "Now playing" : "Spotify"}
-          </p>
-          {playing ? (
-            <a
-              href={track!.songUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-0.5 block truncate text-[0.6875rem] text-ink-2 transition-colors hover:text-ink"
-            >
-              <span className="text-ink">{track!.title}</span>
-              <span className="text-ink-3"> — </span>
-              {track!.artist}
-              {Boolean(track!.durationMs) && (
-                <span className="text-ink-3">
-                  {" "}
-                  {clock(track!.progressMs ?? 0)}/{clock(track!.durationMs ?? 0)}
-                </span>
-              )}
-            </a>
-          ) : (
-            <p className="mt-0.5 text-[0.6875rem] text-ink-3">
-              {track === null ? "—" : "Nothing playing"}
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
+    </InstrumentCard>
   );
 }

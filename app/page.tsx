@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { GlyphBay } from "@/components/glyph-bay";
 import { GlyphIcon } from "@/components/glyph-icon";
 import { InstrumentPair } from "@/components/instrument-pair";
 import { Product } from "@/components/product";
@@ -53,8 +52,6 @@ export default function Home() {
           <Product key={item.slug} item={item} assets={workAssets[item.slug] ?? []} index={i} />
         ))}
       </div>
-
-      <GlyphBay className="mt-20" />
 
       {/* Closes on the same two readings the header opened on — larger, so the
           echo reads as deliberate rather than a re-used component by accident.

@@ -65,7 +65,11 @@ export function InstrumentCard({
         >
           {label}
         </span>
-        <span className="shrink-0 font-mono text-2xs tabular-nums text-ink-2">
+        {/* Capped and truncated, because one of these readings is a track
+            title and a title is as long as whoever named it. An uncapped
+            value pushes the label out of its own card, which is the shared
+            shell breaking on real data. */}
+        <span className="min-w-0 max-w-[62%] shrink-0 truncate font-mono text-2xs tabular-nums text-ink-2">
           {hasReading ? reading : "—"}
         </span>
       </div>
