@@ -4,47 +4,70 @@ import type { ReactNode } from "react";
 /**
  * The measure every face is drawn at. One number, because the defect this
  * component exists to fix was four instruments at four sizes — a large disc, a
- * medium card, a small clock — with no shared baseline between them.
+ * medium card, a small clock — with no shared baseline between them. The card
+ * applies this to the face itself (not just to a grid cell around it), so a
+ * card rendered outside the bank's grid is still the right size.
  */
 export const CARD_FACE = 96;
 
 /**
  * One instrument, in the shape every instrument takes.
  *
- * The card owns footprint, radius, padding and where the label sits; the face
- * inside owns only what it reads. That division is the whole argument: a bank
- * of readings rather than a collection of widgets.
+ * The card owns footprint, radius and where the label sits; the face inside
+ * owns only what it reads. That division is the whole argument: a bank of
+ * readings rather than a collection of widgets. There is no padding here —
+ * the face sits flush to the card's own edge — so this shell claims none.
  *
- * `reading` absent is not the same as empty. A card with nothing to say prints
- * an em dash and keeps its label, because an instrument that cannot read must
- * say so — a blank card reads as broken, and a stale one lies.
+ * `reading` absent, empty or whitespace-only are all treated as "nothing to
+ * report": the card prints an em dash and keeps its label rather than a blank
+ * value next to a live-looking label, because an instrument that cannot read
+ * must say so — a blank card reads as broken, and a stale one lies.
+ *
+ * There is no `interactive` prop. Whether the card is a control is derived
+ * from whether `onPress` was given, because a boolean that can disagree with
+ * the handler is exactly how a dead button gets built by accident — "a
+ * control that does nothing is a lie told with a cursor" should be
+ * impossible to construct, not just discouraged in a comment.
  */
 export function InstrumentCard({
   label,
   reading,
-  interactive = false,
   onPress,
   children,
 }: {
   label: string;
-  /** The value, if there is one. Absent renders the unreported dash. */
+  /** The value, if there is one. Absent, empty or blank all render the dash. */
   reading?: string;
-  /** True only when the card has a second face to turn to. */
-  interactive?: boolean;
+  /** Present only when the card has a second face to turn to; its presence
+   *  is what makes the card a control — see the docblock above. */
   onPress?: () => void;
   children: ReactNode;
 }) {
+  const interactive = typeof onPress === "function";
+  const hasReading = typeof reading === "string" && reading.trim().length > 0;
+
   const body = (
     <>
       <div
         data-face
-        className="grid aspect-square w-full place-items-center overflow-hidden rounded-[var(--radius-tile)] bg-surface-2"
+        style={{ width: CARD_FACE, height: CARD_FACE }}
+        className="grid aspect-square place-items-center overflow-hidden rounded-[var(--radius-tile)] bg-surface-2"
       >
         {children}
       </div>
-      <div className="mt-2.5 flex items-baseline justify-between gap-2">
-        <span className="font-mono text-2xs uppercase tracking-wider text-ink-3">{label}</span>
-        <span className="font-mono text-2xs tabular-nums text-ink-2">{reading ?? "—"}</span>
+      {/* Fixed height plus a truncated label: two cards with a one-word and a
+          run-on label must still end up the same height, or the "one shape
+          for every instrument" promise breaks the moment real copy arrives. */}
+      <div data-label-row className="mt-2.5 flex h-5 items-center gap-2">
+        <span
+          data-label
+          className="min-w-0 flex-1 truncate font-mono text-2xs uppercase tracking-wider text-ink-3"
+        >
+          {label}
+        </span>
+        <span className="shrink-0 font-mono text-2xs tabular-nums text-ink-2">
+          {hasReading ? reading : "—"}
+        </span>
       </div>
     </>
   );
@@ -62,6 +85,10 @@ export function InstrumentCard({
       type="button"
       data-card
       onClick={onPress}
+      /* The face's children plus the label and reading would otherwise
+         concatenate into whatever the face happens to render — a jumble, not
+         a name. Say what pressing the button does instead. */
+      aria-label={`Turn the ${label} card to its other face`}
       className={`${lift} min-h-[2.75rem] cursor-pointer`}
     >
       {body}
