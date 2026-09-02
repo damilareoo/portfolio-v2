@@ -28,7 +28,8 @@ const suisseMono = localFont({
 
 export const metadata: Metadata = {
   title: "Damilare Osofisan",
-  description: "Product designer and builder creating 0–1 experiences. Work, experiments, and process.",
+  description:
+    "Damilare Osofisan — product designer and builder in Lagos. Interfaces, identity, and the systems underneath them, taken from nothing to shipped.",
 };
 
 export const viewport: Viewport = {

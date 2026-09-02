@@ -97,7 +97,8 @@ export const work: WorkItem[] = [
   {
     slug: "hitmans-library",
     title: "Hitman's Library",
-    oneLiner: "A collection of cool experiences across the web.",
+    oneLiner:
+      "Just under two hundred websites worth studying, each taken apart into its palette, typefaces, and assets.",
     year: "2025",
     disciplines: ["Build", "Interaction"],
     href: "https://hitmanslibrary.xyz",
@@ -149,7 +150,8 @@ export const work: WorkItem[] = [
   {
     slug: "sylvan",
     title: "Sylvan",
-    oneLiner: "Identity for a revenue intelligence platform. Noise into signal.",
+    oneLiner:
+      "Identity for a revenue analytics company: one signal mark, and a system built to read as the opposite of a cluttered dashboard.",
     year: "2025",
     disciplines: ["Identity"],
     href: "https://sylvanlabs.com",
@@ -189,7 +191,8 @@ export const work: WorkItem[] = [
   {
     slug: "chessever",
     title: "ChessEver",
-    oneLiner: "Follow professional chess in real time.",
+    oneLiner:
+      "Live professional chess on iOS and Android — boards, clocks, and standings, in the gap FollowChess left when it shut down.",
     year: "2025",
     disciplines: ["Product Design", "Interaction"],
     href: "https://chessever.com",

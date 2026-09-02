@@ -32,7 +32,7 @@ describe("InstrumentBank", () => {
   it("names each reading for someone who cannot see it", () => {
     render(<InstrumentBank />);
     const text = host.textContent ?? "";
-    for (const label of ["Lagos", "Weather", "Playing", "Steps"]) {
+    for (const label of ["Lagos", "Weather", "Music", "Steps"]) {
       expect(text).toContain(label);
     }
   });
@@ -90,9 +90,9 @@ describe("InstrumentBank", () => {
     await act(async () => {
       root.render(<InstrumentBank />);
     });
-    const playing = card("Playing");
-    expect(playing.textContent).toContain("Silent");
-    expect(playing.textContent).not.toContain("—");
+    const music = card("Music");
+    expect(music.textContent).toContain("Silent");
+    expect(music.textContent).not.toContain("—");
   });
 
   it("keeps the dash for the read it could not take", async () => {
@@ -102,9 +102,9 @@ describe("InstrumentBank", () => {
     await act(async () => {
       root.render(<InstrumentBank />);
     });
-    const playing = card("Playing");
-    expect(playing.textContent).toContain("—");
-    expect(playing.textContent).not.toContain("Silent");
+    const music = card("Music");
+    expect(music.textContent).toContain("—");
+    expect(music.textContent).not.toContain("Silent");
   });
 
   it("does not offer a day of the month as a control it cannot size honestly", async () => {

@@ -10,7 +10,7 @@ import { work } from "@/data/work";
 /**
  * The home is the work.
  *
- * There is no index and no selected grid: a lockup, a short record, then four
+ * There is no index and no selected grid: a lockup, a short record, then three
  * products, numbered, in the order `data/work.ts` lists them. The era layer
  * that used to group them by employer is gone — it spent two of its five
  * sections announcing it had nothing to show, which is furniture arguing with

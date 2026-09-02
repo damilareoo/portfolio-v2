@@ -271,7 +271,7 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
        track on Spotify. The card's label row carries the title instead — and a
        link would have fought the disc for the same click, which already means
        "ripple it". */
-    <InstrumentCard label="Playing" reading={reading}>
+    <InstrumentCard label="Music" reading={reading}>
       <div className="relative" style={{ width: DISC }}>
         <GlyphCell
           grid={GRID}

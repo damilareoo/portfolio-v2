@@ -15,7 +15,7 @@ import type { Asset } from "@/data/assets.generated";
  * One product, numbered, on the home.
  *
  * This is `EraSection` and `EraEntry` merged. Eras contained entries, so it
- * took two components to draw one piece of work; four flat products need one.
+ * took two components to draw one piece of work; three flat products need one.
  * The number is the era's — ordering made visible — and the head, the reel and
  * the fold are the entry's, unchanged.
  *
@@ -27,7 +27,7 @@ import type { Asset } from "@/data/assets.generated";
  *
  * The open state is deliberately not persisted. Law 3 governs layout the
  * visitor sets, as the DialKit does; a reading position is not a setting, and a
- * portfolio that reopens four dossiers on arrival has forgotten what the
+ * portfolio that reopens three dossiers on arrival has forgotten what the
  * collapsed state was for.
  */
 export function Product({
