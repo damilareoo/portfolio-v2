@@ -2,55 +2,37 @@
 
 import Image from "next/image";
 import { PanelField } from "@/components/panel-field";
-import { PITCH } from "@/lib/glyph/panel";
-import {
-  COLUMNS_NARROW,
-  COLUMNS_WIDE,
-  DRIFT,
-  WIDE_QUERY,
-  bucketShots,
-} from "@/lib/shots-layout";
-import { useMediaQuery } from "@/lib/use-media-query";
+import { composeMosaic } from "@/lib/mosaic";
 import type { Asset } from "@/data/assets.generated";
 
 export function ShotsField({ shots }: { shots: Asset[] }) {
-  const columns = useMediaQuery(WIDE_QUERY) ? COLUMNS_WIDE : COLUMNS_NARROW;
-
-  const buckets = bucketShots(shots, columns);
+  const bands = composeMosaic(shots);
 
   return (
-    /* Columns is the revision: crossing the breakpoint rebuilds the columns,
-       and the observer has to be rebuilt with them or it spends the rest of
-       the page watching frames that are no longer in the document. */
+    /* Shot count is the revision: it only changes when the feed itself
+       changes, and the observer has to be rebuilt with it or it spends the
+       rest of the page watching frames that are no longer in the document. */
     <PanelField
-      revision={columns}
-      className="grid grid-cols-2 gap-[21px] lg:grid-cols-4"
+      revision={shots.length}
+      className="grid grid-cols-2 gap-[21px] lg:grid-cols-12"
       style={{ alignItems: "start" }}
     >
-      {buckets.map((bucket, c) => (
+      {bands.flat().map(({ item, span }) => (
         <div
-          key={c}
-          className="flex flex-col gap-[21px]"
-          style={{ paddingTop: `${DRIFT[c % DRIFT.length] * PITCH}px` }}
+          key={item.src}
+          data-frame
+          className="relative col-span-1 overflow-hidden bg-surface-2 lg:[grid-column:span_var(--span)]"
+          style={{ "--span": span, aspectRatio: `${item.width} / ${item.height}` } as React.CSSProperties}
         >
-          {bucket.map((shot) => (
-            <div
-              key={shot.src}
-              data-frame
-              className="relative overflow-hidden bg-surface-2"
-              style={{ aspectRatio: `${shot.width} / ${shot.height}` }}
-            >
-              <canvas className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden />
-              <Image
-                src={shot.src}
-                alt={shot.title}
-                width={shot.width}
-                height={shot.height}
-                sizes="(min-width: 1024px) 24vw, 46vw"
-                className="h-full w-full object-cover opacity-0"
-              />
-            </div>
-          ))}
+          <canvas className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden />
+          <Image
+            src={item.src}
+            alt={item.title}
+            width={item.width}
+            height={item.height}
+            sizes="(min-width: 1024px) 50vw, 92vw"
+            className="h-full w-full object-cover opacity-0"
+          />
         </div>
       ))}
     </PanelField>
