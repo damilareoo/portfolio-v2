@@ -22,6 +22,18 @@
 - **An instrument that cannot read admits it** — never a guess, never a blank face.
 - **Anything backed by `localStorage` is read through `useSyncExternalStore`**; the client-only check is `useMounted` in `lib/use-mounted.ts`. No mounted-flag effects.
 - **This repo's Next has breaking changes versus what you may expect.** Read the relevant guide under `node_modules/next/dist/docs/` before writing Next-API-shaped code, and heed deprecation notices. `next/image` uses `preload`, not `priority`.
+- **Responsive is a requirement, not a polish pass.** Every surface must be usable at any width from
+  320px to ultrawide, and at any height, on touch and on pointer. Two things follow. **Mobile is its
+  own layout, never a squished desktop** — a narrow viewport gets a layout designed for it (compact,
+  content first), not the wide one scaled down. And **no page may ever scroll horizontally**: wide
+  content (a mosaic band, a case frame, a code block) scrolls inside its own container, never the
+  body.
+- **Responsive type steps by breakpoint, never by viewport units.** A step may be swapped at a
+  breakpoint (`text-lg lg:text-xl`), but a font size must never be written as `vw`, `clamp()` with a
+  viewport term, or anything else outside the rem scale — the site's type dial multiplies the root
+  font size, and a viewport-derived size is out of its reach.
+- Touch targets are at least 44px in their smallest dimension. A control that is only reachable by
+  hover has a non-hover path.
 - Every task ends green on `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test`, `pnpm build`.
 
 ## File structure
@@ -1750,7 +1762,49 @@ git commit -m "The feed composes itself"
 
 ---
 
-### Task 10: Ship — DO NOT RUN WITHOUT THE USER'S EXPLICIT GO-AHEAD
+### Task 10: The responsive pass
+
+**Files:** whichever surfaces the audit finds wanting — `app/page.tsx`, `components/product.tsx`, `components/instrument-pair.tsx`, `components/shots-field.tsx`, `components/site-footer.tsx`, `components/site-nav.tsx`, `app/globals.css`.
+
+This is an audit with fixes, not a feature. Everything before it was built to the responsive
+constraint; this task proves it and closes what it finds.
+
+- [ ] **Step 1: Measure, don't eyeball.** Drive a real browser (`pnpm dev`) at these widths, and at
+  each one record the document's scroll width against its client width:
+  `320, 360, 390, 414, 480, 640, 768, 834, 1024, 1280, 1440, 1920, 2560`. Any width where
+  `document.documentElement.scrollWidth > document.documentElement.clientWidth` is a horizontal
+  scroll defect — record the offending element by walking the DOM for nodes wider than the viewport.
+  Do this for `/`, `/shots`, `/about` and `/colophon`.
+
+- [ ] **Step 2: Check the short viewport too.** At 360×640 and at 800×400 (a phone held sideways),
+  confirm the hero band does not consume the whole screen and that the first product is reachable.
+
+- [ ] **Step 3: Check the specific things most likely to be wrong**, each of which has a known cause:
+  - The hero band wraps rather than overflowing, and the two instrument faces do not shrink below
+    legibility — step them down at narrow widths rather than letting flex squeeze them.
+  - The mosaic is two columns below `lg` and never four slivers.
+  - The unfold bar's label and frame count do not collide at 320px.
+  - A case reel's `pair` and `inset` blocks stack rather than staying side by side on a phone.
+  - `RecordRow`'s fixed 72px label column still leaves a usable value column at 320px.
+  - The nav chip row wraps rather than scrolling the page.
+
+- [ ] **Step 4: Fix what you found**, mobile-first: give the narrow viewport its own layout rather
+  than scaling the wide one down. Sizes stay on the rem scale, swapped by breakpoint.
+
+- [ ] **Step 5: Re-measure** at every width in step 1 and confirm zero horizontal overflow on all
+  four routes.
+
+- [ ] **Step 6: Run everything and commit**
+
+```bash
+pnpm exec tsc --noEmit && pnpm lint && pnpm test && pnpm build
+git add -A
+git commit -m "Every width, and no page that scrolls sideways"
+```
+
+---
+
+### Task 11: Ship — DO NOT RUN WITHOUT THE USER'S EXPLICIT GO-AHEAD
 
 This task pushes to a shared branch and deploys to production. It is withheld deliberately. Do not begin it because the previous nine tasks are green.
 
@@ -1771,3 +1825,5 @@ This task pushes to a shared branch and deploys to production. It is withheld de
 6. The three retired `/work/*` URLs resolve to their product anchors.
 7. The feed places every shot exactly once, newest first, with no two adjacent shots the same width.
 8. A collapsed case study's text is still found by search-in-page, and a collapsed product downloads none of its images.
+9. No route scrolls horizontally at any width from 320px to 2560px, and the narrow layout is
+   designed for narrow rather than being the wide one scaled down.
