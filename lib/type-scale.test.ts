@@ -16,6 +16,9 @@ const GOVERNED = [
   "components/site-footer.tsx",
   "components/era-entry.tsx",
   "components/era-section.tsx",
+  "components/instrument-pair.tsx",
+  "components/clock-face.tsx",
+  "components/weather-face.tsx",
 ];
 
 describe("the type scale", () => {
