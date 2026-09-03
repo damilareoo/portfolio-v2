@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { GlyphIcon } from "@/components/glyph-icon";
+import { GlyphText } from "@/components/glyph-text";
 import { InstrumentWall } from "@/components/instrument-wall";
 import { Product } from "@/components/product";
 import { SiteNav } from "@/components/site-nav";
@@ -19,6 +20,10 @@ import { work } from "@/data/work";
  * here only because /shots, /about and /colophon still exist.
  */
 export default function Home() {
+  /* Padded the same way each product numbers itself, so the count and the
+     three ordinals below it read as one system rather than two. */
+  const featuredCount = String(work.length).padStart(2, "0");
+
   return (
     <main className="mx-auto w-full max-w-[1240px] px-5 py-4 sm:px-6">
       <SiteNav current="/" />
@@ -72,6 +77,19 @@ export default function Home() {
           </div>
         </div>
       </header>
+
+      {/* Sits directly on the rule the first product already draws, so the
+          label reads as a caption on that boundary rather than a fourth
+          heading stacked above the three below it. The count is spoken as
+          text for a screen reader and drawn as the matrix's own numerals for
+          everyone else, the same split each product's own number makes. */}
+      <div className="flex items-baseline justify-between gap-x-4 pb-2 text-sm text-ink-2">
+        <span>Featured work</span>
+        <span className="flex items-baseline gap-1.5">
+          <span className="sr-only">{featuredCount}</span>
+          <GlyphText text={featuredCount} size="0.5rem" className="text-ink-3" />
+        </span>
+      </div>
 
       <div className="space-y-20">
         {work.map((item, i) => (
