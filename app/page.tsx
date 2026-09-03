@@ -44,7 +44,7 @@ export default function Home() {
       <header className="mt-10 pb-8 short:mt-6 short:pb-6">
         <div className="grid min-w-0 gap-x-8 gap-y-4 short-wide:grid-cols-2 short-wide:items-start">
           <div className="min-w-0">
-            <h1 className="text-xl font-medium tracking-tight">&rsquo;{site.name}</h1>
+            <h1 className="text-xl font-bold tracking-tight">&rsquo;{site.name}</h1>
             <p className="mt-3 max-w-[46ch] text-base leading-relaxed text-ink-2">
               Interfaces, identity, and the systems underneath them — taken from
               nothing to shipped. Most recently for chess platforms and a revenue
