@@ -86,10 +86,18 @@ function arrivalStart(): number | null {
  * A stylesheet that has not loaded — jsdom, chiefly — hands back an empty
  * string, which parses to NaN and gets the constant. A field that paints on the
  * wrong floor is worth more than a field that does not paint.
+ *
+ * The clamp is hardening rather than a fix for anything reachable: only an edit
+ * to the stylesheet could declare a floor above 1. It is here because the
+ * failure would be silent and strange. Canvas does not clamp an out-of-range
+ * `globalAlpha`, it *ignores* the assignment — so a floor of 5 would leave
+ * every dot painting at whatever alpha the previous cell happened to set, and
+ * the field would come out as garbage with nothing thrown.
  */
 function skinFloor(style: CSSStyleDeclaration): number {
   const declared = Number.parseFloat(style.getPropertyValue("--pixel-floor"));
-  return Number.isFinite(declared) ? declared : PIXEL_FLOOR;
+  if (!Number.isFinite(declared)) return PIXEL_FLOOR;
+  return Math.min(Math.max(declared, 0), 1);
 }
 
 /**
@@ -129,8 +137,15 @@ export function GlyphCell({
   /** Read once per frame. Returning null means nothing to report — and, with
       nothing else in flight, is what lets the loop stop. */
   onTick?: (now: number) => Tick | null;
-  /** The shape of a cell. The LED panel this language comes from is square;
-      the widget cards that quote it are round, and both are Nothing's. */
+  /** The shape of a cell.
+
+      At the present `PIXEL_ROUNDING` these two draw the identical circle: the
+      round path arcs at `side / 2` and the square path round-rects at a corner
+      radius of `side / 2`, which on a square is the same circle. So this prop
+      is, today, a no-op — and the branch in `draw` is kept anyway, because it
+      is degenerate only at that one constant. Move the rounding off a half and
+      the square path is a rounded square again with nothing to re-add. Deleting
+      the branch would trade a live choice for two lines. */
   pixel?: "square" | "round";
   /** What an unlit cell is still worth, when the caller wants to say. Left
       unsaid it is the skin's own floor, which keeps the whole lattice faintly

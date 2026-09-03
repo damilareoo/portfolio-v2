@@ -31,19 +31,28 @@
   --text-lg: 1.25rem;
   --text-xl: 1.875rem;
 
-  /* One cell of a rule, how much of it the dot fills, and what an unlit dot in
-     a field is still worth. The fill is the same number lib/glyph/pixel.ts
-     draws every pixel with — CSS cannot import it, so pixel.test.ts asserts the
-     two agree, and the rules below are therefore drawn on the pixel's own hand.
+  /* One cell of a rule, how much of it the dash fills, and what an unlit dot in
+     a field is still worth.
+
+     The rule's fill was `PIXEL_FILL` until the field's pixel became a circle.
+     They were the same number because they meant the same thing, and they
+     stopped meaning it: `PIXEL_FILL` went to 0.82 to repay the area a circle
+     loses to the square it is inscribed in — π/4 of it — and a rule's dash is
+     a square, so it owes no such tax. Sharing the number handed the rules a
+     compensation for a cost they do not pay, and shrank the gap in this 2px
+     pitch from 0.52px to 0.36px, which on a 2× display is a resolvable gap
+     becoming a sub-pixel one. So the rule keeps the hand the pixel had, under
+     its own name, and the field's fill is free to move without dragging it.
+     pixel.test.ts holds that seam open.
 
      The floor lives here rather than in TypeScript because it is a property of
      the skin, like a colour, and GlyphCell reads it beside the ink. An unlit
      dot has to stay present without becoming a wash, and presence costs more
      ink on a pale ground than on a dark one. This is the light value; `.dark`
      takes it down. The reasoning is written out in lib/glyph/pixel.ts. */
-  --pixel-fill: 0.82;
-  --pixel-floor: 0.1;
+  --rule-fill: 0.74;
   --rule-cell: 2px;
+  --pixel-floor: 0.1;
 
   --bg: #f2f2f2;
   --surface: #ffffff;
@@ -123,9 +132,12 @@ body {
 }
 
 /* A border that separates is a mark; a border that contains is an edge. Rules
-   are drawn as pixels on the icon's own pitch, square rather than round,
-   because the field has drawn square pixels since v1.5.0. Containment borders
-   — frames, cards, chips, inputs — are untouched and stay hairlines.
+   are drawn as pixels on the icon's own pitch, and square rather than round —
+   a dash reads as a rule, and a row of circles reads as a dotted line imitating
+   one. The field's pixel is a circle now and the rule deliberately did not
+   follow it; see `--rule-fill` above for why it kept the old number too.
+   Containment borders — frames, cards, chips, inputs — are untouched and stay
+   hairlines.
 
    Wrapped in @layer utilities so last:bg-none — itself emitted inside
    @layer utilities by Tailwind — can win on cascade order instead of
@@ -136,12 +148,12 @@ body {
     background-image: repeating-linear-gradient(
       to right,
       var(--border) 0,
-      var(--border) calc(var(--rule-cell) * var(--pixel-fill)),
-      transparent calc(var(--rule-cell) * var(--pixel-fill)),
+      var(--border) calc(var(--rule-cell) * var(--rule-fill)),
+      transparent calc(var(--rule-cell) * var(--rule-fill)),
       transparent var(--rule-cell)
     );
     background-repeat: repeat-x;
-    background-size: 100% calc(var(--rule-cell) * var(--pixel-fill));
+    background-size: 100% calc(var(--rule-cell) * var(--rule-fill));
   }
 
   .rule-b {

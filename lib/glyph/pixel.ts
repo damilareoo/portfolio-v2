@@ -24,8 +24,11 @@
    ink lands within a few percent of the square it replaces, and the cell still
    keeps most of a fifth of itself as gap, so the lattice stays a matrix.
 
-   `--pixel-fill` in app/globals.css is this same number: the dotted rules are
-   drawn on the pixel's own hand, and pixel.test.ts asserts the two agree. */
+   The dotted rules in app/globals.css used to be drawn on this same number and
+   no longer are. Their dash is a square and owes no π/4 tax, so handing them
+   the compensation would have closed their gap for a cost they do not pay. They
+   hold the old 0.74 under their own name, `--rule-fill`, which is what leaves
+   this constant free to move. pixel.test.ts holds that seam open. */
 export const PIXEL_FILL = 0.82;
 export const PIXEL_ROUNDING = 0.5;
 

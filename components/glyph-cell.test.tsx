@@ -36,8 +36,10 @@ function recordCanvas() {
       painted.clears++;
     },
     beginPath: () => {},
-    /* The field draws square pixels. The centre is recovered from the corner so
-       a ring travelling across the field can still be seen by where it struck. */
+    /* The field's square path is what jsdom sees, and at the present rounding it
+       round-rects a circle rather than a square — the radius is half the side.
+       The centre is recovered from the corner so a ring travelling across the
+       field can still be seen by where it struck. */
     roundRect: (x: number, _y: number, w: number, _h: number, r: number) => {
       painted.arcs++;
       painted.radii.push(r);
@@ -576,17 +578,48 @@ describe("the floor an unlit dot sits on", () => {
     expect(painted.alphas[1]).toBeCloseTo(PIXEL_FLOOR, 6);
   });
 
-  it("lets a caller who named a floor keep it, whatever the skin says", () => {
+  it("clamps a floor no stylesheet should have declared", () => {
+    skinDeclares("5");
+    const painted = paintOne(
+      <GlyphCell grid={GRID} size={SIZE} frame={frame()} polarity="ink" label="broken sheet" />,
+    );
+
+    /* Hardening, not a live defect — only an edit to globals.css could get
+       here. It is worth a test because the failure is silent: a real canvas
+       *ignores* an out-of-range `globalAlpha` rather than clamping it, so an
+       unclamped 5 would leave every dot painting at whatever alpha the previous
+       one left behind, and the whole field would come out wrong with nothing
+       thrown. Clamped to 1, every cell is full ink — wrong-looking, but
+       legible, and traceable to the stylesheet that said so. */
+    expect(painted.arcs).toBeGreaterThanOrEqual(CELLS);
+    expect(painted.alphas.every((alpha) => alpha === 1)).toBe(true);
+  });
+
+  it("lets a caller who named a zero keep it, whatever the skin says", () => {
     skinDeclares("0.05");
     const painted = paintOne(
       <GlyphCell grid={GRID} size={SIZE} frame={frame()} polarity="ink" unlit={0} label="card" />,
     );
 
     /* `unlit={0}` is the widget cards saying a cell that is off is simply not
-       there. The skin must not put a lattice back under them. */
+       there. The skin must not put a lattice back under them, and zero is the
+       value a `||` here would have thrown away — hence `??` in the component. */
     expect(painted.arcs).toBeGreaterThanOrEqual(1);
     // One pixel per paint, however many times it repaints: the other 63 cells
     // are unlit, and an unlit cell under a caller's own zero draws nothing.
     expect(painted.alphas.every((alpha) => alpha === 1)).toBe(true);
+  });
+
+  it("lets a caller who named any other floor keep that too", () => {
+    skinDeclares("0.05");
+    const painted = paintOne(
+      <GlyphCell grid={GRID} size={SIZE} frame={frame()} polarity="ink" unlit={0.3} label="lit card" />,
+    );
+
+    /* Zero is the interesting falsy case and it is not the only case. A caller
+       who asks for a heavier lattice than the skin's must get it, or the prop
+       only half exists. */
+    expect(painted.alphas[0]).toBeCloseTo(1, 6);
+    expect(painted.alphas[1]).toBeCloseTo(0.3, 6);
   });
 });

@@ -11,7 +11,8 @@ describe("the shared pixel", () => {
   });
 
   it("turns corners by no more than half the pixel", () => {
-    // Beyond half a side the rounding would make it a circle, not a pixel.
+    // Half a side is a circle, which is what the pixel now is. Past half there
+    // is no shape left to draw — the radius would exceed the side it rounds.
     const { side, radius } = pixelGeometry(10);
     expect(PIXEL_ROUNDING).toBeGreaterThan(0);
     expect(radius).toBeLessThanOrEqual(side / 2);
@@ -49,14 +50,38 @@ describe("the pixel", () => {
   });
 });
 
-describe("the rule shares the pixel's hand", () => {
-  it("declares the same fill ratio in CSS as in TypeScript", () => {
-    // globals.css cannot import a constant, so this is the seam where the two
-    // can drift. A rule drawn at a different fill is a second language.
-    const css = readFileSync(resolve(process.cwd(), "app/globals.css"), "utf8");
-    const declared = css.match(/--pixel-fill:\s*([\d.]+)/);
-    expect(declared, "globals.css must declare --pixel-fill").not.toBeNull();
-    expect(Number(declared![1])).toBe(PIXEL_FILL);
+describe("the rule keeps its own hand", () => {
+  /* These were one number, and this test asserted they agreed: a rule drawn at
+     a different fill was a second language. They stopped meaning the same thing
+     when the pixel became a circle. `PIXEL_FILL` went to 0.82 to repay the π/4
+     of its square that a circle gives up, and a rule's dash is a square, so it
+     owes nothing — shared, the number would have closed the rules' gap to pay a
+     debt they never took on. The seam is still a seam; it just guards a
+     separation now instead of an equality. */
+  const css = readFileSync(resolve(process.cwd(), "app/globals.css"), "utf8");
+
+  it("declares a fill of its own", () => {
+    const declared = css.match(/--rule-fill:\s*([\d.]+)/);
+    expect(declared, "globals.css must declare --rule-fill").not.toBeNull();
+    expect(Number(declared![1])).toBeGreaterThan(0);
+    expect(Number(declared![1])).toBeLessThan(1);
+  });
+
+  it("draws itself with that fill and not the field's", () => {
+    const block = css.match(/\.rule-b,\s*\n\s*\.rule-t\s*\{[\s\S]*?\n {2}\}/);
+    expect(block, "globals.css must declare the .rule-b/.rule-t block").not.toBeNull();
+    expect(block![0]).toContain("--rule-fill");
+    // Re-coupling the two is the drift this file exists to catch, and it would
+    // be an easy tidy-up to make: the numbers look like they want to be one.
+    expect(block![0]).not.toContain("--pixel-fill");
+  });
+
+  it("leaves no copy of the field's fill in CSS to drift against", () => {
+    // Nothing in the stylesheet consumes it any more, and a declared-but-unused
+    // duplicate of a TypeScript constant is the drift trap wearing a token's
+    // name. PIXEL_FILL is free to move because there is nothing to keep in step.
+    expect(css).not.toContain("--pixel-fill");
+    expect(PIXEL_FILL).toBeGreaterThan(0);
   });
 });
 
@@ -75,9 +100,15 @@ describe("the floor belongs to the skin", () => {
     return Number(declared![1]);
   };
 
-  it("declares a floor on each skin", () => {
-    expect(floorIn(":root")).toBeGreaterThan(0);
-    expect(floorIn("\\.dark")).toBeGreaterThan(0);
+  it("declares a floor on each skin, inside the range an alpha has", () => {
+    /* The upper bound is not pedantry. Canvas ignores an out-of-range
+       `globalAlpha` rather than clamping it, so a floor above 1 would paint
+       every dot at whatever alpha the last one left set — silently. GlyphCell
+       clamps what it reads; this keeps the stylesheet from needing it to. */
+    for (const skin of [":root", "\\.dark"]) {
+      expect(floorIn(skin)).toBeGreaterThan(0);
+      expect(floorIn(skin)).toBeLessThanOrEqual(1);
+    }
   });
 
   it("spends less ink on the dark skin, where near-black is already a surface", () => {
