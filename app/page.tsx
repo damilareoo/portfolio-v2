@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { GlyphIcon } from "@/components/glyph-icon";
-import { InstrumentBank } from "@/components/instrument-bank";
+import { InstrumentWall } from "@/components/instrument-wall";
 import { Product } from "@/components/product";
 import { SiteNav } from "@/components/site-nav";
 import { workAssets } from "@/data/assets.generated";
@@ -70,20 +70,25 @@ export default function Home() {
           nobody came for and made the pair at the foot read as an echo rather
           than as the instruments themselves. Elsewhere sits here rather than in
           the header for the same reason: a reader looks for contact after
-          seeing the work, not before it. */}
-      <footer className="mt-8 rule-t pt-6 pb-8">
-        <InstrumentBank />
-        <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2">
-          <Link
-            href="/shots"
-            className="text-xs text-ink-2 transition-colors hover:text-ink"
-          >
+          seeing the work, not before it.
+
+          The footer carries no rule and no top padding of its own: the wall
+          draws its own top edge and stands flush against it, because a panel
+          inset from the rule that bounds it is an object on the page rather
+          than the bottom of it. Everything else down here is one quiet line. */}
+      <footer className="mt-8 pb-8">
+        <InstrumentWall />
+        {/* The line under the panel: the name, then everywhere else. Its own
+            `rule-t` is the wall's bottom edge — one pixel, drawn once, by
+            whichever element is below it. `text-xs` puts it a step under the
+            readings' values, so the panel is read first and this is what you
+            find when you have finished with it. */}
+        <div className="rule-t flex flex-wrap items-center gap-x-5 gap-y-2 pt-4 text-xs">
+          <span className="font-medium tracking-tight text-ink">{site.handle}</span>
+          <Link href="/shots" className="text-ink-2 transition-colors hover:text-ink">
             Shots
           </Link>
-          <Link
-            href="/colophon"
-            className="text-xs text-ink-2 transition-colors hover:text-ink"
-          >
+          <Link href="/colophon" className="text-ink-2 transition-colors hover:text-ink">
             Colophon
           </Link>
           {elsewhere.map((place) => (
@@ -92,7 +97,7 @@ export default function Home() {
               href={place.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-ink-2 transition-colors hover:text-ink"
+              className="text-ink-2 transition-colors hover:text-ink"
             >
               {place.label}{" "}
               <GlyphIcon

@@ -17,7 +17,7 @@ const GOVERNED = [
   "components/site-footer.tsx",
   "components/product.tsx",
   "components/instrument-card.tsx",
-  "components/instrument-bank.tsx",
+  "components/instrument-wall.tsx",
   "components/clock-face.tsx",
   "components/weather-face.tsx",
   /* The pedometer's overlay type. It sat at a literal 0.5rem — the one size on

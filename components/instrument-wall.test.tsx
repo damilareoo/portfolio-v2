@@ -1,9 +1,9 @@
-// components/instrument-bank.test.tsx
+// components/instrument-wall.test.tsx
 // @vitest-environment jsdom
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { InstrumentBank } from "@/components/instrument-bank";
+import { InstrumentWall } from "@/components/instrument-wall";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -18,47 +18,43 @@ beforeEach(() => {
 afterEach(() => { act(() => root.unmount()); host.remove(); vi.unstubAllGlobals(); });
 const render = (ui: React.ReactElement) => act(() => root.render(ui));
 
-const card = (label: string) =>
-  [...host.querySelectorAll("[data-card]")].find((el) =>
+const reading = (label: string) =>
+  [...host.querySelectorAll("[data-reading]")].find((el) =>
     (el.textContent ?? "").includes(label),
   )!;
 
-describe("InstrumentBank", () => {
-  it("shows every instrument as a card", () => {
-    render(<InstrumentBank />);
-    expect(host.querySelectorAll("[data-card]")).toHaveLength(4);
+describe("InstrumentWall", () => {
+  it("shows every reading", () => {
+    render(<InstrumentWall />);
+    expect(host.querySelectorAll("[data-reading]")).toHaveLength(4);
   });
 
-  it("names each reading for someone who cannot see it", () => {
-    render(<InstrumentBank />);
-    const text = host.textContent ?? "";
-    for (const label of ["Lagos", "Weather", "Music", "Steps"]) {
-      expect(text).toContain(label);
-    }
+  it("names each one for a screen reader, though none is labelled on screen", () => {
+    render(<InstrumentWall />);
+    const named = [...host.querySelectorAll(".sr-only")].map((n) => n.textContent).join(" ");
+    for (const name of ["Lagos", "Weather", "Music", "Steps"]) expect(named).toContain(name);
   });
 
-  it("never falls to one column, because a column of cards is a list", () => {
-    render(<InstrumentBank />);
-    const grid = host.querySelector("[data-bank]")!;
-    expect(grid.className).toContain("grid-cols-2");
-    expect(grid.className).not.toMatch(/grid-cols-1\b/);
+  it("never falls to one column", () => {
+    render(<InstrumentWall />);
+    const wall = host.querySelector("[data-wall]")!;
+    expect(wall.className).toContain("grid-cols-2");
+    expect(wall.className).toContain("sm:grid-cols-4");
+    expect(wall.className).not.toMatch(/grid-cols-1\b/);
   });
 
-  it("goes four-up at sm, where the cell would otherwise dwarf the face", () => {
-    // Measured at 768: two columns gave 352px cells around a 96px face — wider
-    // than the 286px cell the four-up gets at 1440. The four-up has to arrive
-    // while the cells are still close to the face, not a viewport later.
-    render(<InstrumentBank />);
-    const grid = host.querySelector("[data-bank]")!;
-    expect(grid.className).toContain("sm:grid-cols-4");
-    expect(grid.className).not.toContain("lg:grid-cols-4");
+  it("divides readings with a rule rather than boxing each one", () => {
+    // The chaos this replaces: four bordered cards floating under a rule.
+    render(<InstrumentWall />);
+    const wall = host.querySelector("[data-wall]")!;
+    expect(wall.className).toMatch(/divide-x|border/);
   });
 
   it("tells the time rather than a dash, because the clock can always read", () => {
     // The dash means "this instrument cannot read". A clock whose hands are
-    // ticking beside one is the card contradicting its own face.
-    render(<InstrumentBank />);
-    const lagos = card("Lagos");
+    // ticking beside one is the reading contradicting its own face.
+    render(<InstrumentWall />);
+    const lagos = reading("Lagos");
     expect(lagos.textContent).toMatch(/\d{2}:\d{2}/);
     expect(lagos.textContent).not.toContain("—");
   });
@@ -67,8 +63,8 @@ describe("InstrumentBank", () => {
     // The dots are indicators, not controls, so the arrows are the only way to
     // page without a pointer — and a pager that only goes forward makes you
     // walk the whole ring to get back one face.
-    render(<InstrumentBank />);
-    const steps = host.querySelector("button[data-card]")!;
+    render(<InstrumentWall />);
+    const steps = host.querySelector("button[data-reading]")!;
     const face = () => steps.getAttribute("aria-label") ?? "";
     const press = (key: string) =>
       act(() => {
@@ -97,9 +93,9 @@ describe("InstrumentBank", () => {
       ),
     );
     await act(async () => {
-      root.render(<InstrumentBank />);
+      root.render(<InstrumentWall />);
     });
-    const music = card("Music");
+    const music = reading("Music");
     expect(music.textContent).toContain("Silent");
     expect(music.textContent).not.toContain("—");
   });
@@ -109,18 +105,18 @@ describe("InstrumentBank", () => {
     // and must not be dressed up as silence.
     vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new Error("refused"))));
     await act(async () => {
-      root.render(<InstrumentBank />);
+      root.render(<InstrumentWall />);
     });
-    const music = card("Music");
+    const music = reading("Music");
     expect(music.textContent).toContain("—");
     expect(music.textContent).not.toContain("Silent");
   });
 
   it("does not offer a day of the month as a control it cannot size honestly", async () => {
-    // A 7x6 calendar of 44px targets does not fit inside a 96px face, so the
-    // month face is a display: dots that say met, missed, quiet and ahead, and
-    // nothing on it that takes a pointer. The month has to be populated for
-    // this to mean anything — an empty calendar draws no days to press.
+    // A 7x6 calendar of 44px targets does not fit inside the face a bay gives
+    // it, so the month face is a display: dots that say met, missed, quiet and
+    // ahead, and nothing on it that takes a pointer. The month has to be
+    // populated for this to mean anything — an empty calendar draws no days.
     const month = Array.from({ length: 28 }, (_, i) => ({
       date: `2026-09-${String(i + 1).padStart(2, "0")}`,
       steps: 12_000,
@@ -145,10 +141,10 @@ describe("InstrumentBank", () => {
       ),
     );
     await act(async () => {
-      root.render(<InstrumentBank />);
+      root.render(<InstrumentWall />);
     });
 
-    const steps = host.querySelector("button[data-card]")!;
+    const steps = host.querySelector("button[data-reading]")!;
     act(() => {
       steps.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
     });
@@ -161,8 +157,8 @@ describe("InstrumentBank", () => {
     expect(host.textContent).toContain("This month, day by day");
   });
 
-  it("gives every card the same shell", () => {
-    render(<InstrumentBank />);
+  it("gives every reading the same shell", () => {
+    render(<InstrumentWall />);
     const faces = [...host.querySelectorAll("[data-face]")];
     expect(faces).toHaveLength(4);
     for (const face of faces) expect(face.className).toContain("aspect-square");

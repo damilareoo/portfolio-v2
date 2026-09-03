@@ -18,6 +18,16 @@ import type { ReactNode } from "react";
  * moves to `srLabel` and is rendered `sr-only`, because removing a visible
  * label must not remove the accessible one.
  *
+ * The value is `text-sm`, two steps up the scale from the `text-2xs` it was.
+ * That size was chosen for a 96px card and it was right there; against a face
+ * that now fills its bay — 108px on a phone, ~250px at four-up — 9px of mono
+ * read as a caption on a photograph rather than as a readout, and this is the
+ * only visible identifier the reading has left. `text-sm` is also the site's
+ * own small-text step, which the footer's links and the lockup's byline already
+ * speak in, so the value joins a voice the page has instead of keeping a
+ * micro-size invented for a card that no longer exists. `text-base` was tried
+ * against the phone's 108px face and starts to compete with it.
+ *
  * The face is `aspect-square w-full`: it takes whatever the cell gives it.
  * Pinning it to one number was right while every reading stood in an equal
  * cell of a four-column grid, and is wrong the moment the cells differ — a
@@ -72,11 +82,13 @@ export function InstrumentReading({
       {/* Fixed height plus a truncated value: two readings, one printing a time
           and one printing a track title, must still end up the same height, or
           the "one shape for every instrument" promise breaks the moment real
-          copy arrives. A title is as long as whoever named it. */}
-      <div className="mt-2.5 flex h-5 items-center justify-center">
+          copy arrives. A title is as long as whoever named it. The fixed row is
+          also what aligns the values to one baseline straight across the wall,
+          whatever each face put above it. */}
+      <div className="mt-3 flex h-5 items-center justify-center sm:mt-4">
         <span
           data-value
-          className="min-w-0 truncate font-mono text-2xs tabular-nums text-ink-2"
+          className="min-w-0 truncate font-mono text-sm tabular-nums text-ink-2"
         >
           {hasValue ? value : "—"}
         </span>
@@ -90,12 +102,12 @@ export function InstrumentReading({
   const lift =
     "block w-full text-left transition-transform duration-200 ease-out hover:-translate-y-0.5";
 
-  if (!interactive) return <div data-card className={lift}>{body}</div>;
+  if (!interactive) return <div data-reading className={lift}>{body}</div>;
 
   return (
     <button
       type="button"
-      data-card
+      data-reading
       onClick={onPress}
       /* The face's children plus the name and the value would otherwise
          concatenate into whatever the face happens to render — a jumble, not

@@ -5,7 +5,7 @@
  *
  * This file used to end in a bay: a flex row that stood the disc and the
  * pedometer side by side at their own sizes. The instruments now stand in the
- * bank — `components/instrument-bank.tsx` — where one card shape and one grid
+ * wall — `components/instrument-wall.tsx` — where one card shape and one grid
  * hold all four readings, so the layout wrapper had nothing left to arrange
  * and went. What remains is the instrument itself, which the bank places.
  */

@@ -72,7 +72,7 @@ describe("InstrumentReading", () => {
         <InstrumentReading srLabel="B"><span>a much longer child</span></InstrumentReading>
       </>,
     );
-    const [one, two] = [...host.querySelectorAll("[data-card]")];
+    const [one, two] = [...host.querySelectorAll("[data-reading]")];
     expect(one.className).toBe(two.className);
   });
 
