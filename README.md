@@ -29,7 +29,7 @@ Four, and the nav names all four.
 
 | Route | Holds |
 |---|---|
-| `/` | The work itself — a hero statement, then three numbered products, each unfolding in place, and the instrument bank at the foot |
+| `/` | The work itself — a hero statement, then three numbered products, each unfolding in place, and the instrument wall at the foot |
 | `/shots` | The gallery. `/feed` redirects here permanently |
 | `/about` | The record about the person, and the roles behind it |
 | `/colophon` | How the site is made, and the instruments |
@@ -113,29 +113,31 @@ value and never the journey to it.
 No labels. A shot's name lives in its `alt` text, where it serves a reader who needs it without
 being drawn over the work.
 
-## The instrument bank
+## The instrument wall
 
-Every reading the site takes, in one grid at the foot of the home page. What it replaced: a large disc, a medium steps card, a small clock and a medium weather face, split across two zones by a rule, at four sizes and on no shared baseline — four widgets somebody collected rather than a bank of instruments.
+Every reading the site takes, flush across the whole measure, hairline-divided, at the foot of `/` and of the two workshop surfaces that do not write their own footer (`/system`, `/changelog`). What it replaced: a large disc, a medium steps card, a small clock and a medium weather face, split across two zones by a rule, at four sizes and on no shared baseline — four widgets somebody collected rather than a wall of instruments.
 
-| Card | Reads | Source |
+| Reading | Reads | Source |
 |---|---|---|
 | Lagos | The time, on an analogue face | The visitor's clock, ticked every second so the readout turns over *on* the minute |
-| Weather | Lagos conditions and temperature | `/api/weather`, on a 15-minute cadence |
+| Weather | Lagos conditions and temperature | Open-Meteo direct from the client, one shared reading per document, on a 15-minute cadence — `lib/use-weather.ts`. There is no `/api/weather`. |
 | Music | The track playing, as the dithered disc | `/api/now-playing`, every 30s |
 | Steps | Today against the goal | `/api/steps`, every 30s |
 
-One shape, no measure: `InstrumentReading` in `components/instrument-card.tsx` draws its face at `aspect-square w-full`, so a reading takes whatever the cell gives it rather than being pinned at one number. The shell owns radius and where the value sits; the face inside owns only what it reads. There is no visible label — a clock looks like a clock, and the word above it repeated the picture — so the name is carried by `srLabel` and rendered `sr-only`, and the value beneath the face is the sole visible identifier.
+One shape, no measure: `InstrumentReading` in `components/instrument-card.tsx` draws its face at `aspect-square w-full`, so a reading takes whatever the cell gives it rather than being pinned at one number — roughly 93px on the narrowest phone up to about 215px at four-up on a wide screen. Any tuning done against a fixed face size is tuning against a number that no longer exists. The shell owns radius and where the value sits; the face inside owns only what it reads. There is no visible label — a clock looks like a clock, and the word above it repeated the picture — so the name is carried by `srLabel` and rendered `sr-only`, and the value beneath the face is the sole visible identifier.
 
-Two columns is the floor — a single column of four cards is a list, and a list of readings is the thing this is not. Four columns arrive at `sm` rather than `lg`: measured, the two-up at 768px gave 352px cells around a 96px face, wider than the 286px the four-up gets at 1440.
+Two columns is the floor — a single column of four readings is a list, and a list of readings is the thing this is not. Four columns arrive at `sm` rather than `lg`: measured, the two-up at 768px gave 352px cells around a 96px face, wider than the 286px the four-up gets at 1440.
 
-Whether a card is a control is derived from whether it was given a press handler, never from a boolean that could disagree with one. Only the steps card has a second face, so only the steps card is a button. The bank plays one staggered arrival the first time it enters the viewport, under Law 4's "arriving" clause, and never again.
+Whether a reading is a control is derived from whether it was given a press handler, never from a boolean that could disagree with one. Only the steps reading has a second face, so only the steps reading is a button; the disc is a picture, carries no pointer cursor, and its accessible name says what is playing rather than instructing a click it cannot honour. The wall plays one staggered arrival the first time it enters the viewport, under Law 4's "arriving" clause, and never again.
+
+Beneath it, one quiet line of links — `components/footer-line.tsx`, written once and rendered by both footers, so a network added to `elsewhere` in `data/site.ts` lands on every surface. The version chip is the line's only variable, and it varies by face rather than by surface: `lib/site-mode.ts` says the workshop carries Changelog and the public face does not.
 
 ### An instrument that cannot read says so
 
-The hard rule of the bank, and it has two halves that have to agree.
+The hard rule of the wall, and it has two halves that have to agree.
 
 - **An em dash means the instrument could not read.** No credentials, an upstream that refused or threw, a store that is not configured, a body that will not parse, a value that has not arrived yet.
-- **A word means it read fine and the answer was nothing.** "Silent" on the music card is a reading: Spotify answered, and what it said was that nothing is playing.
+- **A word means it read fine and the answer was nothing.** "Silent" on the music reading is a reading: Spotify answered, and what it said was that nothing is playing.
 
 Collapsing the two is the worst failure available here, and both API routes are written to make it impossible. `/api/steps` answers `{ configured: false }` when it has nothing to report; `/api/now-playing` says the same words for the same reason, and keeps `{ isPlaying: false }` for silence it actually heard. A failure never leaves either route wearing the shape of a reading.
 
@@ -153,7 +155,7 @@ One engine draws every dot field on the site: a matrix of cells with a spring ap
 
 ### The three faces
 
-The pedometer is one field wearing three faces, turned by click or arrow key. The swipe went when the gesture moved off the canvas and onto the card: the card is a real button, so a press anywhere on it turns the page, and the arrows step both ways for anyone without a pointer.
+The pedometer is one field wearing three faces, turned by click or arrow key. The swipe went when the gesture moved off the canvas and onto the reading: the reading is a real button, so a press anywhere on it turns the page, and the arrows step both ways for anyone without a pointer.
 
 | Face | Shows |
 |---|---|
@@ -170,13 +172,13 @@ The calendar has four states, and each has to be told apart at a glance:
 
 The last two both mean "unknown" and are still drawn differently, because a day that went by unrecorded and a day that has not happened are not the same admission, and drawing them alike would flatten the month.
 
-The month face is a display, not a control. A day used to open a page of its own through an invisible target; inside a 96px card face that target measured about 11px, and no keyboard could ever land on it. A 7×6 grid of 44px targets does not fit in a 96px face at any arrangement, so the interaction was removed rather than shrunk. Every day of the month reaches a screen reader in words instead, which is more than the press ever gave one.
+The month face is a display, not a control. A day used to open a page of its own through an invisible target; inside the 96px face of the card this replaced, that target measured about 11px, and no keyboard could ever land on it. A 7×6 grid of 44px targets needs 308px square, which is more than the face is ever given, so the interaction was removed rather than shrunk. Every day of the month reaches a screen reader in words instead, which is more than the press ever gave one.
 
 Today wears a pill. Today is never red: a day still being walked has not been missed, which is the same rule as an unreported day not being a day of no walking, applied to the one day still happening.
 
 The pulse is arithmetic on playback position, not beat detection: Spotify answers 403 for the `audio-features` and `audio-analysis` endpoints for this application, so there is no tempo to be had. The colophon's Provenance section states this, along with what the dot language owes Nothing's interface and what it uses of theirs — none of their code, assets, or trademarks.
 
-Steps come from a phone automation posting to a guarded route. Setup is documented at `docs/steps-setup.md`; until it is configured the card degrades to placeholder dots, because a day nobody reported is not a day of no walking.
+Steps come from a phone automation posting to a guarded route. Setup is documented at `docs/steps-setup.md`; until it is configured the reading degrades to placeholder dots, because a day nobody reported is not a day of no walking.
 
 A glyph drawn in the forge is kept on the visitor's own device and never sent here. Only the fact that one was drawn is counted, once per browser.
 
@@ -313,12 +315,12 @@ The site reports on itself with real data, so it is never identical twice.
 | Counter | Source | Behaviour |
 |---|---|---|
 | Dials turned | Upstash Redis, shared by every visitor | Read once on mount; moves only when you turn a dial |
-| Now playing | Spotify, refreshed every 30s | The dithered disc, third card in the instrument bank |
+| Now playing | Spotify, refreshed every 30s | The dithered disc, third reading on the instrument wall |
 | Build | `VERCEL_GIT_COMMIT_SHA` at build time | Version and short commit |
 
 Law 4 governs all three: the dial count never polls and never climbs on its own, and the roll animation fires only for a turn the visitor caused.
 
-Now-playing is the dithered disc, a card in the instrument bank at the foot of the home page. Not a halftone — dot size is constant and brightness carries the tone, the same way a shot arrives on the panel above. Album artwork is converted to grayscale and rendered as an ordered-dither dot field, which is what lets real artwork onto a site with no accent hue — dithering discards the colour rather than suppressing it, and what survives is the one thing the palette trades in.
+Now-playing is the dithered disc, a reading on the instrument wall at the foot of the home page. Not a halftone — dot size is constant and brightness carries the tone, the same way a shot arrives on the panel above. Album artwork is converted to grayscale and rendered as an ordered-dither dot field, which is what lets real artwork onto a site with no accent hue — dithering discards the colour rather than suppressing it, and what survives is the one thing the palette trades in.
 
 | State | Disc |
 |---|---|
@@ -339,7 +341,7 @@ Environment: `KV_REST_API_URL` and `KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_*
 
 ## Status
 
-Four surfaces. The home is the work: a hero statement, then three numbered products, each unfolding in place behind a full-width bar, and the instrument bank in the footer. Both skins are tuned against a measured contrast floor that `lib/contrast.test.ts` holds, type comes from one six-step scale, and Shots is a band mosaic. The version record is `data/changelog.ts`, rendered at `/changelog`.
+Four surfaces. The home is the work: a hero statement, then three numbered products, each unfolding in place behind a full-width bar, and the instrument wall in the footer. Both skins are tuned against a measured contrast floor that `lib/contrast.test.ts` holds, type comes from one six-step scale, and Shots is a band mosaic. The version record is `data/changelog.ts`, rendered at `/changelog`.
 
 Outstanding, and worth being exact about:
 

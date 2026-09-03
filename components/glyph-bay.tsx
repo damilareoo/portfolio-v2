@@ -7,7 +7,7 @@
  * pedometer side by side at their own sizes. The instruments now stand in the
  * wall — `components/instrument-wall.tsx` — where one card shape and one grid
  * hold all four readings, so the layout wrapper had nothing left to arrange
- * and went. What remains is the instrument itself, which the bank places.
+ * and went. What remains is the instrument itself, which the wall places.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -139,13 +139,22 @@ function columnOf(date: string): number {
  * A label the dot alphabet cannot set, laid over the band the number left it.
  *
  * Sized off the scale's smallest step rather than off a literal. It was written
- * at 0.5rem for a card 144–176px wide; the bank draws this field at 84px, and
- * measured there "TOTAL TODAY" came to 53px against a value of 19px in 72px of
- * usable width — the label ended exactly where the reading began, and the
- * seven-day row overlapped by a pixel. Two fixes, because either alone would
- * have been a near miss: the names are now as short as the reading they name,
- * and `--text-2xs` is the floor every other label in the bank already sits on,
- * so this one is no longer the only type on the site below the scale.
+ * at 0.5rem for a card 144–176px wide, and it broke the first time the field
+ * was drawn small: at the 84px the old bank gave it, "TOTAL TODAY" came to 53px
+ * against a value of 19px in 72px of usable width — the label ended exactly
+ * where the reading began, and the seven-day row overlapped by a pixel. Two
+ * fixes, because either alone would have been a near miss: the names are now as
+ * short as the reading they name, and `--text-2xs` is the floor every other
+ * label already sits on, so this one is no longer the only type on the site
+ * below the scale.
+ *
+ * Do not retune this against those numbers. They are the record of one failure,
+ * not the measure to design to: the wall gives the field no fixed width at all
+ * any more — roughly 93px on the narrowest phone up to about 215px at four-up
+ * on a wide screen, and more again if the visitor turns the type dial. Both
+ * names and both values are set in percentages of whatever that turns out to be
+ * and are free to truncate, so the test is the small end, and the small end
+ * moves with the viewport.
  */
 function RecordLabel({ top, name, value }: { top: string; name: string; value: string }) {
   return (
@@ -187,13 +196,20 @@ export function Pedometer() {
 
   /* The same thirty seconds the disc polls on. An unconfigured store, a failed
      fetch and a day nobody has reported are all the same answer here — nothing
-     to say — and all three land as placeholder dots rather than as an error. */
+     to say — and all three land as placeholder dots rather than as an error.
+
+     Checked twice before it is believed, which is the pair the disc's own
+     docblock claims both instruments make: the response has to have succeeded,
+     and the body has to carry the one field that makes it a reading. `days` is
+     that field. Only the second check was here, and it was not enough on its
+     own — a 500 that still answers JSON is entitled to carry a `days` key, and
+     an unchecked status would have drawn an outage as a week of real dots. */
   useEffect(() => {
     let cancelled = false;
 
     const read = () =>
       fetch("/api/steps")
-        .then((r) => r.json())
+        .then((r) => (r.ok ? r.json() : null))
         .then((data: unknown) => {
           if (cancelled) return;
           const ok = Boolean(data) && typeof data === "object" && "days" in (data as object);
@@ -360,7 +376,7 @@ export function Pedometer() {
               size={SIZE}
               frame={frame}
               polarity="ink"
-              /* Round cells on a clean surface: the widget cards quote the LED
+              /* Round cells on a clean surface: the readings quote the LED
                  panel rather than imitate it, so there is no unlit lattice
                  behind them and a cell that is off is simply not there. */
               pixel="round"
@@ -377,9 +393,10 @@ export function Pedometer() {
               {page === 1 ? (
                 <>
                   {/* "Total today" and "7-day average" were written for a card
-                      twice this wide. The sr-only block below still says them
-                      in full; the face has 72px to work with and says the same
-                      thing in the space it has. */}
+                      whose width was fixed and roughly twice this. The sr-only
+                      block below still says them in full; the face says the
+                      same thing in whatever width the wall's cell leaves it,
+                      which is not a number this file gets to know. */}
                   <RecordLabel top="34%" name="Today" value={share(today, goal)} />
                   <RecordLabel top="86%" name="7-day" value={share(average, goal)} />
                 </>

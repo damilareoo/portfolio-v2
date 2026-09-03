@@ -1,11 +1,11 @@
-import Link from "next/link";
+import { FooterLine } from "@/components/footer-line";
 import { GlyphIcon } from "@/components/glyph-icon";
 import { GlyphText } from "@/components/glyph-text";
 import { InstrumentWall } from "@/components/instrument-wall";
 import { Product } from "@/components/product";
 import { SiteNav } from "@/components/site-nav";
 import { workAssets } from "@/data/assets.generated";
-import { elsewhere, site } from "@/data/site";
+import { site } from "@/data/site";
 import { work } from "@/data/work";
 
 /**
@@ -119,36 +119,10 @@ export default function Home() {
           than the bottom of it. Everything else down here is one quiet line. */}
       <footer className="mt-8 pb-8">
         <InstrumentWall />
-        {/* The line under the panel: the name, then everywhere else. Its own
-            `rule-t` is the wall's bottom edge — one pixel, drawn once, by
-            whichever element is below it. `text-xs` puts it a step under the
-            readings' values, so the panel is read first and this is what you
-            find when you have finished with it. */}
-        <div className="rule-t flex flex-wrap items-center gap-x-5 gap-y-2 pt-4 text-xs">
-          <span className="font-medium tracking-tight text-ink">{site.handle}</span>
-          <Link href="/shots" className="text-ink-2 transition-colors hover:text-ink">
-            Shots
-          </Link>
-          <Link href="/colophon" className="text-ink-2 transition-colors hover:text-ink">
-            Colophon
-          </Link>
-          {elsewhere.map((place) => (
-            <a
-              key={place.label}
-              href={place.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-ink-2 transition-colors hover:text-ink"
-            >
-              {place.label}{" "}
-              <GlyphIcon
-                name="arrow-out"
-                size="0.5rem"
-                className="inline-block align-baseline"
-              />
-            </a>
-          ))}
-        </div>
+        {/* The line under the panel, drawn by the same component every other
+            surface that carries the wall draws it with — see
+            `components/footer-line.tsx` for why it is not written out here. */}
+        <FooterLine />
       </footer>
     </main>
   );

@@ -280,16 +280,29 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
         ? undefined
         : "Silent";
 
+  /* What the disc is, said in words — and nothing about pressing it. The
+     sentence used to end "Click the disc to ripple it", which was an
+     instruction this element cannot honour: the disc has one face, so it is
+     given no `onPress`, so `InstrumentReading` draws it as a `div` rather than
+     a button. Telling a keyboard or a screen reader to click a thing that is
+     not a control is the lie `instrument-card.tsx` is written to make
+     impossible. The pointer ripple is still there — every `GlyphCell` answers
+     a finger crossing it — but that is ambient response to a pointer, not a
+     control, and it is not a thing to promise to a reader who has no pointer. */
   const label = playing
-    ? `Now playing: ${track!.title} by ${track!.artist}. Click the disc to ripple it.`
-    : "Nothing playing. Click the disc to ripple it.";
+    ? `Now playing: ${track!.title} by ${track!.artist}`
+    : "Nothing playing";
 
   return (
-    /* The disc wears the same shell as every other reading. What went with the
-       old column: the hover-revealed record line under it, and the link to the
-       track on Spotify. The value beneath the disc carries the title instead —
-       and a link would have fought the disc for the same click, which already
-       means "ripple it". */
+    /* The disc wears the same shell as every other reading, and wears it as a
+       picture: no `onPress`, because there is no second face to turn to and a
+       press with nothing behind it is the dead button this shell refuses to
+       let anyone build. The steps reading is a button because a press there
+       turns a page; here it would only re-do what the pointer already does.
+
+       What went with the old column: the hover-revealed record line under it,
+       and the link to the track on Spotify. The value beneath the disc carries
+       the title instead. */
     <InstrumentReading srLabel="Music" value={value}>
       <div className="relative" style={{ width: DISC }}>
         <GlyphCell
@@ -299,7 +312,9 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
           frame={frame}
           onTick={onTick}
           label={label}
-          className={`w-full cursor-pointer text-ink ${className}`}
+          /* No `cursor-pointer`: a pointer cursor over something that is not
+             a control is the same lie the label used to tell, told in ink. */
+          className={`w-full text-ink ${className}`}
         />
 
         {/* How far through the track, as a hairline outside the dots. Nothing

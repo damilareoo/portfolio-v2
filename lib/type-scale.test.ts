@@ -15,6 +15,10 @@ const GOVERNED = [
   "components/site-nav.tsx",
   "components/site-header.tsx",
   "components/site-footer.tsx",
+  /* Where the footer's type actually lives now: `site-footer.tsx` and
+     `app/page.tsx` both draw the quiet line from here, so this is the one file
+     that can put it off the scale. */
+  "components/footer-line.tsx",
   "components/product.tsx",
   "components/instrument-card.tsx",
   "components/instrument-wall.tsx",
