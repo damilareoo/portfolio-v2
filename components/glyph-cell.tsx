@@ -346,9 +346,30 @@ export function GlyphCell({
     draw();
   }, [onTick, run, draw]);
 
+  /* The repaint waits a frame, and that is the whole fix — not a nicety.
+
+     `resolvedTheme` reaches this component one commit before the skin reaches
+     the document: next-themes writes the class on `<html>` from a
+     `ThemeProvider` effect, and React flushes effects child-first, so this
+     effect runs while `<html>` still carries the *outgoing* class. `draw`
+     picks its ink out of `getComputedStyle(canvas).color`, so painting here
+     would stamp the old skin's ink into the bitmap with `invert` already
+     flipped to the new skin's meaning — and a bitmap is not re-derived from
+     CSS, so nothing would ever correct it. Measured: the paint landed 0.2-0.6
+     ms before the class, with zero frames between, and the dots then held
+     1.04 : 1 against their own card for as long as the field stayed still.
+
+     A frame callback cannot run inside the task that flushed these effects, so
+     it is strictly ordered after the provider's class write and reads the
+     skin that actually arrived. Do not "simplify" this back into a synchronous
+     `draw()`.
+
+     Cancelling on cleanup matters too: a rapid double-toggle would otherwise
+     leave an orphaned frame to paint after the field had moved on. */
   useEffect(() => {
     invertRef.current = invert;
-    draw();
+    const booked = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(booked);
   }, [invert, draw]);
 
   useEffect(() => {

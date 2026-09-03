@@ -80,6 +80,17 @@ const ARC_LENGTH = 2 * Math.PI * ARC_RADIUS;
 export function NowPlayingDisc({ className = "" }: { className?: string }) {
   const markRef = useRef<Float32Array | null>(null);
   const [frame, setFrame] = useState<Float32Array | null>(null);
+  /* How the field's values are to be read, which is a property of what is in
+     it and not of this component — so it travels with the frame rather than
+     being fixed once at the call site. Artwork is a photograph: its values say
+     how bright the sleeve is, so they have to flip with the ground. The
+     Spotify mark is a figure: its values say where the mark is, and a mark is
+     a mark on either skin. Read as a luminance it inverted on the light skin
+     and the disc became a solid field of ink with the logo punched out of it.
+
+     It opens on "ink" because the mark is the first thing the disc ever
+     holds. */
+  const [polarity, setPolarity] = useState<"luminance" | "ink">("ink");
   const [track, setTrack] = useState<NowPlaying | null>(null);
 
   const trackRef = useRef<NowPlaying | null>(null);
@@ -157,14 +168,15 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
 
     /* Whatever the field is handed, the pulse needs to know where its light
        gathers — the one thing that differs between one cover and the next. */
-    const show = (values: Float32Array) => {
+    const show = (values: Float32Array, reading: "luminance" | "ink") => {
       printRef.current = fingerprint(values);
       setFrame(values);
+      setPolarity(reading);
     };
 
     const toMark = () => {
       markRef.current ??= spotifyMark(GRID);
-      show(markRef.current);
+      show(markRef.current, "ink");
     };
 
     if (!art) {
@@ -192,7 +204,7 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
       octx.imageSmoothingQuality = "high";
       octx.drawImage(img, 0, 0, GRID, GRID);
       try {
-        show(artFrame(octx.getImageData(0, 0, GRID, GRID).data, GRID));
+        show(artFrame(octx.getImageData(0, 0, GRID, GRID).data, GRID), "luminance");
       } catch {
         return; // tainted despite the proxy — hold the mark
       }
@@ -310,6 +322,7 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
           size={SIZE}
           shape="circle"
           frame={frame}
+          polarity={polarity}
           onTick={onTick}
           label={label}
           /* No `cursor-pointer`: a pointer cursor over something that is not

@@ -91,6 +91,17 @@ function frameClock() {
   };
 }
 
+/**
+ * The one frame a mount books that is not the loop.
+ *
+ * The skin repaint is deliberately deferred past the effect flush — next-themes
+ * writes the theme class from its own `ThemeProvider` effect, and React flushes
+ * effects child-first, so a synchronous repaint there reads the outgoing skin's
+ * ink. So every mount leaves exactly one frame booked, whether or not anything
+ * is moving. Tests asking whether the *loop* is running count from here.
+ */
+const SKIN_REPAINT = 1;
+
 function reducedMotion(reduce: boolean) {
   vi.stubGlobal("matchMedia", (query: string) => ({
     matches: reduce,
@@ -178,7 +189,7 @@ describe("GlyphCell", () => {
     mount(<GlyphCell grid={GRID} size={SIZE} frame={null} label="ticking" onTick={() => ({ frame: lit })} />);
 
     // The tick is the field's only source, so it is its own reason to run.
-    expect(clock.pending).toBe(1);
+    expect(clock.pending).toBe(SKIN_REPAINT + 1);
     expect(painted.arcs).toBe(0); // Nothing painted before the first tick.
     clock.tick();
     expect(painted.arcs).toBeGreaterThanOrEqual(CELLS);
@@ -203,7 +214,7 @@ describe("GlyphCell", () => {
 
     // Read once and settled: the value is there, the movement is not.
     expect(painted.arcs).toBeGreaterThanOrEqual(CELLS);
-    expect(clock.pending).toBe(0);
+    expect(clock.pending).toBe(SKIN_REPAINT); // No loop — only the skin's one-shot.
     for (const value of firstFrameValues(painted)) expect(value).toBeCloseTo(1, 6);
   });
 
@@ -230,7 +241,7 @@ describe("GlyphCell", () => {
 
     expect(painted.arcs).toBeGreaterThanOrEqual(CELLS);
     // The first frame is not a transition, so nothing is left running.
-    expect(clock.pending).toBe(0);
+    expect(clock.pending).toBe(SKIN_REPAINT);
     for (const value of firstFrameValues(painted)) expect(value).toBeCloseTo(1, 6);
   });
 
@@ -321,6 +332,34 @@ describe("GlyphCell", () => {
     for (const value of paint("ink")) expect(value).toBeCloseTo(0, 6);
   });
 
+  it("repaints on the next frame, not inside the effect", () => {
+    // next-themes writes the <html> class in its own effect, and React flushes
+    // effects child-first — so painting synchronously here reads the OUTGOING
+    // skin's ink and freezes it into the bitmap for good. Measured at 1.04:1
+    // contrast: white dots on a white card.
+    reducedMotion(false);
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
+      frames.push(cb);
+      return frames.length;
+    });
+    vi.stubGlobal("cancelAnimationFrame", () => {});
+    const painted = recordCanvas();
+
+    mount(<GlyphCell grid={5} size={50} frame={new Float32Array(25).fill(1)} label="A" />);
+
+    expect(frames.length).toBeGreaterThan(0);
+
+    /* And the booked frame is the repaint itself, not some other errand:
+       running it covers the field again, this time under the skin that has
+       finally landed. */
+    const before = painted.arcs;
+    act(() => {
+      for (const paintFrame of frames.splice(0)) paintFrame(performance.now());
+    });
+    expect(painted.arcs).toBeGreaterThan(before);
+  });
+
   it("turns its pages by keyboard, wrapping in both directions", () => {
     reducedMotion(false);
     frameClock();
@@ -374,7 +413,7 @@ describe("GlyphCell", () => {
     // The frame is honoured; the ring the same tick asked for is not, and no
     // loop is left running to carry one.
     expect(painted.arcs).toBeGreaterThanOrEqual(CELLS);
-    expect(clock.pending).toBe(0);
+    expect(clock.pending).toBe(SKIN_REPAINT);
   });
   it("opens on a sweep that surfaces the centre before the corners", () => {
     arriving();
@@ -388,7 +427,7 @@ describe("GlyphCell", () => {
 
     // The field is already holding a full frame; none of it has surfaced yet.
     for (const value of firstFrameValues(painted)) expect(value).toBeCloseTo(0, 6);
-    expect(clock.pending).toBe(1); // Arriving is its own reason to run.
+    expect(clock.pending).toBe(SKIN_REPAINT + 1); // Arriving is its own reason to run.
 
     // Halfway through, the wavefront has passed the middle and not the corner.
     watch.advance(300);
@@ -415,7 +454,7 @@ describe("GlyphCell", () => {
 
     // Not a faster sweep — no sweep. The values are true on the first paint.
     for (const value of firstFrameValues(painted)) expect(value).toBeCloseTo(1, 6);
-    expect(clock.pending).toBe(0);
+    expect(clock.pending).toBe(SKIN_REPAINT);
   });
 
   it("arrives once a session, and not for a field mounted later", () => {
