@@ -119,6 +119,7 @@ afterEach(() => {
   host = null;
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  vi.useRealTimers();
 });
 
 describe("what each face says a value means", () => {
@@ -154,5 +155,43 @@ describe("what each face says a value means", () => {
     });
     // A sleeve is a photograph: its values are brightness, and must flip.
     expect(polarity()).toBe("luminance");
+  });
+
+  it("turns back to ink when the next track brings no cover", async () => {
+    /* The transition this mechanism exists for, and the half that was never
+       tested. Every other case here asserts "ink", which is also
+       `useState("ink")`'s initial value — so gutting `setPolarity` entirely
+       left them all green. Only a field that has actually been to luminance
+       and come back proves the wire is connected at both ends.
+
+       This is reachable, not contrived: a track with no artwork following one
+       that had it is an ordinary pair of songs, and it is the same path
+       `img.onerror` takes when a sleeve fails to load. */
+    coverLoads();
+    vi.useFakeTimers();
+
+    const sleeve = { isPlaying: true, title: "A", artist: "B", artUrl: "/api/now-playing/art" };
+    const bare = { isPlaying: true, title: "C", artist: "D", artUrl: undefined };
+    let polled = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => {
+        const body = polled++ === 0 ? sleeve : bare;
+        return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(body) });
+      }),
+    );
+
+    await mount(<NowPlayingDisc />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(polarity()).toBe("luminance");
+
+    // Thirty seconds on, the next poll: playing still, but nothing to look at.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30_000);
+    });
+    // The field is holding the mark again, and a mark is a mark on either skin.
+    expect(polarity()).toBe("ink");
   });
 });

@@ -11,6 +11,15 @@
  * lattice is the panel's face and not an absence; and the panel drives its
  * emitters in steps rather than continuously, which is what keeps a dot grid
  * from reading as a CSS gradient.
+ *
+ * Its only consumer is `lib/glyph/sweep.ts` — the image dissolve on shots and
+ * case frames — and its numbers are its own. It does not draw the dot language:
+ * `lib/glyph/pixel.ts` holds that, and this file imports nothing from it. The
+ * separation is on purpose, and `FLOOR` is where it shows. The field's floor is
+ * two numbers because the field has a resting state a skin has to govern; this
+ * panel has none. It exists only for the length of a sweep, is cleared at the
+ * end of it, and reads its ink fresh on every run — so a single floor is not an
+ * oversight here, it is the whole of what a transient surface needs.
  */
 import { autoLevel } from "./tone";
 

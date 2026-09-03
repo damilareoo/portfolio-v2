@@ -203,12 +203,21 @@ export function GlyphCell({
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, size, size);
     /* Both of the skin's numbers come off the canvas in one read: the ink it is
-       drawn in, and how dark a dot it has not lit still is. Doing it here, in
+       drawn in, and how dark a dot it has not lit still is. One call, so they
+       can never disagree about which skin is in force. Doing it here, in
        `draw`, is what puts them on the right side of the deferred repaint
        below — a computed style read during the effect flush would answer with
-       the outgoing skin for both. */
+       the outgoing skin for both.
+
+       The two fallbacks name the same skin, and that took a correction. This
+       one was `#f5f5f5`, which is `--text-1` under `.dark`, while `PIXEL_FLOOR`
+       falls back to the *light* floor on the grounds that a document with no
+       stylesheet has no `.dark` on it either. Both cannot be right. Neither
+       branch is reachable in a browser or in jsdom — a resolved `color` always
+       comes back — but a pair of fallbacks that quietly disagree is worse than
+       either value, so they now tell one story. */
     const skin = getComputedStyle(canvas);
-    ctx.fillStyle = skin.getPropertyValue("color") || "#f5f5f5";
+    ctx.fillStyle = skin.getPropertyValue("color") || "#0f0f0f";
 
     const round = pixelRef.current === "round";
     const floor = unlitRef.current ?? skinFloor(skin);

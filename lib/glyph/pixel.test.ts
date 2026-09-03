@@ -81,7 +81,19 @@ describe("the rule keeps its own hand", () => {
     // duplicate of a TypeScript constant is the drift trap wearing a token's
     // name. PIXEL_FILL is free to move because there is nothing to keep in step.
     expect(css).not.toContain("--pixel-fill");
-    expect(PIXEL_FILL).toBeGreaterThan(0);
+  });
+
+  it("stands above the rule's fill, which is what the circle's corners cost", () => {
+    /* Free to move is not free to move *back*. This is the only thing pinning
+       the field's fill, and it pins it as an argument rather than as a magic
+       number: a circle keeps π/4 of the square it is inscribed in, so a pixel
+       that turned its corners all the way has to be drawn wider than the square
+       dash that never did, or every icon and numeral thins by a fifth. Reverting
+       PIXEL_FILL to the rule's 0.74 passed all three-hundred-odd tests before
+       this one existed. */
+    const declared = css.match(/--rule-fill:\s*([\d.]+)/);
+    expect(declared, "globals.css must declare --rule-fill").not.toBeNull();
+    expect(PIXEL_FILL).toBeGreaterThan(Number(declared![1]));
   });
 });
 

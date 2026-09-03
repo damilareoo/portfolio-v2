@@ -167,7 +167,19 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
     const art = track?.isPlaying ? track.artUrl : undefined;
 
     /* Whatever the field is handed, the pulse needs to know where its light
-       gathers — the one thing that differs between one cover and the next. */
+       gathers — the one thing that differs between one cover and the next.
+
+       These two setters land in one batched commit, and GlyphCell flushes its
+       frame effect before its polarity effect — so the frame is drawn once
+       against the *previous* polarity before the second effect redraws it
+       correctly. Harmless today, and only because both of those draws are
+       synchronous inside the same commit: the browser never gets a paint
+       between them. It stops being harmless the moment either one is deferred,
+       and the failure would be a single inverted frame of the disc — a black
+       circle with the sleeve punched out of it, which is the exact defect the
+       polarity distinction exists to prevent. If a frame ever has to be
+       scheduled rather than drawn, the polarity has to travel with it rather
+       than arrive in its own effect. */
     const show = (values: Float32Array, reading: "luminance" | "ink") => {
       printRef.current = fingerprint(values);
       setFrame(values);

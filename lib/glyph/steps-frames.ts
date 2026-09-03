@@ -55,9 +55,21 @@ const AHEAD = 0.32;
 export const WEEK_ROWS = 7;
 
 /**
- * The value a cell carries when there is nothing to carry. Low enough to read
- * as the field at rest, high enough to be seen at all — the dot-matrix version
- * of the placeholder digits the counters show before they have been read.
+ * The value a cell carries when there is nothing to carry — the dot-matrix
+ * version of the placeholder digits the counters show before they are read.
+ *
+ * This is a *value*, not an alpha: the field turns it into ink through whatever
+ * floor it is drawing on. It used to be calibrated against a single floor of
+ * 0.16 and described as reading "as the field at rest", and that sentence is no
+ * longer true anywhere. The field's floor is now the skin's — 0.1 light, 0.05
+ * dark — and the pedometer, which is this constant's only caller, draws at
+ * `unlit={0}`, so there is no resting lattice here at all. A placeholder cell
+ * is the only thing in its cell, read against the card rather than against
+ * dots around it.
+ *
+ * The number is left where it was on purpose. What it should be is a design
+ * call about how loudly an unread reading announces itself, and it is not one
+ * this file can make alone.
  */
 export const UNREPORTED = 0.16;
 

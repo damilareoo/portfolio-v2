@@ -1,10 +1,18 @@
 /**
- * How one pixel is drawn, for every renderer in the language.
+ * How one pixel is drawn, for every renderer that draws the *language*.
  *
  * These lived inside glyph-cell.tsx while the canvas was the only thing that
  * drew a pixel. Two renderers only make one language if they draw from the same
  * numbers, so they live here now: tuning the field retunes every icon, and
- * nothing can quietly disagree.
+ * nothing can quietly disagree. The renderers meant are GlyphCell's canvas and
+ * the two SVG ones, GlyphIcon and GlyphText.
+ *
+ * `lib/glyph/panel.ts` is deliberately not among them. It drives a photograph
+ * onto its own transient lattice at its own pitch, fill and floor, and imports
+ * nothing from here — see its header for why that separation is right. Worth
+ * saying out loud now that the pixel is a circle: the two used to disagree on
+ * shape as well as size, which made the separation obvious on sight. It is
+ * only visible in the numbers today.
  */
 
 /* How much of its cell a pixel fills, and how far its corners are turned. The
