@@ -3,7 +3,7 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { InstrumentCard } from "@/components/instrument-card";
+import { InstrumentReading } from "@/components/instrument-card";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -13,100 +13,108 @@ beforeEach(() => { host = document.createElement("div"); document.body.appendChi
 afterEach(() => { act(() => root.unmount()); host.remove(); });
 const render = (ui: React.ReactElement) => act(() => root.render(ui));
 
-describe("InstrumentCard", () => {
-  it("prints its label and its reading", () => {
-    render(<InstrumentCard label="Lagos" reading="07:42"><span /></InstrumentCard>);
-    expect(host.textContent).toContain("Lagos");
+describe("InstrumentReading", () => {
+  it("shows the value, and no visible label beside it", () => {
+    render(<InstrumentReading srLabel="Lagos" value="07:42"><span /></InstrumentReading>);
     expect(host.textContent).toContain("07:42");
+    // The face says what it is; a word above it repeats the picture.
+    const visible = host.querySelector("[data-value]")!.parentElement!;
+    expect(visible.textContent).toBe("07:42");
   });
 
-  it("says so when it has no reading, rather than going blank", () => {
-    // An instrument that cannot read admits it. A blank card reads as broken.
-    render(<InstrumentCard label="Weather"><span /></InstrumentCard>);
-    expect(host.textContent).toContain("Weather");
-    expect(host.textContent).toContain("—");
+  it("still names itself for a screen reader", () => {
+    // Removing a visible label must not remove the accessible one.
+    render(<InstrumentReading srLabel="Lagos" value="07:42"><span /></InstrumentReading>);
+    const named = host.querySelector(".sr-only");
+    expect(named?.textContent).toContain("Lagos");
   });
 
-  it("treats an empty or whitespace-only reading as no reading", () => {
-    // reading ?? "—" alone would let a blank string through; that is the same
-    // "blank card reads as broken" failure the docblock warns about.
-    render(<InstrumentCard label="Weather" reading="   "><span /></InstrumentCard>);
-    expect(host.textContent).toContain("Weather—");
+  it("says so when it cannot read", () => {
+    render(<InstrumentReading srLabel="Weather"><span /></InstrumentReading>);
+    expect(host.querySelector("[data-value]")!.textContent).toBe("—");
   });
 
-  it("gives every card the same footprint, whatever it holds", () => {
+  it("treats an empty or blank value as no reading", () => {
+    render(<InstrumentReading srLabel="Weather" value="   "><span /></InstrumentReading>);
+    expect(host.querySelector("[data-value]")!.textContent).toBe("—");
+  });
+
+  it("lets the face fill whatever cell it is given", () => {
+    // The defect this guards: four small discs stranded in wide cells.
+    render(<InstrumentReading srLabel="A" value="1"><span /></InstrumentReading>);
+    const face = host.querySelector("[data-face]")!;
+    expect(face.className).toContain("aspect-square");
+    expect(face.className).toContain("w-full");
+    expect(face.getAttribute("style") ?? "").not.toMatch(/width:\s*\d+px/);
+  });
+
+  it("is a control only when it has somewhere to turn", () => {
+    render(<InstrumentReading srLabel="A" value="1"><span /></InstrumentReading>);
+    expect(host.querySelector("button")).toBeNull();
+    render(<InstrumentReading srLabel="A" value="1" onPress={() => {}}><span /></InstrumentReading>);
+    expect(host.querySelector("button")).not.toBeNull();
+  });
+
+  it("meets the touch floor when it is a control", () => {
+    render(<InstrumentReading srLabel="A" value="1" onPress={() => {}}><span /></InstrumentReading>);
+    expect(host.querySelector("button")!.className).toMatch(/min-h-\[2\.75rem\]/);
+  });
+
+  /* The four below are carried over from the card this replaces. Nothing in the
+     brief retired them, and each one guards a promise the reading still makes. */
+
+  it("gives every reading the same shell, whatever it holds", () => {
     // The defect this guards: four widgets at four sizes with no shared
-    // baseline, which is what the bank exists to replace.
+    // baseline, which is what the wall exists to replace.
     render(
       <>
-        <InstrumentCard label="A" reading="1"><span /></InstrumentCard>
-        <InstrumentCard label="B"><span>a much longer child</span></InstrumentCard>
+        <InstrumentReading srLabel="A" value="1"><span /></InstrumentReading>
+        <InstrumentReading srLabel="B"><span>a much longer child</span></InstrumentReading>
       </>,
     );
     const [one, two] = [...host.querySelectorAll("[data-card]")];
     expect(one.className).toBe(two.className);
   });
 
-  it("gives the label a fixed-height row and truncates it, so a long label cannot grow the card", () => {
-    // jsdom never lays out real pixels, so offsetHeight is always 0 there and
-    // cannot catch a wrap-induced height difference. Assert on the structural
-    // guarantee instead: the row commits to a fixed height and the label
-    // commits to single-line truncation, which together is what keeps two
-    // cards the same height once real (mismatched-length) copy lands.
+  it("truncates the value in a fixed-height row, so a track title cannot grow the reading", () => {
+    // jsdom lays out no pixels, so a wrap-induced height difference is
+    // invisible to it. Assert the structural guarantee instead: the row commits
+    // to a height and the value commits to one line, which together is what
+    // keeps two readings the same height once a real title lands.
     render(
       <>
-        <InstrumentCard label="A" reading="1"><span /></InstrumentCard>
-        <InstrumentCard
-          label="A label a great deal longer than any real instrument name"
-          reading="1"
+        <InstrumentReading srLabel="A" value="1"><span /></InstrumentReading>
+        <InstrumentReading
+          srLabel="B"
+          value="A track title a great deal longer than any clock will ever print"
         >
           <span />
-        </InstrumentCard>
+        </InstrumentReading>
       </>,
     );
-    const [shortRow, longRow] = [...host.querySelectorAll("[data-label-row]")];
+    const [shortValue, longValue] = [...host.querySelectorAll("[data-value]")];
+    expect(shortValue.className).toContain("truncate");
+    expect(longValue.className).toContain("truncate");
+    const [shortRow, longRow] = [shortValue.parentElement!, longValue.parentElement!];
     expect(shortRow.className).toBe(longRow.className);
     expect(shortRow.className).toMatch(/\bh-5\b/);
-    const [shortLabel, longLabel] = [...host.querySelectorAll("[data-label]")];
-    expect(shortLabel.className).toContain("truncate");
-    expect(longLabel.className).toContain("truncate");
-  });
-
-  it("keeps the face square so the grid cannot distort it", () => {
-    render(<InstrumentCard label="A" reading="1"><span /></InstrumentCard>);
-    const face = host.querySelector("[data-face]")!;
-    expect(face.className).toContain("aspect-square");
-  });
-
-  it("sizes the face from CARD_FACE itself, not only from the grid around it", () => {
-    // Only the parent grid's equal cells made cards match before; a card
-    // rendered outside a grid must still come out the right size.
-    render(<InstrumentCard label="A" reading="1"><span /></InstrumentCard>);
-    const face = host.querySelector("[data-face]") as HTMLElement;
-    expect(face.style.width).toBe("96px");
-    expect(face.style.height).toBe("96px");
-  });
-
-  it("is a button only when it has a handler to turn it with", () => {
-    // A card with one face is not a control, and a control that does nothing
-    // is a lie told with a cursor. There is no separate `interactive` flag
-    // that can disagree with the handler — the handler's presence is the
-    // only thing that decides.
-    render(<InstrumentCard label="A" reading="1"><span /></InstrumentCard>);
-    expect(host.querySelector("button")).toBeNull();
-    render(<InstrumentCard label="A" reading="1" onPress={() => {}}><span /></InstrumentCard>);
-    expect(host.querySelector("button")).not.toBeNull();
-  });
-
-  it("meets the touch-target floor when it is a control", () => {
-    render(<InstrumentCard label="A" reading="1" onPress={() => {}}><span /></InstrumentCard>);
-    expect(host.querySelector("button")!.className).toMatch(/min-h-\[2\.75rem\]/);
   });
 
   it("names what pressing it does, instead of leaving the accessible name to whatever the face renders", () => {
-    render(<InstrumentCard label="Now Playing" reading="Song" onPress={() => {}}><span /></InstrumentCard>);
+    render(<InstrumentReading srLabel="Music" value="Song" onPress={() => {}}><span /></InstrumentReading>);
     const button = host.querySelector("button")!;
-    expect(button.getAttribute("aria-label")).toMatch(/Now Playing/);
+    expect(button.getAttribute("aria-label")).toMatch(/Music/);
     expect(button.getAttribute("aria-label")).toMatch(/other face/i);
+  });
+
+  it("lets a pager say which face it is on, over the derived name", () => {
+    // "Turn the Steps reading over" cannot say "page 2 of 3", and that sentence
+    // is the one thing a screen-reader user cannot get from the dots.
+    render(
+      <InstrumentReading srLabel="Steps" value="9,120" onPress={() => {}} pressLabel="Steps, page 2 of 3">
+        <span />
+      </InstrumentReading>,
+    );
+    expect(host.querySelector("button")!.getAttribute("aria-label")).toBe("Steps, page 2 of 3");
   });
 });

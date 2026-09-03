@@ -15,8 +15,13 @@ import { handAngles, type Hands } from "@/lib/clock";
  *
  * Null until mounted. The server cannot know the time, and rendering one time
  * on the server and another on the client is a hydration mismatch.
+ *
+ * It takes no size. Everything here is drawn in the viewBox's own 100 units, so
+ * the face fills whatever square it is handed and the hands scale with it —
+ * which is what lets one reading stand in a narrow cell and a wide one without
+ * the caller doing arithmetic on its behalf.
  */
-export function ClockFace({ size = 64 }: { size?: number }) {
+export function ClockFace() {
   const [hands, setHands] = useState<Hands | null>(null);
 
   useEffect(() => {
@@ -28,12 +33,12 @@ export function ClockFace({ size = 64 }: { size?: number }) {
 
   return (
     <svg
-      width={size}
-      height={size}
+      width="100%"
+      height="100%"
       viewBox="0 0 100 100"
       role="img"
       aria-label="Lagos time"
-      className="shrink-0"
+      className="block h-full w-full"
     >
       <circle cx="50" cy="50" r="50" className="fill-strong" />
       {/* The reference carries a red dot here. This site admits one hue, and it

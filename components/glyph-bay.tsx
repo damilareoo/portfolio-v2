@@ -12,7 +12,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { GlyphCell } from "@/components/glyph-cell";
-import { CARD_FACE, InstrumentCard } from "@/components/instrument-card";
+import { InstrumentReading } from "@/components/instrument-card";
 import { emptyFrame } from "@/lib/glyph/glyphs";
 import {
   groupDigits,
@@ -39,10 +39,15 @@ const FACES = ["the walk", "the record", "the month"] as const;
  */
 const PAGES = FACES.length;
 
-/** How wide the field is drawn inside the card's face. Short of `CARD_FACE`
-    by enough to leave the page indicator a strip of its own beneath it, so
-    the dots never sit on top of the reading they are indexing. */
-const FIELD = CARD_FACE - 12;
+/** How wide the field is drawn inside the reading's face — a share of it, not
+    a number of pixels. Short of the full width by enough to leave the page
+    indicator a strip of its own beneath it, so the dots never sit on top of
+    the face they are indexing.
+
+    It was `CARD_FACE - 12` while the face was pinned at 96px. The face now
+    takes whatever the cell gives it, so the same proportion is stated as one
+    and the field grows with the face instead of being stranded inside it. */
+const FIELD = "86%";
 
 /* The calendar's geometry, in the SVG's own 100-unit box. Seven columns for the
    days of the week and six rows for the weeks a month can straddle, with the
@@ -163,13 +168,13 @@ function RecordLabel({ top, name, value }: { top: string; name: string; value: s
  * day, which of the four things each one was — met, missed, quiet, ahead; see
  * `DayState`. There is no fourth page any more; see `PAGES`.
  *
- * It wears an `InstrumentCard` like every other reading on the site, and the
- * card is what turns it: the press target is the whole card rather than the
- * canvas, which is how a 96px face can still offer a 44px control. The pager
- * itself — the page state, the three faces, the frames each one builds — is
- * untouched; only the surface the gesture lands on moved outward by one
- * element, because a focusable field nested inside a button is not a thing
- * HTML lets you build.
+ * It wears an `InstrumentReading` like every other reading on the site, and
+ * the shell is what turns it: the press target is the whole reading rather
+ * than the canvas, which is how even a small face can still offer a 44px
+ * control. The pager itself — the page state, the three faces, the frames each
+ * one builds — is untouched; only the surface the gesture lands on moved
+ * outward by one element, because a focusable field nested inside a button is
+ * not a thing HTML lets you build.
  *
  * Nothing here runs a loop of its own. Frames arrive as props, so the field
  * moves when a page is turned or a finger crosses it and is otherwise as still
@@ -242,14 +247,14 @@ export function Pedometer() {
   /* There used to be a fourth thing here: a day the visitor asked to see, drawn
      as a page of its own. It was reached by pressing a day on the month face,
      through an invisible target of `COL_STEP * 0.48` — about 19px across when
-     the card was 144–176px wide, and about 11px across now that the field is
-     84px inside `CARD_FACE`. Against a 44px floor that is not a control, it is
-     a dare; and it was never keyboard-reachable, so it was a dare offered to
-     some visitors and not others.
-     
-     A 7×6 calendar of 44px targets cannot fit inside a 96px face at any
-     arrangement, so the interaction could not be made honest at this size and
-     was removed rather than shrunk. The month face is a display now: the dots
+     the card was 144–176px wide, and about 11px across at the 96px face that
+     replaced it. Against a 44px floor that is not a control, it is a dare; and
+     it was never keyboard-reachable, so it was a dare offered to some visitors
+     and not others.
+
+     A 7×6 calendar of 44px targets needs a face some 300px across before the
+     interaction becomes honest, which is more than any cell here will give it,
+     so it was removed rather than shrunk. The month face is a display now: the dots
      say met, missed, quiet and ahead, which is what the face was always for,
      and the sr-only block below carries every day of the month in text —
      which is more than the day card ever gave a screen reader. */
@@ -335,9 +340,9 @@ export function Pedometer() {
         }
       }}
     >
-      <InstrumentCard
-        label="Steps"
-        reading={today === null ? undefined : groupDigits(today)}
+      <InstrumentReading
+        srLabel="Steps"
+        value={today === null ? undefined : groupDigits(today)}
         onPress={advance}
         /* The dots are `aria-hidden`, so "page 2 of 3" has to reach the button's
            own name — otherwise the one thing a screen-reader user cannot get at
@@ -345,9 +350,9 @@ export function Pedometer() {
         pressLabel={label}
       >
         {/* The field, and under it the strip the page indicator lives in. Both
-            sit inside the card's face, so the pedometer's footprint is exactly
-            the footprint every other instrument has — which is the promise the
-            bank was built to keep. */}
+            sit inside the reading's face, so the pedometer's footprint is
+            exactly the footprint every other instrument has — which is the
+            promise the wall was built to keep. */}
         <div className="flex h-full w-full flex-col items-center justify-center gap-1">
           <div style={{ width: FIELD }}>
             <GlyphCell
@@ -437,9 +442,9 @@ export function Pedometer() {
 
           {/* Three dots, one per face — the count is the honest one now, which
               is what deleting the fourth page bought. They report rather than
-              control: the card is the control, and a 96px face has no room for
-              three 44px targets that would also have to be buttons nested in a
-              button. */}
+              control: the reading is the control, and a face this size has no
+              room for three 44px targets that would also have to be buttons
+              nested in a button. */}
           <div aria-hidden className="flex gap-1">
             {FACES.map((face, index) => (
               <span
@@ -451,11 +456,11 @@ export function Pedometer() {
             ))}
           </div>
         </div>
-      </InstrumentCard>
+      </InstrumentReading>
 
       {/* Every value the field carries, in text, so nothing here depends on
-          being able to see a canvas. It sits outside the card because the card
-          already names itself; this is the reading, not the control.
+          being able to see a canvas. It sits outside the shell because the
+          shell already names itself; this is the reading, not the control.
 
           The month is listed here too. It used to be reachable only by pressing
           a day — a target no keyboard could ever land on — so removing that

@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { ClockFace } from "@/components/clock-face";
 import { Pedometer } from "@/components/glyph-bay";
-import { CARD_FACE, InstrumentCard } from "@/components/instrument-card";
+import { InstrumentReading } from "@/components/instrument-card";
 import { NowPlayingDisc } from "@/components/now-playing-disc";
 import { WeatherFace } from "@/components/weather-face";
 import { clockReading } from "@/lib/clock";
@@ -32,7 +32,7 @@ import { useWeather } from "@/lib/use-weather";
 export function InstrumentBank({ className = "" }: { className?: string }) {
   const reading = useWeather();
 
-  /* Null until mounted, and the card prints its dash meanwhile — because at
+  /* Null until mounted, and the reading prints its dash meanwhile — because at
      that moment the instrument genuinely does not know. The server cannot know
      the time either, and one time rendered there against another rendered here
      is a hydration mismatch. Ticked every second rather than every minute so
@@ -53,18 +53,18 @@ export function InstrumentBank({ className = "" }: { className?: string }) {
     >
       {/* The stagger is the law's "arriving" clause, once and never again. */}
       <Reveal index={0}>
-        <InstrumentCard label="Lagos" reading={time ?? undefined}>
-          <ClockFace size={CARD_FACE} />
-        </InstrumentCard>
+        <InstrumentReading srLabel="Lagos" value={time ?? undefined}>
+          <ClockFace />
+        </InstrumentReading>
       </Reveal>
 
       <Reveal index={1}>
-        <InstrumentCard
-          label="Weather"
-          reading={reading ? `${Math.round(reading.temperature)}°` : undefined}
+        <InstrumentReading
+          srLabel="Weather"
+          value={reading ? `${Math.round(reading.temperature)}°` : undefined}
         >
-          <WeatherFace face={reading?.condition ?? "unreported"} size={CARD_FACE} />
-        </InstrumentCard>
+          <WeatherFace face={reading?.condition ?? "unreported"} />
+        </InstrumentReading>
       </Reveal>
 
       <Reveal index={2}>

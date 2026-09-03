@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GlyphCell } from "@/components/glyph-cell";
-import { CARD_FACE, InstrumentCard } from "@/components/instrument-card";
+import { InstrumentReading } from "@/components/instrument-card";
 import { artFrame, spotifyMark } from "@/lib/glyph/glyphs";
 import { TUNING } from "@/lib/glyph/matrix";
 import { fingerprint, pulsesBetween } from "@/lib/glyph/pulse";
@@ -25,12 +25,16 @@ const GRID = 48; // dots across
    across the artwork with no meaning attached to it. */
 const ARC_SCALE = 1.09; // just clear of the dots, at any size the disc is set to
 
-/* How wide the disc is drawn inside the card's face. The arc is a share of the
-   disc and hangs outside it, and the card's face clips at its own edge — a disc
-   drawn at the full measure would have its progress arc sliced off at four
-   points. So the disc gives back what the arc needs, and the pair of them
-   together is what fills the face. */
-const DISC = Math.floor(CARD_FACE / ARC_SCALE) - 4;
+/* How wide the disc is drawn inside the reading's face — a share of it, not a
+   number of pixels. The arc is a share of the disc and hangs outside it, and
+   the face clips at its own edge, so a disc drawn at the full measure would
+   have its progress arc sliced off at four points. The disc gives back what
+   the arc needs, and the pair of them together is what fills the face.
+
+   It used to be arithmetic on `CARD_FACE`, which is gone: the face now takes
+   whatever the cell gives it, so the same arithmetic is done in percent and
+   the pair scales together at any size the wall sets. */
+const DISC = `${Math.floor(100 / ARC_SCALE) - 4}%`;
 
 /* How much harder a playhead pulse strikes than a fingertip.
    The engine's damping is close to critical, so a ring at force 1 displaces the
@@ -68,9 +72,10 @@ const ARC_LENGTH = 2 * Math.PI * ARC_RADIUS;
  * be: `audio-features` and `audio-analysis` answer 403 for this application,
  * so there is no tempo here to be on. When the music stops, so does all of it.
  *
- * It renders its own `InstrumentCard`, because the shell is what makes four
- * readings a bank rather than four widgets — a disc that sized itself was half
- * the defect this replaces.
+ * It renders its own `InstrumentReading`, because the shell is what makes four
+ * readings a wall rather than four widgets — a disc that sized itself was half
+ * the defect this replaces. It sizes itself off nothing now: `SIZE` is the
+ * canvas's own coordinate space and CSS decides how large that space is drawn.
  */
 export function NowPlayingDisc({ className = "" }: { className?: string }) {
   const markRef = useRef<Float32Array | null>(null);
@@ -257,17 +262,17 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
   );
 
   /**
-   * What the card's label row says, and the three things it can mean.
+   * What the reading prints beneath the disc, and the three things it can mean.
    *
-   * The em dash means "this instrument cannot read", per the card's own
+   * The em dash means "this instrument cannot read", per the reading's own
    * docblock — so it belongs to the case where Spotify has not answered, or
    * answered with a failure, and to the odd case where it says something is
    * playing but will not name it. It does *not* belong to silence: nothing
    * playing is a perfectly good reading, and printing ignorance where the
-   * instrument in fact read fine is the same lie the Lagos card was telling
+   * instrument in fact read fine is the same lie the Lagos reading was telling
    * with a ticking clock beside a dash.
    */
-  const reading = track === null
+  const value = track === null
     ? undefined
     : playing
       ? track.title
@@ -280,12 +285,12 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
     : "Nothing playing. Click the disc to ripple it.";
 
   return (
-    /* The disc wears the same card as every other reading. What went with the
+    /* The disc wears the same shell as every other reading. What went with the
        old column: the hover-revealed record line under it, and the link to the
-       track on Spotify. The card's label row carries the title instead — and a
-       link would have fought the disc for the same click, which already means
-       "ripple it". */
-    <InstrumentCard label="Music" reading={reading}>
+       track on Spotify. The value beneath the disc carries the title instead —
+       and a link would have fought the disc for the same click, which already
+       means "ripple it". */
+    <InstrumentReading srLabel="Music" value={value}>
       <div className="relative" style={{ width: DISC }}>
         <GlyphCell
           grid={GRID}
@@ -320,6 +325,6 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
           />
         </svg>
       </div>
-    </InstrumentCard>
+    </InstrumentReading>
   );
 }

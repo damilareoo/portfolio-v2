@@ -124,7 +124,7 @@ Every reading the site takes, in one grid at the foot of the home page. What it 
 | Music | The track playing, as the dithered disc | `/api/now-playing`, every 30s |
 | Steps | Today against the goal | `/api/steps`, every 30s |
 
-One shape, one measure: `CARD_FACE` in `components/instrument-card.tsx` is the single number every face is drawn at, applied to the face itself rather than to a grid cell around it, so a card rendered outside the grid is still the right size. The card owns footprint, radius and label position; the face inside owns only what it reads.
+One shape, no measure: `InstrumentReading` in `components/instrument-card.tsx` draws its face at `aspect-square w-full`, so a reading takes whatever the cell gives it rather than being pinned at one number. The shell owns radius and where the value sits; the face inside owns only what it reads. There is no visible label — a clock looks like a clock, and the word above it repeated the picture — so the name is carried by `srLabel` and rendered `sr-only`, and the value beneath the face is the sole visible identifier.
 
 Two columns is the floor — a single column of four cards is a list, and a list of readings is the thing this is not. Four columns arrive at `sm` rather than `lg`: measured, the two-up at 768px gave 352px cells around a 96px face, wider than the 286px the four-up gets at 1440.
 
