@@ -45,6 +45,15 @@ export default function Home() {
         <div className="grid min-w-0 gap-x-8 gap-y-4 short-wide:grid-cols-2 short-wide:items-start">
           <div className="min-w-0">
             <h1 className="text-xl font-bold tracking-tight">&rsquo;{site.name}</h1>
+            {/* Demoted from the h1 it used to be: the name now carries that
+                role, and this is the second thing said, not a second title.
+                `text-lg` sits between the bold name and the `text-base`
+                paragraph beneath it on the site's own six-step scale, so all
+                three keep a visible order rather than the tagline reading as
+                a peer of either neighbour. */}
+            <p className="mt-2 max-w-[46ch] text-lg font-medium leading-snug tracking-tight text-ink">
+              I design and build the parts of a product people actually touch.
+            </p>
             <p className="mt-3 max-w-[46ch] text-base leading-relaxed text-ink-2">
               Interfaces, identity, and the systems underneath them — taken from
               nothing to shipped. Most recently for chess platforms and a revenue
