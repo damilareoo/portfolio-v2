@@ -36,6 +36,19 @@ describe("the shared pixel", () => {
   });
 });
 
+describe("the pixel", () => {
+  it("is a circle, because an LED is", () => {
+    const { side, radius } = pixelGeometry(10);
+    expect(radius).toBeCloseTo(side / 2, 5);
+  });
+
+  it("leaves a gap, or the field stops being a matrix", () => {
+    const { side } = pixelGeometry(10);
+    expect(side).toBeLessThan(10);
+    expect(side).toBeGreaterThan(6);
+  });
+});
+
 describe("the rule shares the pixel's hand", () => {
   it("declares the same fill ratio in CSS as in TypeScript", () => {
     // globals.css cannot import a constant, so this is the seam where the two
@@ -44,5 +57,34 @@ describe("the rule shares the pixel's hand", () => {
     const declared = css.match(/--pixel-fill:\s*([\d.]+)/);
     expect(declared, "globals.css must declare --pixel-fill").not.toBeNull();
     expect(Number(declared![1])).toBe(PIXEL_FILL);
+  });
+});
+
+describe("the floor belongs to the skin", () => {
+  /* The floor is two numbers now, and neither of them lives here. What this
+     file can still hold is the seam: globals.css is where they are, and
+     PIXEL_FLOOR is only what a renderer falls back to when no stylesheet has
+     loaded — so it has to be the light one, because a document with no
+     stylesheet has no `.dark` on it either. */
+  const css = () => readFileSync(resolve(process.cwd(), "app/globals.css"), "utf8");
+  const floorIn = (block: string) => {
+    const scope = css().match(new RegExp(`${block}\\s*\\{[\\s\\S]*?\\n\\}`));
+    expect(scope, `globals.css must declare a ${block} block`).not.toBeNull();
+    const declared = scope![0].match(/--pixel-floor:\s*([\d.]+)/);
+    expect(declared, `${block} must declare --pixel-floor`).not.toBeNull();
+    return Number(declared![1]);
+  };
+
+  it("declares a floor on each skin", () => {
+    expect(floorIn(":root")).toBeGreaterThan(0);
+    expect(floorIn("\\.dark")).toBeGreaterThan(0);
+  });
+
+  it("spends less ink on the dark skin, where near-black is already a surface", () => {
+    expect(floorIn("\\.dark")).toBeLessThan(floorIn(":root"));
+  });
+
+  it("falls back to the light skin's floor, which is the one a bare document has", () => {
+    expect(PIXEL_FLOOR).toBe(floorIn(":root"));
   });
 });

@@ -76,6 +76,23 @@ function arrivalStart(): number | null {
 }
 
 /**
+ * How dark an unlit dot is on the skin currently in force.
+ *
+ * Read out of CSS rather than held as a constant for exactly the reason the ink
+ * is: it differs per skin, and the skin is a class on the document, not a prop.
+ * Two floors, not one — see the docblock on `PIXEL_FLOOR` for why the single
+ * floor's reasoning was right and still needed two numbers to hold.
+ *
+ * A stylesheet that has not loaded — jsdom, chiefly — hands back an empty
+ * string, which parses to NaN and gets the constant. A field that paints on the
+ * wrong floor is worth more than a field that does not paint.
+ */
+function skinFloor(style: CSSStyleDeclaration): number {
+  const declared = Number.parseFloat(style.getPropertyValue("--pixel-floor"));
+  return Number.isFinite(declared) ? declared : PIXEL_FLOOR;
+}
+
+/**
  * A field of cells on a canvas, holding whatever frame it is given.
  *
  * The component owns only what a browser has to own: the canvas, the pointer,
@@ -96,7 +113,7 @@ export function GlyphCell({
   label,
   onTick,
   pixel = "square",
-  unlit = PIXEL_FLOOR,
+  unlit,
   polarity = "luminance",
   pages,
   page = 0,
@@ -115,9 +132,11 @@ export function GlyphCell({
   /** The shape of a cell. The LED panel this language comes from is square;
       the widget cards that quote it are round, and both are Nothing's. */
   pixel?: "square" | "round";
-  /** What an unlit cell is still worth. The default keeps the whole lattice
-      faintly visible, which is right for a panel pretending to be hardware and
-      wrong for a card that should read as marks on a clean surface. */
+  /** What an unlit cell is still worth, when the caller wants to say. Left
+      unsaid it is the skin's own floor, which keeps the whole lattice faintly
+      visible — right for a panel pretending to be hardware and wrong for a card
+      that should read as marks on a clean surface, which is what `unlit={0}`
+      is for. A number given here is meant, so it wins over the skin. */
   unlit?: number;
   /** What a value *is*. See `draw`. */
   polarity?: "luminance" | "ink";
@@ -168,10 +187,16 @@ export function GlyphCell({
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, size, size);
-    ctx.fillStyle = getComputedStyle(canvas).getPropertyValue("color") || "#f5f5f5";
+    /* Both of the skin's numbers come off the canvas in one read: the ink it is
+       drawn in, and how dark a dot it has not lit still is. Doing it here, in
+       `draw`, is what puts them on the right side of the deferred repaint
+       below — a computed style read during the effect flush would answer with
+       the outgoing skin for both. */
+    const skin = getComputedStyle(canvas);
+    ctx.fillStyle = skin.getPropertyValue("color") || "#f5f5f5";
 
     const round = pixelRef.current === "round";
-    const floor = unlitRef.current;
+    const floor = unlitRef.current ?? skinFloor(skin);
 
     /* And two meanings for the number itself. A luminance says how bright the
        depicted thing is, so it has to flip with the ground: a photograph's

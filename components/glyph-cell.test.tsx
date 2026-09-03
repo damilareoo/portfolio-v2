@@ -4,6 +4,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { ThemeProvider, useTheme } from "next-themes";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GlyphCell } from "@/components/glyph-cell";
+import { PIXEL_FLOOR, pixelGeometry } from "@/lib/glyph/pixel";
 
 // React has to be told it is inside a test, or every render warns about act().
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -15,11 +16,11 @@ const CELLS = GRID * GRID; // A square field draws one arc per cell.
 /**
  * jsdom has no 2D context, so the canvas is answered by a recorder. It keeps
  * what it was asked to draw, not just how often: under the `mark` ink, `draw`
- * encodes a cell's value as `0.2 + value * 0.8` alpha and a radius of
- * `value * cellSize * 0.62`, so reading those back says which frame the field
- * actually painted — the one it was handed, or some half-migrated state on the
- * way to it. The centres come back too, which is how a ring passing through the
- * field can be seen at all.
+ * encodes a cell's value as `floor + value * (1 - floor)` alpha, so reading the
+ * alphas back says which frame the field actually painted — the one it was
+ * handed, or some half-migrated state on the way to it. The radii say a pixel
+ * is the shape and size it should be, and the centres come back too, which is
+ * how a ring passing through the field can be seen at all.
  */
 function recordCanvas() {
   const painted = {
@@ -55,8 +56,10 @@ function recordCanvas() {
 }
 
 /* A lit pixel's alpha is `FLOOR + value * (1 - FLOOR)`, so the value it was
-   given can be read straight back off what it painted. */
-const FLOOR = 0.16;
+   given can be read straight back off what it painted. jsdom serves no
+   stylesheet, so `--pixel-floor` is missing and the field falls back to the
+   constant — which is the fallback these tests are reading through. */
+const FLOOR = PIXEL_FLOOR;
 const valueOf = (alpha: number) => (alpha - FLOOR) / (1 - FLOOR);
 
 /** The values the first painted frame carried, recovered from its alphas. */
@@ -200,7 +203,7 @@ describe("GlyphCell", () => {
        skin — the solid disc the blank-until-given guard exists to prevent. */
     for (const value of firstFrameValues(painted)) expect(value).toBeCloseTo(1, 6);
     // Every pixel is the same size — an LED does not grow, it brightens.
-    const corner = (SIZE / GRID) * 0.74 * 0.26;
+    const corner = pixelGeometry(SIZE / GRID).radius;
     expect(painted.radii.slice(0, CELLS).every((r) => Math.abs(r - corner) < 1e-9)).toBe(true);
   });
 
@@ -514,5 +517,76 @@ describe("GlyphCell", () => {
     const later = recordCanvas();
     mount(<GlyphCell grid={GRID} size={SIZE} frame={lit} label="later" />);
     for (const value of firstFrameValues(later)) expect(value).toBeCloseTo(1, 6);
+  });
+});
+
+describe("the floor an unlit dot sits on", () => {
+  /**
+   * A stylesheet, as far as `draw` is concerned.
+   *
+   * jsdom serves none, so `--pixel-floor` is empty in every other test here and
+   * the field falls back to `PIXEL_FLOOR`. These three are the ones that care
+   * which of the two numbers reached the canvas, so they answer the read.
+   */
+  function skinDeclares(floor: string) {
+    const real = window.getComputedStyle.bind(window);
+    vi.stubGlobal("getComputedStyle", (element: Element) => {
+      const style = real(element);
+      return {
+        getPropertyValue: (name: string) =>
+          name === "--pixel-floor" ? floor : style.getPropertyValue(name),
+      } as CSSStyleDeclaration;
+    });
+  }
+
+  /** One lit cell and sixty-three unlit ones, painted once and settled. */
+  function paintOne(element: React.ReactElement) {
+    reducedMotion(false);
+    frameClock();
+    const painted = recordCanvas();
+    mount(element);
+    return painted;
+  }
+
+  const frame = () => {
+    const values = new Float32Array(CELLS);
+    values[0] = 1;
+    return values;
+  };
+
+  it("takes the floor from the skin, not from a constant", () => {
+    skinDeclares("0.05");
+    const painted = paintOne(
+      <GlyphCell grid={GRID} size={SIZE} frame={frame()} polarity="ink" label="dark skin" />,
+    );
+
+    // The dark skin's floor, which is not the fallback — so it was read.
+    expect(painted.alphas[0]).toBeCloseTo(1, 6);
+    expect(painted.alphas[1]).toBeCloseTo(0.05, 6);
+    expect(0.05).not.toBe(PIXEL_FLOOR);
+  });
+
+  it("falls back to the constant when no stylesheet declares one", () => {
+    skinDeclares("");
+    const painted = paintOne(
+      <GlyphCell grid={GRID} size={SIZE} frame={frame()} polarity="ink" label="no sheet" />,
+    );
+
+    // A field that paints on the fallback floor beats a field that does not paint.
+    expect(painted.alphas[1]).toBeCloseTo(PIXEL_FLOOR, 6);
+  });
+
+  it("lets a caller who named a floor keep it, whatever the skin says", () => {
+    skinDeclares("0.05");
+    const painted = paintOne(
+      <GlyphCell grid={GRID} size={SIZE} frame={frame()} polarity="ink" unlit={0} label="card" />,
+    );
+
+    /* `unlit={0}` is the widget cards saying a cell that is off is simply not
+       there. The skin must not put a lattice back under them. */
+    expect(painted.arcs).toBeGreaterThanOrEqual(1);
+    // One pixel per paint, however many times it repaints: the other 63 cells
+    // are unlit, and an unlit cell under a caller's own zero draws nothing.
+    expect(painted.alphas.every((alpha) => alpha === 1)).toBe(true);
   });
 });

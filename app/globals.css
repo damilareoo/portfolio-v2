@@ -31,10 +31,18 @@
   --text-lg: 1.25rem;
   --text-xl: 1.875rem;
 
-  /* One cell of a rule, and how much of it the dot fills. The fill is the same
-     number lib/glyph/pixel.ts draws every pixel with — CSS cannot import it, so
-     pixel.test.ts asserts the two agree. */
-  --pixel-fill: 0.74;
+  /* One cell of a rule, how much of it the dot fills, and what an unlit dot in
+     a field is still worth. The fill is the same number lib/glyph/pixel.ts
+     draws every pixel with — CSS cannot import it, so pixel.test.ts asserts the
+     two agree, and the rules below are therefore drawn on the pixel's own hand.
+
+     The floor lives here rather than in TypeScript because it is a property of
+     the skin, like a colour, and GlyphCell reads it beside the ink. An unlit
+     dot has to stay present without becoming a wash, and presence costs more
+     ink on a pale ground than on a dark one. This is the light value; `.dark`
+     takes it down. The reasoning is written out in lib/glyph/pixel.ts. */
+  --pixel-fill: 0.82;
+  --pixel-floor: 0.1;
   --rule-cell: 2px;
 
   --bg: #f2f2f2;
@@ -53,6 +61,10 @@
 }
 
 .dark {
+  /* Near-black still reads as a surface, so an unlit dot needs far less here
+     than on the light skin to be present rather than absent. */
+  --pixel-floor: 0.05;
+
   --bg: #0a0a0a;
   --surface: #161616;
   --surface-2: #1f1f1f;
