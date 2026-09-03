@@ -28,26 +28,27 @@ export default function Home() {
           page — the work below argues it better. Contact and Elsewhere moved to
           the footer, where a reader looks once they have seen something worth
           writing about. */}
-      {/* On a short viewport the band is two columns rather than one stack: the
-          statement beside the record instead of above it. Measured at 800×400,
-          stacked, the band ended 363px down a 400px screen and the first
-          product began at 373 — the hero was the device. Side by side it ends
-          around 254, which puts the first number, title and year on the screen
-          the visitor actually has. Nothing about the tall layout moves: the
-          grid's `gap-y-4` is the `mt-4` it replaces, to the pixel. */}
+      {/* The name leads, bold, because it is the one fact a visitor should
+          leave with even if they read nothing else. The statement — the
+          owner's own words, untouched here — follows it, then the record,
+          then a way to act on what they just read. On a short viewport the
+          band is two columns rather than one stack, for the same reason it
+          always was: the name and statement beside the record and the call
+          instead of stacked above them, so the first product still lands on
+          screen rather than off the bottom of a landscape phone. */}
       <header className="mt-10 pb-8 short:mt-6 short:pb-6">
         <div className="grid min-w-0 gap-x-8 gap-y-4 short-wide:grid-cols-2 short-wide:items-start">
-          <h1 className="max-w-[24ch] text-xl font-medium leading-[1.15] tracking-tight">
-            I design and build the parts of a product people actually touch.
-          </h1>
           <div className="min-w-0">
-            <p className="max-w-[46ch] text-base leading-relaxed text-ink-2">
+            <h1 className="text-xl font-medium tracking-tight">&rsquo;{site.name}</h1>
+            <p className="mt-3 max-w-[46ch] text-base leading-relaxed text-ink-2">
               Interfaces, identity, and the systems underneath them — taken from
               nothing to shipped. Most recently for chess platforms and a revenue
               intelligence tool.
             </p>
-            <p className="mt-5 text-sm text-ink-3 short:mt-3">
-              &rsquo;{site.name} · Lagos ·{" "}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm text-ink-3">
+              Lagos ·{" "}
               <a
                 href={`mailto:${site.email}`}
                 className="text-ink-2 underline decoration-line underline-offset-4 transition-colors hover:text-ink hover:decoration-ink-3"
@@ -55,6 +56,19 @@ export default function Home() {
                 {site.email}
               </a>
             </p>
+            {/* Filled, mono, uppercase, tracked: the nav's active chip at CTA
+                scale rather than a new control inventing its own language.
+                `min-h` clears the touch floor; opacity is the only thing that
+                moves, and only under a pointer or a press, per Law 4. */}
+            <a
+              href={site.calendly}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex min-h-[2.75rem] items-center gap-2 rounded-[4px] bg-strong px-5 font-mono text-xs uppercase tracking-[0.08em] text-on-strong transition-opacity hover:opacity-90 active:opacity-80"
+            >
+              Book a call
+              <GlyphIcon name="arrow-out" size="0.5rem" />
+            </a>
           </div>
         </div>
       </header>

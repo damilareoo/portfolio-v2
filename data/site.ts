@@ -13,6 +13,9 @@ export const site = {
   longitude: 3.3792,
   // The line the steps card fills toward. A round number, not a prescription.
   stepGoal: 10000,
+  /* The handle is `damilareoo` on every other network, so this is an inference
+     rather than a fact — the owner confirms or corrects it. */
+  calendly: "https://calendly.com/damilareoo",
 };
 
 /** Carried over from portfolio-v1's "elsewhere" list. */
