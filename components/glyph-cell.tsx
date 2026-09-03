@@ -365,13 +365,30 @@ export function GlyphCell({
      `draw()`.
 
      Cancelling on cleanup matters too: a rapid double-toggle would otherwise
-     leave an orphaned frame to paint after the field had moved on. */
+     leave an orphaned frame to paint after the field had moved on.
+
+     What this costs, honestly: on the system-preference path next-themes calls
+     `applyTheme` synchronously inside its own `matchMedia` listener, so the
+     class — and every CSS-driven surface with it — used to flip in the same
+     commit as the repaint. That repaint is now always a frame behind, so a
+     visitor who changes their system skin can catch up to ~16 ms of the old
+     ink sitting on the new ground. That is the trade: one frame of stale ink
+     on the path that was already correct, in exchange for the explicit toggle
+     not freezing the wrong ink in place for good. */
   useEffect(() => {
     invertRef.current = invert;
     const booked = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(booked);
   }, [invert, draw]);
 
+  /* These two draw synchronously, and that is load-bearing beyond their own
+     props. They are flushed after the skin effect above, which now only books
+     its repaint rather than performing it — so on the very first commit these
+     are what paint the field with `invertRef` already set. Drop the `draw()`
+     from either as a "these are only refs, nothing to repaint" tidy-up and
+     mount will paint a one-frame inverted field before the booked frame
+     corrects it. The light skin's opening frame is a solid disc, which is the
+     thing the whole polarity distinction exists to prevent. */
   useEffect(() => {
     pixelRef.current = pixel;
     unlitRef.current = unlit;

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { ThemeProvider } from "next-themes";
+import { ThemeProvider, useTheme } from "next-themes";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GlyphCell } from "@/components/glyph-cell";
 
@@ -319,7 +319,12 @@ describe("GlyphCell", () => {
           <GlyphCell grid={GRID} size={SIZE} frame={dark} label="empty" polarity={polarity} />
         </ThemeProvider>,
       );
-      // The last paint, not the first: the skin effect repaints after mount.
+      /* The last paint, not the first. The skin effect no longer paints at all
+         — it books a frame, and this test never turns the clock — so what
+         lands last is the trailing `[polarity, draw]` effect, flushed after
+         the skin effect set `invertRef`. That is the coupling noted at those
+         effects in `glyph-cell.tsx`, and this assertion is what would catch
+         it being broken. */
       const values = painted.alphas.slice(-CELLS).map(valueOf);
       act(() => root?.unmount());
       vi.restoreAllMocks();
@@ -358,6 +363,38 @@ describe("GlyphCell", () => {
       for (const paintFrame of frames.splice(0)) paintFrame(performance.now());
     });
     expect(painted.arcs).toBeGreaterThan(before);
+  });
+
+  it("cancels the frame it booked when the skin turns again before it runs", () => {
+    /* Two toggles inside one frame is an ordinary thing to do to a switch, and
+       without the cleanup each one leaves its own repaint booked. They would
+       all run on the next frame, painting the same field two and three times
+       over — and worse, a frame booked against a skin the field has already
+       left is a paint nobody asked for. */
+    reducedMotion(false);
+    const clock = frameClock();
+    recordCanvas();
+    const skin: { set?: (theme: string) => void } = {};
+
+    function Switch() {
+      skin.set = useTheme().setTheme;
+      return null;
+    }
+
+    mount(
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+        <Switch />
+        <GlyphCell grid={GRID} size={SIZE} frame={new Float32Array(CELLS).fill(1)} label="toggling" />
+      </ThemeProvider>,
+    );
+    expect(clock.pending).toBe(SKIN_REPAINT);
+
+    // Both turns land before the clock is ever advanced.
+    act(() => skin.set!("dark"));
+    act(() => skin.set!("light"));
+
+    // Still one: each re-run cancelled the frame the run before it booked.
+    expect(clock.pending).toBe(SKIN_REPAINT);
   });
 
   it("turns its pages by keyboard, wrapping in both directions", () => {
