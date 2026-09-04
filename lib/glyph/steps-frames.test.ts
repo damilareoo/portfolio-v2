@@ -54,6 +54,73 @@ describe("walkFrame", () => {
     for (let i = 0; i < frame.length; i++) expect(frame[i]).toBeLessThanOrEqual(1);
     expect(frame.some((v) => v > 0)).toBe(true);
   });
+
+  /**
+   * The gait.
+   *
+   * The defect: a figure translated along a static track and nothing else, so
+   * it read as a decal on a wire rather than as something walking. These say
+   * the form changes with the ground covered, that it changes only with the
+   * ground covered, and that the change is a cycle rather than a drift.
+   */
+  const PATH_ROW = Math.round((GRID - 1) / 2);
+
+  /** Where a given cell along the path puts the walker. */
+  const at = (left: number) => left / (GRID - 6);
+
+  /** The figure alone — the path row dropped, and the shape moved back to its
+      own left edge, so two positions can be compared as forms rather than as
+      places. */
+  const formAt = (progress: number): string => {
+    const frame = walkFrame(GRID, progress);
+    const lit: [number, number][] = [];
+    for (let row = 0; row < PATH_ROW; row++) {
+      for (let col = 0; col < GRID; col++) {
+        if (frame[row * GRID + col] > 0) lit.push([row, col]);
+      }
+    }
+    const leftMost = Math.min(...lit.map(([, col]) => col));
+    return lit.map(([row, col]) => `${row},${col - leftMost}`).join(" ");
+  };
+
+  it("changes the figure's form as it travels", () => {
+    expect(formAt(at(0))).not.toBe(formAt(at(2)));
+    expect(formAt(at(2))).not.toBe(formAt(at(4)));
+  });
+
+  it("takes three forms and repeats them, rather than drifting", () => {
+    const forms = new Set<string>();
+    for (let left = 0; left < GRID - 6; left++) forms.add(formAt(at(left)));
+    // Passing, and the two contacts it falls between. The passing pose is one
+    // shape at both ends of a stride: a silhouette this small cannot say which
+    // leg is passing which.
+    expect(forms.size).toBe(3);
+  });
+
+  it("comes back to the same form one stride later", () => {
+    for (const left of [0, 1, 2, 3]) expect(formAt(at(left))).toBe(formAt(at(left + 8)));
+  });
+
+  it("holds one form while nothing is moving", () => {
+    // A page at rest is a still page. The pose is a function of distance and of
+    // nothing else, so the same distance is the same figure, forever.
+    expect(walkFrame(GRID, 0.4)).toEqual(walkFrame(GRID, 0.4));
+    expect(formAt(0.4)).toBe(formAt(0.4 + 1e-9));
+  });
+
+  it("keeps the walker's feet on the path in every form", () => {
+    for (let left = 0; left < GRID - 6; left++) {
+      const frame = walkFrame(GRID, at(left));
+      const feet = Array.from({ length: GRID }, (_, col) => frame[(PATH_ROW - 1) * GRID + col]);
+      expect(feet.some((value) => value > 0)).toBe(true);
+    }
+  });
+
+  it("stands the walker up at either end of the path", () => {
+    // Nothing walked and the whole goal walked are both a figure standing: one
+    // has not set off, the other has arrived, and neither is mid-stride.
+    expect(formAt(1)).toBe(formAt(0));
+  });
 });
 
 describe("weekMarks", () => {

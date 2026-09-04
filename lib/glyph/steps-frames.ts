@@ -26,21 +26,126 @@ const FIGURE_W = 6;
 const FIGURE_H = 8;
 
 /**
- * The walker, mid-stride: arms out, one leg planted and one trailing. Drawn as
- * a bitmap here rather than derived from anything, because a figure at five
- * cells wide is a piece of lettering — it is legible or it is not, and the only
- * way to make it legible is to place every dot by hand.
+ * One pose of the walker: `#` is a dot, anything else is nothing.
+ *
+ * Written as rows of characters rather than as a flat array of ones and zeroes
+ * because a figure six cells wide is a piece of lettering — it is legible or it
+ * is not, and the only way to make it legible is to place every dot by hand and
+ * then be able to see what you placed.
  */
-const FIGURE = [
-  0, 0, 1, 1, 0, 0,
-  0, 0, 1, 1, 0, 0,
-  1, 1, 1, 1, 1, 1,
-  0, 0, 1, 1, 0, 0,
-  0, 0, 1, 1, 0, 0,
-  0, 1, 1, 0, 1, 0,
-  1, 1, 0, 0, 1, 1,
-  1, 0, 0, 0, 0, 1,
-];
+function pose(...rows: string[]): Uint8Array {
+  const bits = new Uint8Array(FIGURE_W * FIGURE_H);
+  for (let row = 0; row < FIGURE_H; row++) {
+    for (let col = 0; col < FIGURE_W; col++) {
+      bits[row * FIGURE_W + col] = rows[row]?.[col] === "#" ? 1 : 0;
+    }
+  }
+  return bits;
+}
+
+/**
+ * Mid-stride, with the body at its highest and the legs closed under it. It is
+ * also what standing still looks like: in a silhouette this small the passing
+ * pose and a figure at rest are the same shape, which is why the cycle opens
+ * on it — a walk that has not begun starts from a figure standing.
+ */
+const PASSING = pose(
+  "..##..",
+  "..##..",
+  ".####.",
+  ".####.",
+  "..##..",
+  "..##..",
+  "..##..",
+  "..##..",
+);
+
+/**
+ * Contact: both feet down and apart, the body a row lower for it, one hand
+ * raised ahead and the other dropped behind.
+ *
+ * The two contacts are mirror images, and the mirror is the whole reason there
+ * are two. The splayed legs are symmetric at this size, so a stride would be
+ * indistinguishable from its opposite if the arms did not swing — which is
+ * what makes four frames a walk rather than a figure opening and closing its
+ * legs on the spot.
+ */
+const CONTACT_RIGHT = pose(
+  "......",
+  "..##..",
+  "..##.#",
+  ".####.",
+  "#.##..",
+  "..##..",
+  ".#..#.",
+  "#....#",
+);
+
+const CONTACT_LEFT = pose(
+  "......",
+  "..##..",
+  "#.##..",
+  ".####.",
+  "..##.#",
+  "..##..",
+  ".#..#.",
+  "#....#",
+);
+
+/**
+ * The gait.
+ *
+ * The defect this replaces is a single figure translated along a static track
+ * on a timer — nothing about it changed as it travelled, so it read as a decal
+ * being slid along a wire rather than as something walking.
+ *
+ * Contact, passing, contact, passing: the order a walk cycle goes in, with the
+ * body dropping a row on each contact and rising between them, so the figure
+ * bobs on its own legs instead of gliding. The two contacts are mirrors, which
+ * is what makes this a walk rather than a figure opening and closing its legs
+ * on the spot.
+ *
+ * The cycle is indexed by *distance*, not by a clock, and that is what keeps
+ * Law 4: the pose is a pure function of how far along the path the figure
+ * stands, so a page at rest holds one pose forever, and the gait happens only
+ * inside the journey the pedometer already takes when a visitor turns to this
+ * face. There is no loop here to leave running, and nothing for reduced motion
+ * to switch off that the caller has not already declined by walking the whole
+ * path in a single frame.
+ */
+const GAIT = [PASSING, CONTACT_RIGHT, PASSING, CONTACT_LEFT];
+
+/**
+ * How much ground a full cycle covers, in cells.
+ *
+ * This is the one number that decides how fast the legs go, because speed here
+ * is not a property of the gait at all — the walk covers whatever distance it
+ * covers, and the legs turn over as often as the ground says. Eight cells puts
+ * the average crossing of a 25-cell field at about nine poses a second, which
+ * is where a four-frame cycle reads as walking; the arrival's ease-out then
+ * makes the figure step quickly as it sets off and slowly as it settles, which
+ * is what a body does and what a timer could not have produced.
+ *
+ * A cycle of four cells was tried first — a pose for every cell moved, so the
+ * figure could never move without stepping. It is the tidier rule and the wrong
+ * speed: the ease-out puts half the path inside the first fifth of a second,
+ * and the legs came out as a vibration rather than a stride.
+ */
+const STRIDE = 8;
+
+/**
+ * Which pose stands at `left` cells along.
+ *
+ * A finished walk stands rather than freezing mid-stride: a day that met its
+ * goal puts the figure at the end of the path with no road ahead of it, and
+ * that reading is finished, not paused. A walk that has not begun gets the same
+ * pose without being asked, because the cycle opens on it.
+ */
+function poseAt(progress: number, left: number): Uint8Array {
+  if (progress >= 1) return PASSING;
+  const phase = Math.floor((left * GAIT.length) / STRIDE) % GAIT.length;
+  return GAIT[phase];
+}
 
 /** What the path ahead of the walker is worth. Not zero: it is still a path. */
 /* The road ahead, dimmer than the ground covered.
@@ -120,6 +225,11 @@ export function recordFrame(
  * Ground already covered is full-size and full-brightness; the road ahead is
  * small and dim. That is the whole readout: you can see how far you have come
  * without reading a number, which is what a glanceable instrument is for.
+ *
+ * The figure changes shape as it goes — see `GAIT`. Its pose comes off the same
+ * `progress` its position does, so the two cannot come apart: the legs turn
+ * over as the ground passes and stop dead when it does, and a figure that is
+ * not travelling holds whatever pose the distance it stands at asks for.
  */
 export function walkFrame(grid: number, progress: number, horizon?: number): Float32Array {
   const frame = emptyFrame(grid);
@@ -130,8 +240,14 @@ export function walkFrame(grid: number, progress: number, horizon?: number): Flo
      above the walk can push the horizon down to make room for it. */
   const pathRow = Math.min(grid - 1, horizon ?? Math.round((grid - 1) / 2));
   const top = Math.max(0, pathRow - FIGURE_H);
-  const left = Math.round(clamp01(progress) * Math.max(0, grid - FIGURE_W));
+  const walked = clamp01(progress);
+  const left = Math.round(walked * Math.max(0, grid - FIGURE_W));
+  /* Ground covered is measured from the middle of the figure rather than from
+     whichever foot is down. Which foot that is changes four times a stride, and
+     a heel that followed it would run the bright half of the path backwards and
+     forwards as the walker went. */
   const heel = left + (FIGURE_W >> 1);
+  const figure = poseAt(walked, left);
 
   for (let col = 0; col < grid; col++) {
     frame[pathRow * grid + col] = col < heel ? 1 : AHEAD;
@@ -139,7 +255,7 @@ export function walkFrame(grid: number, progress: number, horizon?: number): Flo
 
   for (let row = 0; row < FIGURE_H; row++) {
     for (let col = 0; col < FIGURE_W; col++) {
-      if (!FIGURE[row * FIGURE_W + col]) continue;
+      if (!figure[row * FIGURE_W + col]) continue;
       const x = left + col;
       const y = top + row;
       if (x < 0 || x >= grid || y < 0 || y >= grid) continue;

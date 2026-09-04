@@ -172,7 +172,9 @@ function RecordLabel({ top, name, value }: { top: string; name: string; value: s
  * The pedometer, as three pages of one field.
  *
  * The walk carries the idea: a figure on a path, ground covered behind it at
- * full size and brightness, the road ahead small and dim. The record states the
+ * full size and brightness, the road ahead small and dim, and the figure itself
+ * stepping — its form comes off the distance it has covered, so it walks rather
+ * than being slid. The record states the
  * numbers. The month lays out the month you are standing in and says, day by
  * day, which of the four things each one was — met, missed, quiet, ahead; see
  * `DayState`. There is no fourth page any more; see `PAGES`.
@@ -246,7 +248,13 @@ export function Pedometer() {
     /* Law 4's "unless touched": turning to this face is what causes the walk,
        and it resolves into the same figure a still card would have shown.
        Reduced motion walks it in no time at all — one frame, at the mark —
-       so the value is never withheld from anyone, only the journey to it. */
+       so the value is never withheld from anyone, only the journey to it.
+
+       The figure's gait rides on this and needs nothing of its own: its pose is
+       a function of the distance in `walked`, so the legs turn over because
+       this value is changing and stop dead when it stops. There is no second
+       clock here to leave running, which is the only way a gait and Law 4 can
+       both hold — see `GAIT` in lib/glyph/steps-frames.ts. */
     const duration = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1100;
     let raf = 0;
     const start = performance.now();
