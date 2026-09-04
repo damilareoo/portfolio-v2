@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { Fragment, useId, useState } from "react";
 import { CaseReel } from "@/components/case-reel";
 import { GlyphIcon } from "@/components/glyph-icon";
 import { GlyphText } from "@/components/glyph-text";
@@ -200,6 +200,48 @@ export function Product({
                 <div className="mx-auto mt-7 max-w-[34rem]">
                   {item.client && <RecordRow label="Client">{item.client}</RecordRow>}
                   {item.role && <RecordRow label="Role">{item.role}</RecordRow>}
+                  {/* Rendered only when there are names. A case with none has
+                      no row here at all — not an empty one and not an em dash
+                      standing in for one, because a record that prints a blank
+                      is claiming the question was asked and came back empty,
+                      and for most of this work it was never asked.
+
+                      A comma between people and the role in brackets after
+                      the name it belongs to. The middot the rest of the site
+                      uses for lists was tried here and read wrong: set in the
+                      quiet ink beside a comma in the same ink, "Ada Lovelace ·
+                      Engineering, Grace Hopper" groups as one phrase and two
+                      names rather than as two people. Brackets close the
+                      question without a second colour. Names that carry a site
+                      are links in the same
+                      underlined treatment every other outbound name on the
+                      site uses; names that do not are plain text, which is
+                      what stops a name without a site reading as a link that
+                      broke. */}
+                  {item.collaborators && item.collaborators.length > 0 && (
+                    <RecordRow label="With">
+                      {item.collaborators.map((person, i) => (
+                        <Fragment key={person.name}>
+                          {i > 0 && <span className="text-ink-3">, </span>}
+                          {person.url ? (
+                            <a
+                              href={person.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-ink-2 underline decoration-line underline-offset-4 transition-colors hover:text-ink hover:decoration-ink-3"
+                            >
+                              {person.name}
+                            </a>
+                          ) : (
+                            person.name
+                          )}
+                          {person.role && (
+                            <span className="text-ink-3"> ({person.role})</span>
+                          )}
+                        </Fragment>
+                      ))}
+                    </RecordRow>
+                  )}
                   <RecordRow label="Discipline">
                     <Tags items={item.disciplines} />
                   </RecordRow>

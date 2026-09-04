@@ -107,6 +107,53 @@ describe("Product", () => {
     expect(built).toBe(afterOpen);
   });
 
+  /* The field ships empty on purpose — no case in data/work.ts records a
+     collaborator yet — so these two are the only thing holding the shape of it
+     until one does. The absent case matters more than the present one: a
+     record row that renders blank, or renders an em dash, is claiming the
+     question was asked and came back empty. */
+  const labelled = (text: string) =>
+    [...host.querySelectorAll("span")].find((s) => s.textContent === text);
+
+  it("records collaborators, and links the ones with a site", () => {
+    render(
+      <Product
+        item={{
+          ...item,
+          collaborators: [
+            { name: "Ada Lovelace", url: "https://example.com", role: "Engineering" },
+            { name: "Grace Hopper" },
+          ],
+        }}
+        assets={[]}
+        index={0}
+      />,
+    );
+    expect(labelled("With")).toBeDefined();
+    expect(host.textContent).toContain("Ada Lovelace");
+    expect(host.textContent).toContain("Engineering");
+    expect(host.textContent).toContain("Grace Hopper");
+
+    const link = host.querySelector<HTMLAnchorElement>('a[href="https://example.com"]')!;
+    expect(link.textContent).toBe("Ada Lovelace");
+    expect(link.rel).toBe("noopener noreferrer");
+    /* The one without a site is text. A name that is not a link must not be
+       marked up as one, or it reads as a link that broke. */
+    expect([...host.querySelectorAll("a")].some((a) => a.textContent === "Grace Hopper")).toBe(
+      false,
+    );
+  });
+
+  it("draws no row at all for a case with no collaborators", () => {
+    render(<Product item={item} assets={[]} index={0} />);
+    expect(labelled("With")).toBeUndefined();
+
+    /* And an empty list is the same as no list: a field that exists but holds
+       nobody is still a case with no recorded collaborators. */
+    act(() => root.render(<Product item={{ ...item, collaborators: [] }} assets={[]} index={0} />));
+    expect(labelled("With")).toBeUndefined();
+  });
+
   it("offers no bar when there is nothing more to show", () => {
     render(<Product item={{ ...item, blocks: item.blocks!.slice(0, 2) }} assets={[]} index={1} />);
     expect(host.querySelector("button")).toBeNull();

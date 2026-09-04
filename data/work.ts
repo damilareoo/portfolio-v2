@@ -58,6 +58,28 @@ export type CaseBlock =
   | { kind: "text"; heading?: string; body: string[] }
   | { kind: "quote"; body: string; attribution?: string };
 
+/**
+ * Someone else who worked on the piece.
+ *
+ * A name is the only thing required, because the only thing the site can
+ * honestly claim is that they were there. `url` is optional because some
+ * people have a site and some do not, and a name that is not a link must not
+ * read as a broken one. `role` is optional because on a two-person piece it is
+ * usually obvious and saying it anyway is padding.
+ *
+ * Nothing here is populated. The owner has not supplied names, and a colleague
+ * invented on a public portfolio is not a defect that can be walked back — an
+ * empty array and a missing field both render as no row at all, which is what
+ * a case with no recorded collaborators should look like.
+ */
+export type Collaborator = {
+  name: string;
+  /** Their own site. Absent means the name is set as plain text, not a link. */
+  url?: string;
+  /** What they did, where it is worth saying. */
+  role?: string;
+};
+
 export type WorkItem = {
   slug: string;
   title: string;
@@ -69,6 +91,8 @@ export type WorkItem = {
   /** Who it was for, when the piece was client work. */
   client?: string;
   role?: string;
+  /** Everyone else on it. See `Collaborator`; an empty list renders nothing. */
+  collaborators?: Collaborator[];
   stack?: string;
   /**
    * The written argument. Both sit inside the entry's fold, in one centred
