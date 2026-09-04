@@ -14,8 +14,12 @@
 @custom-variant short-wide (@media (max-height: 540px) and (min-width: 600px));
 
 :root {
-  /* Tuned live by the DialKit — see lib/settings.tsx */
-  --type-scale: 1;
+  /* Spacing and radii. These were the density dial's three steps and are now
+     one, at the value it shipped in the middle of — the dial went and the
+     tokens stayed, because every surface reads them and a literal 16px
+     scattered across twenty files is what they were written to prevent.
+     `--type-scale` was the fourth and does not survive: it multiplied the root
+     font size, which is what forced every size on the site into rem. */
   --pg-gap: 16px;
   --pad: 20px;
   --radius-window: 16px;
@@ -148,8 +152,11 @@
 
 html {
   background: var(--bg);
-  /* Every rem-based size on the site scales from this one dial. */
-  font-size: calc(16px * var(--type-scale));
+  /* No root font size is declared on purpose. The dial used to multiply one
+     here, which meant the site overrode whatever the visitor had set in their
+     browser and then handed them its own three steps instead. With the dial
+     gone the browser's own text size is simply honoured, which is the setting
+     they already had. */
 }
 
 body {
@@ -260,18 +267,6 @@ body {
   .arrive[data-arrived] {
     opacity: 1;
     transform: none;
-  }
-}
-
-/* A counter rolls only when the visitor turned it — see lib/dial-turns.tsx. */
-@keyframes digit-roll {
-  from {
-    transform: translateY(0.3em);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
   }
 }
 

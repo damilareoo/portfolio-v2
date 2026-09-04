@@ -2,7 +2,6 @@
 
 import { useTheme } from "next-themes";
 import { GlyphIcon } from "@/components/glyph-icon";
-import { useDialTurns } from "@/lib/dial-turns";
 import type { IconName } from "@/lib/glyph/icons";
 import { useMounted } from "@/lib/use-mounted";
 
@@ -20,7 +19,6 @@ const MODES: { value: string; label: string; icon: IconName }[] = [
 export function ThemeControl() {
   const mounted = useMounted();
   const { theme, setTheme } = useTheme();
-  const { record } = useDialTurns();
 
   return (
     <div className="flex items-center gap-0.5">
@@ -32,11 +30,7 @@ export function ThemeControl() {
             type="button"
             aria-label={mode.label}
             aria-pressed={active}
-            onClick={() => {
-              setTheme(mode.value);
-              // Re-selecting the mode you are already on is not a turn.
-              if (mounted && theme !== mode.value) record();
-            }}
+            onClick={() => setTheme(mode.value)}
             className={`flex size-6 items-center justify-center rounded-[4px] transition-colors ${
               active ? "bg-surface-2 text-ink" : "text-ink-3 hover:text-ink-2"
             }`}

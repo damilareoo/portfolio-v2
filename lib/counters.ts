@@ -9,14 +9,18 @@
  * Backed by Upstash Redis over its REST API. The Vercel marketplace
  * integration injects KV_REST_API_*; a hand-rolled Upstash project injects
  * UPSTASH_REDIS_REST_*. Both are accepted.
+ *
+ * The dial-turn counter was this module's only reader of a key and it is gone
+ * with the dial. What is left is the store adapter itself, and it is kept
+ * whole rather than reduced to `countersConfigured` — which the steps card
+ * asks, and which is a statement about a store that can be read and written.
+ * `DIAL_TURNS_KEY` went because it named one dial; nothing else here named it.
  */
 
 const url = process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
 const token = process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
 
 export const countersConfigured = Boolean(url && token);
-
-export const DIAL_TURNS_KEY = "dial-turns";
 
 async function command(args: (string | number)[]): Promise<unknown> {
   if (!countersConfigured) return null;

@@ -79,8 +79,8 @@ export function TokenRow({ token }: { token: string }) {
  * A specimen you can set rather than read.
  *
  * Weight and size are dragged directly on the sample — the colophon documents
- * the type by handing you the two axes that define it, which is the same
- * argument the DialKit makes about the tokens.
+ * the type by handing you the two axes that define it, rather than printing a
+ * picture of them.
  */
 export function TypeSpecimen({
   sample,

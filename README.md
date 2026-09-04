@@ -245,17 +245,11 @@ pnpm manifest
 
 Until art lands, a frame prints what is missing and the shape of the slot rather than collapsing. A piece with assets but no authored blocks falls back to one full frame per asset, in filename order.
 
-## DialKit
+## The dials, and why there are none
 
-The colophon's dial rail is not a preferences panel. Each control rewrites the design tokens the page is drawn from, live, and the choice persists across visits.
+There was a dial rail on the colophon — theme, type scale, density — that rewrote the design tokens live and persisted the choice. Type and density are gone. The type dial multiplied the root font size, which overrode whatever text size the visitor had already set in their browser and offered them three steps of its own instead; the density dial shipped three spacings where the site only ever wanted one. `--pg-gap`, `--pad`, `--radius-window` and `--radius-tile` keep the values the middle step used and are fixed in `app/globals.css`; `--type-scale` is gone, and with it the rule that every size on the site had to be `rem`.
 
-| Dial | Writes | Values |
-|---|---|---|
-| Theme | `.dark` class | Light, Dark, Auto |
-| Type | `--type-scale` → root font size | 0.9, 1, 1.12 |
-| Density | `--pg-gap`, `--pad`, `--radius-window`, `--radius-tile` | S, M, L |
-
-Two rules keep it working: type sizes are always `rem` so the type dial reaches them, and spacing and radii read from dial tokens rather than fixed values. A pre-paint script in the document head applies saved values before first render, so nothing flashes at its default.
+The light/dark control survives and moved to the nav, where it is reachable from every page rather than from one.
 
 ## Work model
 
@@ -300,25 +294,24 @@ Blocks without a `src` consume the project's assets in filename order, so droppi
 
 ## The colophon
 
-Nothing on `/colophon` is a screenshot of the system. Token rows read their own live computed value — so the page cannot drift out of date with the stylesheet — and copy the hex on click. Type specimens are set, not shown: pick a weight, drag the size. The dials and the shared counters live here too.
+Nothing on `/colophon` is a screenshot of the system. Token rows read their own live computed value — so the page cannot drift out of date with the stylesheet — and copy the hex on click. Type specimens are set, not shown: pick a weight, drag the size. The live readouts sit here too.
 
 ## The value field
 
-The colophon carries one instrument beyond the dials. Its scatter plots eight named landmarks on **weight × contrast**; the cursor blends the nearest of them by inverse-distance weighting and writes the result into `--body-weight`, `--text-2`, `--text-3`, and `--border`. Click commits. The blend holds across client-side navigation and resets on refresh.
+The colophon carries one instrument beyond the specimens. Its scatter plots eight named landmarks on **weight × contrast**; the cursor blends the nearest of them by inverse-distance weighting and writes the result into `--body-weight`, `--text-2`, `--text-3`, and `--border`. Click commits. The blend holds across client-side navigation and resets on refresh.
 
 The blending is left to CSS — each token becomes a `color-mix()` against `var(--bg)` and `var(--text-1)` — so switching skin under a held blend re-derives the ladder for free.
 
-## Counters
+## Readouts
 
 The site reports on itself with real data, so it is never identical twice.
 
-| Counter | Source | Behaviour |
+| Readout | Source | Behaviour |
 |---|---|---|
-| Dials turned | Upstash Redis, shared by every visitor | Read once on mount; moves only when you turn a dial |
 | Now playing | Spotify, refreshed every 30s | The dithered disc, third reading on the instrument wall |
 | Build | `VERCEL_GIT_COMMIT_SHA` at build time | Version and short commit |
 
-Law 4 governs all three: the dial count never polls and never climbs on its own, and the roll animation fires only for a turn the visitor caused.
+A third row counted dial turns, shared across every visitor through Upstash. It went with the dial and the count was not kept. The store adapter in `lib/counters.ts` stays: the steps card asks it whether a store is configured at all.
 
 Now-playing is the dithered disc, a reading on the instrument wall at the foot of the home page. Not a halftone — dot size is constant and brightness carries the tone, the same way a shot arrives on the panel above. Album artwork is converted to grayscale and rendered as an ordered-dither dot field, which is what lets real artwork onto a site with no accent hue — dithering discards the colour rather than suppressing it, and what survives is the one thing the palette trades in.
 
@@ -335,7 +328,7 @@ The frame loop runs while the pointer is inside, while dots are settling, while 
 
 Artwork is proxied through `/api/now-playing/art` so the canvas stays same-origin and `getImageData` keeps working. That route allowlists the Spotify CDN hosts — without it, it would be an open proxy.
 
-Counters degrade rather than fail. With no store configured, `lib/counters.ts` returns null everywhere and the rail shows a local count labelled "by you". A counter that has never been read renders placeholder digits at `--text-3`, not a zero.
+The store degrades rather than fails. With nothing configured, `lib/counters.ts` returns null everywhere and the steps card falls back to the last reading it has rather than showing a zero.
 
 Environment: `KV_REST_API_URL` and `KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_*`), plus `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, and `SPOTIFY_REFRESH_TOKEN`. Both Vercel projects share one Redis store so the two faces show one number.
 

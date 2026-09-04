@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { RecordRow } from "@/components/ui";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Counters } from "@/components/counters";
-import { DialKit } from "@/components/dial-kit";
 import { GlyphToys } from "@/components/glyph-toys";
+import { Readouts } from "@/components/readouts";
 import { SiteNav } from "@/components/site-nav";
 import { TokenRow, TypeSpecimen } from "@/components/colophon-instruments";
 import { changelog } from "@/data/changelog";
@@ -101,14 +100,11 @@ export default function ColophonPage() {
           </Section>
 
           <Section
-            label="Dials"
-            note="Not preferences stored for later — each one rewrites the design tokens this page is drawn from, live. The count is shared: every visitor who turns a dial leaves a trace the next visitor sees."
+            label="Readouts"
+            note="What the site can say about itself right now. The type and density dials stood here and are gone: the sizes are set once, fluidly, and the light-dark control lives in the nav where it is reachable from every page."
           >
-            <div className="grid max-w-[26rem] gap-6 sm:grid-cols-2">
-              <div className="border border-line p-3">
-                <DialKit />
-              </div>
-              <Counters version={current.version} commit={process.env.VERCEL_GIT_COMMIT_SHA} />
+            <div className="max-w-[26rem]">
+              <Readouts version={current.version} commit={process.env.VERCEL_GIT_COMMIT_SHA} />
             </div>
           </Section>
         </div>
@@ -145,7 +141,7 @@ export default function ColophonPage() {
             <div className="max-w-[26rem]">
               <RecordRow label="Framework">Next.js, React, TypeScript</RecordRow>
               <RecordRow label="Styling">Tailwind CSS on CSS custom properties</RecordRow>
-              <RecordRow label="Counters">Upstash Redis</RecordRow>
+              <RecordRow label="Store">Upstash Redis</RecordRow>
               <RecordRow label="Music">Spotify, dithered to a dot field</RecordRow>
               <RecordRow label="Hosting">Vercel</RecordRow>
               <RecordRow label="Version">

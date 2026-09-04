@@ -1,30 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useDialTurns } from "@/lib/dial-turns";
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <span className="font-mono text-[0.625rem] uppercase tracking-wider text-ink-3">
       {children}
-    </span>
-  );
-}
-
-/**
- * A counter that has never been read is not a counter at zero — it shows
- * placeholder digits at --text-3, the same rule the skeletons follow.
- */
-function Digits({ value, roll }: { value: number | null; roll: boolean }) {
-  if (value === null) {
-    return <span className="font-mono text-[1.25rem] text-ink-3">––––</span>;
-  }
-  return (
-    <span
-      key={value}
-      className={`font-mono text-[1.25rem] tabular-nums ${roll ? "animate-[digit-roll_180ms_ease-out]" : ""}`}
-    >
-      {value.toLocaleString("en-US")}
     </span>
   );
 }
@@ -84,26 +65,18 @@ function NowPlayingRow() {
   );
 }
 
-export function Counters({ version, commit }: { version: string; commit?: string }) {
-  const { total, mine, live, justMoved } = useDialTurns();
-
+/**
+ * What the site can say about itself right now: what is playing, and what it
+ * is built from.
+ *
+ * It was `Counters` and it counted dial turns, which is the row that went when
+ * the type dial did. Neither of the two left is a counter — one is a live
+ * reading and the other is a fact about the build — so the name went with the
+ * row that earned it.
+ */
+export function Readouts({ version, commit }: { version: string; commit?: string }) {
   return (
     <div className="space-y-4">
-      <div className="rule-t pt-3">
-        <Label>Dials turned</Label>
-        <div className="mt-1.5 flex items-baseline gap-2">
-          <Digits value={live ? total : mine} roll={justMoved} />
-          <span className="font-mono text-[0.625rem] uppercase tracking-wider text-ink-3">
-            {live ? "by everyone" : "by you"}
-          </span>
-        </div>
-        {live && (
-          <p className="mt-1 font-mono text-[0.625rem] uppercase tracking-wider text-ink-3">
-            {mine.toLocaleString("en-US")} by you
-          </p>
-        )}
-      </div>
-
       <NowPlayingRow />
 
       <div className="rule-t pt-3">

@@ -26,9 +26,9 @@ import type { Asset } from "@/data/assets.generated";
  * only thing that survived retiring /work/[slug], and `hidden` would spend it.
  *
  * The open state is deliberately not persisted. Law 3 governs layout the
- * visitor sets, as the DialKit does; a reading position is not a setting, and a
- * portfolio that reopens three dossiers on arrival has forgotten what the
- * collapsed state was for.
+ * visitor sets — the skin is the one thing left that qualifies; a reading
+ * position is not a setting, and a portfolio that reopens three dossiers on
+ * arrival has forgotten what the collapsed state was for.
  */
 export function Product({
   item,

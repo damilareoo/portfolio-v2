@@ -115,19 +115,18 @@ export default function SystemPage() {
           </div>
 
           <div className="mt-7">
-            <SectionLabel>Dials</SectionLabel>
+            <SectionLabel>Spacing and radii</SectionLabel>
             <p className="mt-3 text-[0.8125rem] leading-relaxed text-ink-2">
-              The settings rail on the home page rewrites these live. Density
-              drives spacing and radii; type scale moves the root font size,
-              which every rem-based size inherits.
+              Four fixed tokens. They were a density dial with three steps and
+              are now the one step it shipped in the middle of; every surface
+              still reads them rather than a literal.
             </p>
             <ul className="mt-3 space-y-2">
               {[
-                { token: "--pg-gap", v: "10 / 16 / 24px" },
-                { token: "--pad", v: "14 / 20 / 28px" },
-                { token: "--radius-window", v: "12 / 16 / 20px" },
-                { token: "--radius-tile", v: "8 / 12 / 16px" },
-                { token: "--type-scale", v: "0.9 / 1 / 1.12" },
+                { token: "--pg-gap", v: "16px" },
+                { token: "--pad", v: "20px" },
+                { token: "--radius-window", v: "16px" },
+                { token: "--radius-tile", v: "12px" },
               ].map((t) => (
                 <li key={t.token} className="flex items-baseline justify-between gap-3">
                   <span className="font-mono text-[0.6875rem] text-ink-2">{t.token}</span>
@@ -143,8 +142,8 @@ export default function SystemPage() {
               <li>Semantic tokens only — components never touch raw hex.</li>
               <li>Hairlines separate surfaces. No shadows.</li>
               <li>Dark mode inverts the strong fill.</li>
-              <li>Type sizes are rem, never px, so the type dial reaches them.</li>
-              <li>Spacing and radii read from dial tokens, not fixed values.</li>
+              <li>Six type steps, and nothing sized outside them.</li>
+              <li>Spacing and radii read from tokens, not literals.</li>
             </ul>
           </div>
         </Sheet>

@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      dialkit:
-        specifier: ^1.4.3
-        version: 1.4.3(motion@13.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       motion:
         specifier: ^13.0.0
         version: 13.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -1395,30 +1392,6 @@ packages:
   detect-libc@2.1.2:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
-
-  dialkit@1.4.3:
-    resolution: {integrity: sha512-9TFWomDi2J7/tONOkoyTfBop9L9vx6tiSZPBl8sSsKrxAs+YYZJ64P4xP1o7dmXMnBEjvhB42Aopl0GxqkKGnA==}
-    peerDependencies:
-      motion: '>=11.0.0'
-      motion-v: '>=2.0.0'
-      react: '>=18.0.0'
-      react-dom: '>=18.0.0'
-      solid-js: '>=1.6.0'
-      svelte: '>=5.8.0'
-      vue: '>=3.3.0'
-    peerDependenciesMeta:
-      motion-v:
-        optional: true
-      react:
-        optional: true
-      react-dom:
-        optional: true
-      solid-js:
-        optional: true
-      svelte:
-        optional: true
-      vue:
-        optional: true
 
   doctrine@2.1.0:
     resolution: {integrity: sha512-35mSku4ZXK0vfCuHEDAwt55dg2jNajHZ1odvF+8SSr82EsZY4QmXfuWso8oEd8zRhVObSN18aM0CjSdoBX7zIw==}
@@ -3879,13 +3852,6 @@ snapshots:
       object-keys: 1.1.1
 
   detect-libc@2.1.2: {}
-
-  dialkit@1.4.3(motion@13.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
-    dependencies:
-      motion: 13.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-    optionalDependencies:
-      react: 19.2.8
-      react-dom: 19.2.8(react@19.2.8)
 
   doctrine@2.1.0:
     dependencies:
