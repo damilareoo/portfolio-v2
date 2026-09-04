@@ -29,33 +29,4 @@ export const elsewhere = [
   { label: "Contra", handle: "damilareoo", href: "https://contra.com/damilareoo" },
 ];
 
-/**
- * A picture of something he does when he is not working, and a line about it.
- *
- * Chess, basketball, running — the three he named. **There are no files yet**,
- * and that is the state this ships in: `public/` holds `companies/`, `feed/`
- * and `work/` and nothing else. An empty list renders nothing at all on /about
- * — no frames, no captions, no placeholder saying art is coming — because a
- * page that announces what it does not have yet is a page that is not finished,
- * and this one is. The block appears the moment there is something to put in
- * it.
- *
- * To fill it: drop the files under `public/`, add an entry each, and give
- * `width`/`height` in the image's own pixels so the frame reserves the right
- * shape before the picture decodes. `ratio` is the fallback for a file whose
- * intrinsic size is not to hand; without either, the frame stands at 4:3.
- * `caption` is a fact about the picture, not a title for it — the site does not
- * name photographs.
- */
-export type Pastime = {
-  src: string;
-  alt: string;
-  caption: string;
-  width?: number;
-  height?: number;
-  ratio?: string;
-};
-
-export const pastimes: Pastime[] = [];
-
 // Work lives in data/work.ts, in the order the home shows it.

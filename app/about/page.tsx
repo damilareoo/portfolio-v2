@@ -3,7 +3,7 @@ import { Fragment, type ReactNode } from "react";
 import Link from "next/link";
 import { CopyEmail } from "@/components/copy-email";
 import { ExperienceTimeline } from "@/components/experience-timeline";
-import { Pastimes } from "@/components/pastimes";
+import { Portrait } from "@/components/portrait";
 import { SiteNav } from "@/components/site-nav";
 import { RecordRow } from "@/components/ui";
 import { roles } from "@/data/experience";
@@ -32,44 +32,93 @@ function Out({ href, children }: { href: string; children: ReactNode }) {
   );
 }
 
-export default function AboutPage() {
-  /* Derived, because the hand-written version of this row is what went stale:
-     it read "Currently: ChessEver, Hex" for four months after both engagements
-     had ended. `standing` reads the periods and picks the label to match — the
-     roles the site is holding, or the last one it held. */
+/**
+ * What he is doing now, as a sentence, from the record rather than by hand.
+ *
+ * The page said "Currently: ChessEver, Hex" for four months after both ended.
+ * `standing` answers whether anything is open and which roles say so; the verb
+ * tense is chosen here, because a tense is a property of the sentence and not
+ * of the data. Nothing in it can name a company that is not in
+ * `data/experience.ts`, and no clock is consulted — a role that has not ended
+ * is written with "Present" as its end, and that word is what flips this line
+ * back to the present tense.
+ */
+function Standing() {
   const now = standing(roles);
+  if (now.roles.length === 0) return null;
 
+  return (
+    <p className="mt-4 text-sm leading-snug text-ink">
+      {now.open ? "I’m currently " : "Most recently I was "}
+      {now.roles.map((role, i) => (
+        <Fragment key={role.company}>
+          {i > 0 && <span>{i === now.roles.length - 1 ? " and " : ", "}</span>}
+          {role.role} at <Out href={role.url}>{role.company}</Out>
+        </Fragment>
+      ))}
+      .
+    </p>
+  );
+}
+
+export default function AboutPage() {
   return (
     <main className="mx-auto w-full max-w-[1240px] px-5 py-4 pb-12 sm:px-6">
       <SiteNav current="/about" />
 
-      <header className="mt-12 flex flex-wrap items-start justify-between gap-x-8 gap-y-4">
-        <div className="max-w-[38rem]">
-          <h1 className="text-lg font-medium leading-tight tracking-tight">
-            &rsquo;{site.name}
+      {/* The opening band: the portrait, the greeting, and the prose.
+
+          Three arrangements of the same three blocks, and the document order is
+          the same in all of them — greeting, portrait, prose. On a phone that
+          order is the layout: the words come first, because a reader who has
+          just arrived wants to know whose page this is before they scroll past
+          a face, and the portrait sits under the greeting at about three
+          quarters of the column, inset, so it reads as a print laid on the page
+          rather than a header they have to get past.
+
+          From `sm` the portrait takes a column of its own on the left and the
+          greeting and the prose stack to its right — the arrangement the
+          picture was actually chosen for, a tall 9:16 standing beside a
+          measure of text. It is placed by the grid rather than by its position
+          in the markup, so nothing moves for a screen reader when the columns
+          appear.
+
+          The portrait is above the Experience section rather than beside it on
+          purpose. It belongs with the sentence that says who he is; the
+          timeline is a record, and a face beside a record reads as a byline on
+          it. */}
+      {/* `grid-rows-[auto_1fr]` is load-bearing, not tidiness. The portrait
+          spans both rows and is taller than the two text blocks together, so
+          with automatic rows the grid hands the surplus to *both* of them —
+          measured at 1440, 114px of it landed between the greeting and
+          "Practice", opening a hole in the middle of a paragraph's worth of
+          nothing. A `1fr` second row takes the free space instead, and the
+          greeting keeps the height it asked for. */}
+      <section className="mt-12 grid items-start gap-y-8 sm:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] sm:grid-rows-[auto_1fr] sm:gap-x-8 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] lg:gap-x-14">
+        <div className="max-w-[34rem] sm:col-start-2 sm:row-start-1">
+          {/* First person, and a greeting rather than a title card. The words
+              after the comma are the owner's own description of himself,
+              unchanged; what is new is that the page now says hello with them
+              instead of announcing a name and then a job. */}
+          <h1 className="text-lg font-medium leading-snug tracking-tight">
+            Hey &mdash; I&rsquo;m {site.name}, a product designer and builder
+            creating 0&ndash;1 experiences.
           </h1>
-          <p className="mt-1.5 text-sm font-medium leading-snug text-ink">
-            Product designer and builder creating 0&ndash;1 experiences.
-          </p>
-          <p className="text-sm leading-snug text-ink-2">
+          <p className="mt-2 text-sm leading-snug text-ink-2">
             Specialising in interfaces, systems, and shipping them.
           </p>
+          <Standing />
         </div>
-        <div className="text-left sm:text-right">
-          <a
-            href={`mailto:${site.email}`}
-            className="text-sm text-ink transition-colors hover:text-ink-2"
-          >
-            {site.email}
-          </a>
-          <p className="mt-0.5 text-xs text-ink-3">{site.coordinates}</p>
-        </div>
-      </header>
 
-      <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
-        <section>
+        <Portrait className="w-3/4 sm:col-start-1 sm:row-start-1 sm:row-span-2 sm:w-full" />
+
+        {/* Stretched, with the contact line pushed to the foot of it, so the
+            column ends level with the bottom edge of the picture instead of
+            three hundred pixels above it. The white below the prose is then a
+            decision rather than a leftover. */}
+        <div className="flex max-w-[34rem] flex-col sm:col-start-2 sm:row-start-2 sm:self-stretch">
           <Heading>Practice</Heading>
-          <div className="mt-3 max-w-[34rem] space-y-3 text-sm leading-[1.6] text-ink-2">
+          <div className="mt-3 space-y-3 text-sm leading-[1.6] text-ink-2">
             <p>
               I work on 0&ndash;1 products &mdash; the part where the shape of the
               thing is still an open question &mdash; and I build enough of them
@@ -86,26 +135,33 @@ export default function AboutPage() {
               absence of an idea; it is what makes the one idea legible.
             </p>
           </div>
+          <p className="mt-5 text-sm text-ink-3 sm:mt-auto sm:pt-8">
+            <a
+              href={`mailto:${site.email}`}
+              className="text-ink transition-colors hover:text-ink-2"
+            >
+              {site.email}
+            </a>
+            <span className="px-1.5">·</span>
+            {site.coordinates}
+          </p>
+        </div>
+      </section>
 
-          {/* The ladder is a timeline now, because the roles will not stand in
-              a ladder: two of the three ran at the same time. What replaced it
-              draws them on an axis instead — tracks beside each other where the
-              dates overlap, one track where they do not — with the line that
-              travels it as the section's arrival. See the component; the shape
-              is derived from the periods, not arranged here.
-
-              The block that used to hold each company's OG image is gone with
-              it. It showed whatever `logo` pointed at, which for ChessEver was
-              a product screenshot presented as a logo; the marks row the hero
-              already draws is the honest version of the same idea and this page
-              now calls the same component. There is no `Reveal` around the
-              roles any more either — the line is the arrival, and two of them
-              on one section would be two things arriving at each other. */}
-          <div className="mt-12">
-            <Heading>Experience</Heading>
-            <div className="mt-5 max-w-[34rem]">
-              <ExperienceTimeline roles={roles} />
-            </div>
+      <div className="mt-16 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
+        <section>
+          {/* Company and role lead each entry now; the dates have moved beneath
+              them. The reference the owner named lists experience as company and
+              role only and lets the sequence carry it, and that turns out to
+              settle an argument this section was having with itself: while the
+              period was the first thing read, two overlapping roles were a
+              contradiction the layout had to resolve on screen. Read as a
+              sequence of companies, the overlap is simply a fact recorded lower
+              down. The dates are still on the page, still exact, and still the
+              thing the tracks are built from. */}
+          <Heading>Experience</Heading>
+          <div className="mt-5 max-w-[34rem]">
+            <ExperienceTimeline roles={roles} />
           </div>
         </section>
 
@@ -113,14 +169,6 @@ export default function AboutPage() {
           <Heading>Record</Heading>
           <div className="mt-3">
             <RecordRow label="Based">Lagos, Nigeria</RecordRow>
-            <RecordRow label={now.label}>
-              {now.roles.map((role, i) => (
-                <Fragment key={role.company}>
-                  {i > 0 && <span className="text-ink-3">, </span>}
-                  <Out href={role.url}>{role.company}</Out>
-                </Fragment>
-              ))}
-            </RecordRow>
             <RecordRow label="Focus">0&ndash;1 products</RecordRow>
             <RecordRow label="Site">
               <Link
@@ -157,10 +205,6 @@ export default function AboutPage() {
           </div>
         </section>
       </div>
-
-      {/* Full width, below both columns, and absent entirely until there is
-          something to put in it. See components/pastimes.tsx. */}
-      <Pastimes />
     </main>
   );
 }

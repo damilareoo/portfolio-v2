@@ -43,7 +43,10 @@ const GOVERNED = [
      row's own font size, exactly as they are in the hero. */
   "app/about/page.tsx",
   "components/experience-timeline.tsx",
-  "components/pastimes.tsx",
+  /* The page's one photograph. It carries no type of its own today, which is
+     exactly when a file is worth adding to this list: a caption or a credit
+     added later has nowhere off the scale to land. */
+  "components/portrait.tsx",
 ];
 
 const STEPS = ["2xs", "xs", "sm", "base", "lg", "xl"] as const;

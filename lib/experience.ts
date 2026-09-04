@@ -201,25 +201,29 @@ export function buildTimeline(roles: readonly Role[]): Timeline {
 }
 
 /**
- * What the site is standing on, for the Record row that used to say it by hand.
+ * What the site is standing on, for the sentence that used to say it by hand.
  *
- * The row read "Currently: ChessEver, Hex" for four months after both of those
+ * /about read "Currently: ChessEver, Hex" for four months after both of those
  * ended, because it was a second copy of the roles written in prose. It is
- * derived now, and the label moves with the answer: a role recorded as running
+ * derived now, and the tense moves with the answer: a role recorded as running
  * to "Present" is something the owner is *currently* doing, and when nothing is
- * open the truthful thing to say is which engagement was the last one — the
- * same words the home's hero already uses for the same fact. Neither branch can
- * name a company that is not in `data/experience.ts`, so the row cannot invent
- * an engagement and cannot go stale on its own; it changes when the data does.
+ * open the truthful thing to say is which engagement was the last one. Neither
+ * branch can name a company that is not in `data/experience.ts`, so the line
+ * cannot invent an engagement and cannot go stale on its own; it changes when
+ * the data does.
+ *
+ * Facts out, not words. This returns whether anything is open and which roles
+ * answer the question; the sentence around them belongs to the page, because
+ * the page is where it is being read aloud and a verb tense is not data.
  */
-export function standing(roles: readonly Role[]): { label: string; roles: Role[] } {
+export function standing(roles: readonly Role[]): { open: boolean; roles: Role[] } {
   const spans = roles.map((role) => ({ role, span: parsePeriod(role.period) }));
   const open = spans.filter(({ span }) => span.open);
-  if (open.length > 0) return { label: "Currently", roles: open.map(({ role }) => role) };
+  if (open.length > 0) return { open: true, roles: open.map(({ role }) => role) };
 
   const last = Math.max(...spans.map(({ span }) => span.end));
   return {
-    label: "Most recently",
+    open: false,
     roles: spans.filter(({ span }) => span.end === last).map(({ role }) => role),
   };
 }

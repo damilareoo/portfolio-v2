@@ -143,9 +143,9 @@ describe("buildTimeline", () => {
 });
 
 describe("standing", () => {
-  it("says Currently only when a role is actually open", () => {
+  it("reports open only when a role is actually open", () => {
     const answer = standing([role("A", "Jan 2025 — Jan 2026"), role("B", "Jun 2025 — Present")]);
-    expect(answer.label).toBe("Currently");
+    expect(answer.open).toBe(true);
     expect(answer.roles.map((r) => r.company)).toEqual(["B"]);
   });
 
@@ -154,7 +154,7 @@ describe("standing", () => {
       role("Older", "Mar 2025 — Apr 2026"),
       role("Newest", "Apr 2026 — Aug 2026"),
     ]);
-    expect(answer.label).toBe("Most recently");
+    expect(answer.open).toBe(false);
     expect(answer.roles.map((r) => r.company)).toEqual(["Newest"]);
   });
 

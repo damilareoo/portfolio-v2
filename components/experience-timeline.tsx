@@ -102,23 +102,36 @@ function Track({ entry }: { entry: TimelineEntry }) {
         rel="noopener noreferrer"
         className="group block"
       >
-        <p className="text-xs text-ink-3">{role.period}</p>
-        {/* Fixed height so a company with a wordmark and one set in type sit on
-            the same line — the difference between them is about which files the
-            site holds, not about the companies. */}
-        <span className="mt-2.5 flex items-center text-sm" style={{ height: MARK_HEIGHT }}>
+        {/* The company leads and the role is under it, which is the order the
+            reference the owner named reads in — and the order that lets the
+            dates stop being the first thing about a job. Fixed height so a
+            company with a wordmark and one set in type sit on the same line;
+            the difference between them is about which files the site holds,
+            not about the companies. */}
+        <span className="flex items-center text-sm" style={{ height: MARK_HEIGHT }}>
           <CompanyMark role={role} />
         </span>
         <p className="mt-2.5 flex items-baseline gap-1.5 text-sm text-ink">
           <span className="font-medium tracking-tight">{role.role}</span>
-          {role.engagement && <span className="text-ink-3">· {role.engagement}</span>}
           <GlyphIcon
             name="arrow-out"
             size="0.4375rem"
             className="shrink-0 text-ink-3 transition-colors group-hover:text-ink"
           />
         </p>
-        <p className="mt-0.5 text-xs leading-[1.45] text-ink-3">{role.location}</p>
+        {/* Demoted, not dropped. The period is what the whole chart is built
+            from — the tracks, their lengths and the order they are read in are
+            all this string, parsed — so it stays exact and stays on the page.
+            It just stops being the first thing said about a job, which is what
+            let two overlapping roles read as a contradiction. Engagement joins
+            it because "Contract, Mar 2025 to Apr 2026" is one fact about the
+            arrangement; the location is a fact about neither, and goes quieter
+            still. */}
+        <p className="mt-1.5 text-xs leading-[1.45] text-ink-3">
+          {role.period}
+          {role.engagement && ` · ${role.engagement}`}
+        </p>
+        <p className="mt-1 text-2xs leading-[1.45] text-ink-3">{role.location}</p>
       </a>
 
       {entry.concurrent && (
@@ -185,10 +198,11 @@ function Rail({ entry }: { entry: TimelineEntry }) {
         />
       </svg>
       {/* A start is a fact the page can state before the line reaches it, so
-          the dots do not animate. Filled where a role begins; hollow where its
-          track stops, which is drawn only when no later role takes that lane —
-          HEX's track is not capped, because Endgame continues it. */}
-      <span className="absolute left-0 top-[0.3rem] size-[5px] -translate-x-[2px] rounded-full bg-ink" />
+          the dots do not animate. Filled where a role begins, level with the
+          middle of the mark it marks; hollow where its track stops, which is
+          drawn only when no later role takes that lane — HEX's track is not
+          capped, because Endgame continues it. */}
+      <span className="absolute left-0 top-[0.6rem] size-[5px] -translate-x-[2px] rounded-full bg-ink" />
       {entry.terminal && (
         <span className="absolute bottom-8 left-0 size-[5px] -translate-x-[2px] rounded-full border border-ink-3 bg-bg sm:bottom-10" />
       )}
