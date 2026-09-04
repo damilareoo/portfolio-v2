@@ -39,12 +39,43 @@ export default function Home() {
           owner's own words, untouched here — follows it, then the record,
           then a way to act on what they just read. On a short viewport the
           band is two columns rather than one stack, for the same reason it
-          always was: the name and statement beside the record and the call
-          instead of stacked above them, so the first product still lands on
-          screen rather than off the bottom of a landscape phone. */}
-      <header className="mt-10 pb-8 short:mt-6 short:pb-6">
-        <div className="grid min-w-0 gap-x-8 gap-y-4 short-wide:grid-cols-2 short-wide:items-start">
-          <div className="min-w-0">
+          always was: so the first product still lands on screen rather than
+          off the bottom of a landscape phone.
+
+          Four grid children, not two, and that is what makes the two columns
+          worth having. Phase 3 attached a role to each company mark, which
+          turned the first sentence into a lead-in plus three lines and pushed
+          the "Featured work" rule from 372px down an 800x400 screen to 488px —
+          off the bottom of it. No spacing retune pays for 116px, and the
+          `short` ones that used to buy twenty were reverted rather than kept
+          for the smaller number. But the right column on `short-wide` held
+          nothing except a contact line and a button, and the marks are the tall
+          thing with nowhere to be. So the marks and the closing paragraph are
+          grid children in their own right: stacked they sit where they always
+          did, and on `short-wide` the marks stand beside the name and the
+          paragraph beside the call.
+
+          One set of marks in the DOM either way. A duplicated block would be
+          two sets of links for a screen reader and two things to keep in step,
+          for a rearrangement that is only ever visual — so document order is
+          unchanged and the sentence still reads lead-in, marks, close, on every
+          screen.
+
+          The gap moves with them. Stacked, the spacing is the margins these
+          elements carried when they were siblings inside one column, so that
+          layout is pixel-identical; in two columns the grid's own row gap takes
+          over and the margins stand down. */}
+      {/* The `short` retune is back, and this time it is paid for. Phase 3
+          reverted a pair of these because sixteen pixels could not answer a
+          hundred-and-sixteen-pixel regression, which was right: a retune that
+          no longer reaches the thing it was justified by is only a smaller
+          number. The rearrangement above is what reaches it — 126px of the 116
+          back — and these sixteen are what carry the first product's top edge
+          from one pixel on screen to twenty, at 800x400 and at the 844x390 that
+          is a pixel shorter still. */}
+      <header className="mt-10 pb-8 short:mt-4 short:pb-4">
+        <div className="grid min-w-0 gap-x-8 short-wide:grid-cols-2 short-wide:items-start short-wide:gap-y-4">
+          <div className="min-w-0 short-wide:col-start-1 short-wide:row-start-1">
             <h1 className="text-xl font-bold tracking-tight">&rsquo;{site.name}</h1>
             {/* Demoted from the h1 it used to be: the name now carries that
                 role, and this is the second thing said, not a second title.
@@ -80,17 +111,22 @@ export default function Home() {
                 on this page may be allowed to make that wall quieter, or the
                 sentence becomes a thing the site says rather than a thing it
                 does. */}
-            <p className="mt-3 max-w-[46ch] text-base leading-relaxed text-ink-2">
+          </div>
+          {/* The lead-in travels with what it leads into. Left behind in the
+              first column it pointed up and across at a list in the other one,
+              which is a sentence with its object on the far side of a gutter. */}
+          <div className="mt-3 min-w-0 short-wide:col-start-2 short-wide:row-start-1 short-wide:mt-0">
+            <p className="max-w-[46ch] text-base leading-relaxed text-ink-2">
               Most recently for
             </p>
             <CompanyMarks className="mt-2.5" />
-            <p className="mt-4 max-w-[46ch] text-base leading-relaxed text-ink-2">
-              Right now I&rsquo;m interested in interfaces that behave like
-              instruments &mdash; screens that report a real reading instead of
-              decorating one.
-            </p>
           </div>
-          <div className="min-w-0">
+          <p className="mt-4 max-w-[46ch] text-base leading-relaxed text-ink-2 short-wide:col-start-1 short-wide:row-start-2 short-wide:mt-0">
+            Right now I&rsquo;m interested in interfaces that behave like
+            instruments &mdash; screens that report a real reading instead of
+            decorating one.
+          </p>
+          <div className="mt-4 min-w-0 short-wide:col-start-2 short-wide:row-start-2 short-wide:mt-0">
             <p className="text-sm text-ink-3">
               Lagos ·{" "}
               <a
