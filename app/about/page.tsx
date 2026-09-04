@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import { RecordRow } from "@/components/ui";
 import Image from "next/image";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { CopyEmail } from "@/components/copy-email";
 import { SiteNav } from "@/components/site-nav";
 import { Reveal } from "@/lib/reveal";
 import { roles, type Role } from "@/data/experience";
 import { elsewhere, site } from "@/data/site";
+import { standing } from "@/lib/experience";
 
 export const metadata: Metadata = {
   title: "About — Damilare Osofisan",
@@ -15,14 +16,14 @@ export const metadata: Metadata = {
 };
 
 function Heading({ children }: { children: ReactNode }) {
-  return <h2 className="text-[0.75rem] text-ink-2">{children}</h2>;
+  return <h2 className="text-xs text-ink-2">{children}</h2>;
 }
 
 /** A role: the period outside the rule, everything known about it inside. */
 function RoleRow({ role }: { role: Role }) {
   return (
     <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-x-5 sm:grid-cols-[96px_minmax(0,1fr)]">
-      <span className="pt-px text-[0.6875rem] leading-[1.45] text-ink-3">{role.period}</span>
+      <span className="pt-px text-xs leading-[1.45] text-ink-3">{role.period}</span>
       <div className="border-l border-line pb-9 pl-5">
         <a
           href={role.url}
@@ -31,21 +32,21 @@ function RoleRow({ role }: { role: Role }) {
           className="group block"
         >
           <div className="flex items-baseline gap-2">
-            <span className="text-[0.75rem] font-medium tracking-tight text-ink">
+            <span className="text-sm font-medium tracking-tight text-ink">
               {role.role}
             </span>
             <span
               aria-hidden
-              className="shrink-0 text-[0.625rem] text-ink-3 transition-colors group-hover:text-ink"
+              className="shrink-0 text-2xs text-ink-3 transition-colors group-hover:text-ink"
             >
               ↗
             </span>
           </div>
-          <p className="mt-1 text-[0.6875rem] leading-[1.45] text-ink-2">
+          <p className="mt-1 text-xs leading-[1.45] text-ink-2">
             {role.company}
             {role.engagement && <span className="text-ink-3"> · {role.engagement}</span>}
           </p>
-          <p className="mt-0.5 text-[0.6875rem] leading-[1.45] text-ink-3">{role.location}</p>
+          <p className="mt-0.5 text-xs leading-[1.45] text-ink-3">{role.location}</p>
           {role.logo && (
             <div className="relative mt-3 aspect-[2/1] w-[112px] overflow-hidden border border-line bg-surface-2 transition-colors group-hover:border-ink-3">
               <Image
@@ -77,37 +78,50 @@ function Out({ href, children }: { href: string; children: ReactNode }) {
 }
 
 export default function AboutPage() {
+  /* Derived, because the hand-written version of this row is what went stale:
+     it read "Currently: ChessEver, Hex" for four months after both engagements
+     had ended, which is the page telling a visitor something untrue about right
+     now. `standing` reads the periods in `data/experience.ts` and picks the
+     label to match — the roles the site is holding, or the last one it held —
+     and it may only name a company that is in the data.
+
+     No clock is consulted. A build-time `new Date()` would freeze the page's
+     idea of "now" at whenever it last deployed, which is the same defect one
+     layer down; currency is a property of the record instead, and a role that
+     has not ended is written with "Present" as its end. */
+  const now = standing(roles);
+
   return (
     <main className="mx-auto w-full max-w-[1240px] px-5 py-4 pb-12 sm:px-6">
       <SiteNav current="/about" />
 
       <header className="mt-12 flex flex-wrap items-start justify-between gap-x-8 gap-y-4">
         <div className="max-w-[38rem]">
-          <h1 className="text-[1.25rem] font-medium leading-tight tracking-tight">
+          <h1 className="text-lg font-medium leading-tight tracking-tight">
             &rsquo;{site.name}
           </h1>
-          <p className="mt-1.5 text-[0.8125rem] font-medium leading-snug text-ink">
+          <p className="mt-1.5 text-sm font-medium leading-snug text-ink">
             Product designer and builder creating 0&ndash;1 experiences.
           </p>
-          <p className="text-[0.8125rem] leading-snug text-ink-2">
+          <p className="text-sm leading-snug text-ink-2">
             Specialising in interfaces, systems, and shipping them.
           </p>
         </div>
         <div className="text-left sm:text-right">
           <a
             href={`mailto:${site.email}`}
-            className="text-[0.8125rem] text-ink transition-colors hover:text-ink-2"
+            className="text-sm text-ink transition-colors hover:text-ink-2"
           >
             {site.email}
           </a>
-          <p className="mt-0.5 text-[0.75rem] text-ink-3">{site.coordinates}</p>
+          <p className="mt-0.5 text-xs text-ink-3">{site.coordinates}</p>
         </div>
       </header>
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
         <section>
           <Heading>Practice</Heading>
-          <div className="mt-3 max-w-[34rem] space-y-3 text-[0.8125rem] leading-[1.6] text-ink-2">
+          <div className="mt-3 max-w-[34rem] space-y-3 text-sm leading-[1.6] text-ink-2">
             <p>
               I work on 0&ndash;1 products &mdash; the part where the shape of the
               thing is still an open question &mdash; and I build enough of them
@@ -144,10 +158,13 @@ export default function AboutPage() {
           <Heading>Record</Heading>
           <div className="mt-3">
             <RecordRow label="Based">Lagos, Nigeria</RecordRow>
-            <RecordRow label="Currently">
-              <Out href="https://chessever.com">ChessEver</Out>
-              <span className="text-ink-3">, </span>
-              <Out href="https://hex.inc">Hex</Out>
+            <RecordRow label={now.label}>
+              {now.roles.map((role, i) => (
+                <Fragment key={role.company}>
+                  {i > 0 && <span className="text-ink-3">, </span>}
+                  <Out href={role.url}>{role.company}</Out>
+                </Fragment>
+              ))}
             </RecordRow>
             <RecordRow label="Focus">0&ndash;1 products</RecordRow>
             <RecordRow label="Site">
@@ -171,8 +188,8 @@ export default function AboutPage() {
                   rel="noopener noreferrer"
                   className="group grid grid-cols-[72px_minmax(0,1fr)] gap-x-5 rule-b py-2.5 last:bg-none sm:grid-cols-[96px_minmax(0,1fr)]"
                 >
-                  <span className="text-[0.6875rem] text-ink-3">{place.label}</span>
-                  <span className="text-[0.75rem] text-ink-2 transition-colors group-hover:text-ink">
+                  <span className="text-xs text-ink-3">{place.label}</span>
+                  <span className="text-sm text-ink-2 transition-colors group-hover:text-ink">
                     {place.handle}
                   </span>
                 </a>

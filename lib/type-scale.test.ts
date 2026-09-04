@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 const root = resolve(__dirname, "..");
 const css = readFileSync(resolve(root, "app/globals.css"), "utf8");
 
-/** The surfaces this scale governs. /about and /colophon are out of scope. */
+/** The surfaces this scale governs. /colophon is still out of scope. */
 const GOVERNED = [
   "app/page.tsx",
   "app/shots/page.tsx",
@@ -34,6 +34,11 @@ const GOVERNED = [
      of the two raster wordmarks beside the one that is set in type, so a size
      smuggled in off the scale would resize three marks at once. */
   "components/company-marks.tsx",
+  /* /about was out of scope while it was scaffolding and set its own eight
+     sizes as literals — 0.8125rem for the prose, 0.75rem for the headings,
+     0.6875rem for the periods — three of which happened to equal a step on the
+     scale and none of which said so. It is a built surface now. */
+  "app/about/page.tsx",
 ];
 
 const STEPS = ["2xs", "xs", "sm", "base", "lg", "xl"] as const;
