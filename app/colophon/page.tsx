@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { GlyphToys } from "@/components/glyph-toys";
+import { Sketchpad } from "@/components/sketchpad";
 import { Readouts } from "@/components/readouts";
 import { SiteNav } from "@/components/site-nav";
 import { TokenRow, TypeSpecimen } from "@/components/colophon-instruments";
@@ -11,7 +12,7 @@ import { isPortfolio } from "@/lib/site-mode";
 
 export const metadata: Metadata = {
   title: "Colophon — Damilare Osofisan",
-  description: "How this site is built: the type, the palette, and what the instruments read from.",
+  description: "How this site is built, and a dot field anyone can draw on.",
 };
 
 const TOKENS = [
@@ -82,7 +83,7 @@ export default function ColophonPage() {
       <header className="mt-12 max-w-[38rem]">
         <h1 className="text-lg font-medium leading-tight tracking-tight">Colophon</h1>
         <p className="mt-1.5 text-sm leading-snug text-ink-2">
-          What the site runs on, and what it reads from. Every control here is
+          What the site runs on, and a field to draw on. Every control here is
           the real one, wired to the tokens the page is drawn from.
         </p>
       </header>
@@ -208,6 +209,20 @@ export default function ColophonPage() {
           </Section>
         </div>
       </div>
+
+      {/* The page has said what it is. The rest of it is the field, handed over. */}
+      <section className="rule-t mt-16 pt-10">
+        <Heading>The pad</Heading>
+        <p className="mt-2 max-w-[34rem] text-xs leading-[1.6] text-ink-3">
+          Twelve by twelve, the same field the instruments are drawn on. Drag to
+          draw, or move with the arrow keys and toggle with space. Sign it or
+          stay anonymous, and add it to the register.
+        </p>
+
+        <div className="mt-6">
+          <Sketchpad />
+        </div>
+      </section>
 
     </main>
   );
