@@ -2,18 +2,25 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { GlyphToys } from "@/components/glyph-toys";
-import { Sketchpad } from "@/components/sketchpad";
+import { PadComments, RegisterWall } from "@/components/pad-register";
 import { Readouts } from "@/components/readouts";
+import { Sketchpad } from "@/components/sketchpad";
 import { SiteNav } from "@/components/site-nav";
 import { TokenRow, TypeSpecimen } from "@/components/colophon-instruments";
 import { RecordRow } from "@/components/ui";
 import { changelog } from "@/data/changelog";
+import { readRegister } from "@/lib/pad";
 import { isPortfolio } from "@/lib/site-mode";
 
 export const metadata: Metadata = {
   title: "Colophon — Damilare Osofisan",
   description: "How this site is built, and a dot field anyone can draw on.",
 };
+
+/* The register is read per request, so the page cannot be prerendered. That is
+   the cost of a wall that shows what somebody added a minute ago, and it is
+   paid on one page rather than by the site. */
+export const dynamic = "force-dynamic";
 
 const TOKENS = [
   "bg",
@@ -73,8 +80,9 @@ function Inward({ href, children }: { href: string; children: ReactNode }) {
   );
 }
 
-export default function ColophonPage() {
+export default async function ColophonPage() {
   const current = changelog[0];
+  const register = await readRegister();
 
   return (
     <main className="mx-auto w-full max-w-[1240px] px-5 py-4 pb-16 sm:px-6">
@@ -216,14 +224,34 @@ export default function ColophonPage() {
         <p className="mt-2 max-w-[34rem] text-xs leading-[1.6] text-ink-3">
           Twelve by twelve, the same field the instruments are drawn on. Drag to
           draw, or move with the arrow keys and toggle with space. Sign it or
-          stay anonymous, and add it to the register.
+          stay anonymous. What you add goes on the wall.
         </p>
 
-        <div className="mt-6">
+        <div className="mt-6 grid gap-10 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-12">
           <Sketchpad />
+
+          <div>
+            <Heading>The register</Heading>
+            <p className="mt-2 max-w-[34rem] text-xs leading-[1.6] text-ink-3">
+              The last forty drawings, newest first.
+            </p>
+            <div className="mt-4">
+              <RegisterWall drawings={register?.drawings ?? null} />
+            </div>
+          </div>
         </div>
       </section>
 
+      <section className="mt-16 max-w-[42rem]">
+        <Heading>Comments</Heading>
+        <p className="mt-2 text-xs leading-[1.6] text-ink-3">
+          A flat list. No replies, no editing. Anything that should not be here
+          can be taken off it.
+        </p>
+        <div className="mt-4">
+          <PadComments comments={register?.comments ?? null} />
+        </div>
+      </section>
     </main>
   );
 }

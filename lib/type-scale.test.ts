@@ -58,9 +58,10 @@ const GOVERNED = [
      Moving those is a retune of the instruments, not of the page's type, and
      claiming them here would be claiming a tidiness that is not there yet. */
   "app/colophon/page.tsx",
-  /* The pad. New, which is the cheapest moment to say a surface is on the
-     scale — nothing has had time to drift off it. */
+  /* The game. Both are new, which is the cheapest moment to say a surface is
+     on the scale — nothing has had time to drift off it. */
   "components/sketchpad.tsx",
+  "components/pad-register.tsx",
 ];
 
 const STEPS = ["2xs", "xs", "sm", "base", "lg", "xl"] as const;

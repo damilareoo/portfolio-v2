@@ -16,9 +16,12 @@ const SIZE = 288;
 
 type Sending = "idle" | "sending" | "sent" | "full" | "failed";
 
-/** What the pad says about itself, under the field, in one line. */
-const SAID: Record<Sending, string> = {
-  idle: "Draw, sign if you like, then add it",
+/** What the pad says about itself, under the field, in one line.
+
+    Idle is missing on purpose: at rest the line is a readout of the field
+    rather than an instruction, in the same voice the rest of the page reports
+    in. An instruction there would be repeating the note above the pad. */
+const SAID: Record<Exclude<Sending, "idle">, string> = {
   sending: "Adding",
   sent: "Added to the register",
   full: "That is enough for now — try again in ten minutes",
@@ -59,7 +62,8 @@ export function Sketchpad() {
   const paintRef = useRef<boolean | null>(null);
 
   const frame = useMemo(() => padFrame(cells), [cells]);
-  const drawn = useMemo(() => cells.some(Boolean), [cells]);
+  const lit = useMemo(() => cells.reduce((count, on) => count + (on ? 1 : 0), 0), [cells]);
+  const drawn = lit > 0;
 
   const paint = useCallback((index: number, value: boolean) => {
     setCells((was) => {
@@ -193,7 +197,7 @@ export function Sketchpad() {
           size={SIZE}
           frame={frame}
           polarity="ink"
-          label={`Sketchpad, ${cells.filter(Boolean).length} of ${PAD_CELLS} dots lit`}
+          label={`Sketchpad, ${lit} of ${PAD_CELLS} dots lit`}
           className="w-full text-ink"
         >
           {/* Where the keyboard is standing. Drawn over the field rather than
@@ -222,8 +226,12 @@ export function Sketchpad() {
         </span>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <label className="flex min-w-0 flex-1 items-center gap-2 rounded-full border border-line px-4 py-2 transition-colors focus-within:border-ink-3">
+      {/* The controls take the pad's own width and no more, so the block under
+          the field reads as belonging to it. The signature gets its own line
+          rather than a share of one: three controls abreast in 17rem left it
+          44px wide, which is a field you cannot read your own name in. */}
+      <div className="w-full max-w-[17rem] space-y-2">
+        <label className="flex items-center gap-2 rounded-full border border-line px-4 py-2 transition-colors focus-within:border-ink-3">
           <span className="shrink-0 font-mono text-2xs uppercase tracking-wider text-ink-3">
             Sign
           </span>
@@ -242,29 +250,33 @@ export function Sketchpad() {
           />
         </label>
 
-        <button
-          type="button"
-          onClick={() => {
-            setCells(new Array<boolean>(PAD_CELLS).fill(false));
-            touched();
-          }}
-          disabled={!drawn}
-          className="rounded-full border border-line px-4 py-2 font-mono text-2xs uppercase tracking-wider text-ink-2 transition-colors hover:border-ink-3 disabled:opacity-40"
-        >
-          Clear
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setCells(new Array<boolean>(PAD_CELLS).fill(false));
+              touched();
+            }}
+            disabled={!drawn}
+            className="rounded-full border border-line px-4 py-2 font-mono text-2xs uppercase tracking-wider text-ink-2 transition-colors hover:border-ink-3 disabled:opacity-40"
+          >
+            Clear
+          </button>
 
-        <button
-          type="button"
-          onClick={send}
-          disabled={!drawn || sending === "sending"}
-          className="rounded-full bg-strong px-4 py-2 font-mono text-2xs uppercase tracking-wider text-on-strong transition-opacity hover:opacity-85 disabled:opacity-40"
-        >
-          Add to the register
-        </button>
+          <button
+            type="button"
+            onClick={send}
+            disabled={!drawn || sending === "sending"}
+            className="flex-1 rounded-full bg-strong px-4 py-2 font-mono text-2xs uppercase tracking-wider text-on-strong transition-opacity hover:opacity-85 disabled:opacity-40"
+          >
+            Add it
+          </button>
+        </div>
+
+          <p className="font-mono text-2xs uppercase tracking-wider text-ink-3">
+          {sending === "idle" ? `${lit} of ${PAD_CELLS} lit` : SAID[sending]}
+        </p>
       </div>
-
-      <p className="font-mono text-2xs uppercase tracking-wider text-ink-3">{SAID[sending]}</p>
     </div>
   );
 }
