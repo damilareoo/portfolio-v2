@@ -21,8 +21,20 @@ export function ShotsField({ shots }: { shots: Asset[] }) {
         <div
           key={item.src}
           data-frame
-          className="relative col-span-1 overflow-hidden bg-surface-2 lg:[grid-column:span_var(--span)]"
-          style={{ "--span": span, aspectRatio: `${item.width} / ${item.height}` } as React.CSSProperties}
+          /* `frame-cap` is the same rule the case frames carry — a shot may not
+             be taller than the screen either. A band whose item is capped no
+             longer fills the measure edge to edge, which is the honest cost of
+             the whole picture being visible: the mosaic's rhythm is in the
+             band widths, and a band that runs off the bottom of the screen has
+             no rhythm to read. */
+          className="frame-cap relative col-span-1 overflow-hidden bg-surface-2 lg:[grid-column:span_var(--span)]"
+          style={
+            {
+              "--span": span,
+              "--frame-ratio": item.width / item.height,
+              aspectRatio: `${item.width} / ${item.height}`,
+            } as React.CSSProperties
+          }
         >
           <canvas className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden />
           <Image

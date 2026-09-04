@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { frameRatio } from "@/lib/frame-ratio";
 
 /**
  * Every media slot on the site goes through here.
@@ -54,12 +55,18 @@ export function Frame({
 }) {
   const aspect = width && height ? `${width} / ${height}` : (ratio ?? "4 / 3");
   const swept = panel && Boolean(src);
+  /* The same ratio as a bare number, which is what `.frame-cap` needs to work
+     out how wide this frame may be before it grows taller than the screen.
+     Parsed from the string rather than taken from `width`/`height`, because a
+     slot with no art yet has only the declared ratio and must be capped too —
+     otherwise a frame would change size the moment its picture landed. */
+  const capRatio = frameRatio(aspect);
 
   return (
     <div
-      style={{ aspectRatio: aspect }}
+      style={{ aspectRatio: aspect, ...(capRatio ? { "--frame-ratio": capRatio } : {}) } as React.CSSProperties}
       data-frame={swept || undefined}
-      className={`relative overflow-hidden rounded-[var(--radius-tile)] border border-line bg-surface-2 transition-colors ${className}`}
+      className={`relative overflow-hidden rounded-[var(--radius-tile)] border border-line bg-surface-2 transition-colors ${capRatio ? "frame-cap" : ""} ${className}`}
     >
       {swept && (
         /* Sibling of the image, not a wrapper around it: `fill` positions the

@@ -21,6 +21,11 @@
   --radius-window: 16px;
   --radius-tile: 12px;
 
+  /* How much of the screen one frame may occupy. 78% leaves the frame, its
+     caption, and the top edge of whatever follows on screen together, so
+     scrolling is always a choice rather than a repair. See `.frame-cap`. */
+  --frame-cap: 78svh;
+
   /* The type scale. Six steps, every one of them used — a reserved seventh for
      work that might arrive is furniture, which is what the tier vocabulary was.
      In rem, or --type-scale cannot reach them. */
@@ -162,6 +167,44 @@ body {
 
   .rule-t {
     background-position: top left;
+  }
+
+  /* A frame may not be taller than the screen it is read on.
+
+     Frames are sized by width — they take the measure and let height fall out
+     of the aspect ratio — and nothing used to check the result against the
+     viewport. Measured on a 13" MacBook Air (1440x789): a 1400x1000 capture
+     rendered 1240x886, which is 1.12x the viewport, so the whole frame was
+     never visible at once. /shots was worse at 1.15x. On a 1080p screen it
+     "fit" with 51px to spare — no caption, no next section, no signal that
+     the page continued.
+
+     The cap is expressed as a max-width rather than a max-height, because
+     `aspect-ratio` yields to whichever axis is explicitly constrained: cap the
+     height directly and the box keeps the parent's width and simply crops.
+     Capping the width instead — at exactly the width the ratio needs to reach
+     the height cap — keeps the ratio intact and lets the frame shrink whole.
+
+     `--frame-ratio` is the frame's own width/height as a bare number, set
+     inline by whichever component owns the slot. `svh` is the *small* viewport
+     height, so a phone with its browser chrome showing is measured with the
+     chrome present and the frame still fits when the toolbar returns. This is
+     a viewport unit on purpose: the type dial multiplies rem so that type can
+     be resized, and a picture is not type.
+
+     `width: 100%` is load-bearing and not redundant. An auto inline margin is
+     what centres the frame once the cap has narrowed it, but on a grid or flex
+     item auto margins absorb the free space and cancel the default `stretch`,
+     so the item falls back to its content width. Measured, on the shots
+     mosaic: frames that were nowhere near the cap collapsed anyway — an
+     841x601 band item became 525x375 and a 733x412 became 720x405, neither of
+     which the cap should ever have touched. Declaring the width restores the
+     stretch the margin took away; `max-width` then caps it, and the margins
+     only have free space to absorb once it has. */
+  .frame-cap {
+    width: 100%;
+    max-width: calc(var(--frame-cap) * var(--frame-ratio));
+    margin-inline: auto;
   }
 }
 
