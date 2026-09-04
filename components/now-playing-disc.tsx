@@ -90,6 +90,23 @@ const ARC_LENGTH = 2 * Math.PI * ARC_RADIUS;
 const ARC_STROKE = 0.6;
 
 /**
+ * The shortest arc worth drawing, in the arc box's own units.
+ *
+ * One stroke's worth was the last guess and it was still a mark with no reading
+ * behind it. A round cap is half a stroke long at each end, so a dash of
+ * exactly one stroke is *entirely* cap: two half-circles back to back, which
+ * Chrome draws as a stadium sitting at twelve o'clock. It stays a stadium for a
+ * while after that — the arc only starts to look like an arc once its straight
+ * middle is longer than its ends — and on a four-minute track that "while" ran
+ * to about two and a half seconds of every play.
+ *
+ * Four strokes is where the ends are a quarter of the mark and the rest is
+ * line. Below it the instrument says nothing, which is the correct thing for it
+ * to say about a track that has barely started: two seconds into four minutes
+ * is not a reading, it is a rounding error with a cap on each end. */
+const ARC_MINIMUM = ARC_STROKE * 4;
+
+/**
  * Now-playing as an ordered-dither disc.
  *
  * Silent, the cells hold the Spotify mark. When a track starts they migrate
@@ -184,9 +201,10 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
     const duration = trackRef.current?.durationMs ?? 0;
     const done = progressMs === null || duration <= 0 ? 0 : Math.min(1, progressMs / duration);
     arc.style.strokeDashoffset = String(ARC_LENGTH * (1 - done));
-    /* Drawn only once there is more arc than cap — see `ARC_STROKE`. Nothing
-       to report, and nothing that is only its own round ends, is not drawn. */
-    arc.style.opacity = done * ARC_LENGTH >= ARC_STROKE ? "1" : "0";
+    /* Drawn only once there is more arc than its own ends — see `ARC_MINIMUM`.
+       Nothing to report, and nothing that is only a pair of round caps, is not
+       drawn. */
+    arc.style.opacity = done * ARC_LENGTH >= ARC_MINIMUM ? "1" : "0";
   }, []);
 
   /* A poll is a fresh reading of the playhead, and the pulse counts from it

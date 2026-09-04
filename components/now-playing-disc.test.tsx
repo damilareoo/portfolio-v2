@@ -157,6 +157,22 @@ describe("NowPlayingDisc", () => {
     expect(ringGeometry().arc.style.opacity).toBe("0");
   });
 
+  it("draws no ring while the arc is still only its own two caps", async () => {
+    /* The stadium. A dash of one stroke is two round caps meeting, and it stays
+       a floating tick rather than an arc for a couple of seconds after that —
+       which on a four-minute track is a mark on the instrument saying nothing. */
+    await readingFrom(
+      answers({
+        isPlaying: true,
+        title: "Bloom",
+        artist: "Radiohead",
+        progressMs: 1_500,
+        durationMs: 240_000,
+      }),
+    );
+    expect(ringGeometry().arc.style.opacity).toBe("0");
+  });
+
   it("draws the ring once there is more arc than cap", async () => {
     await readingFrom(
       answers({
