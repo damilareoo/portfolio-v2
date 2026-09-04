@@ -272,6 +272,62 @@ body {
     max-width: calc(var(--frame-cap) * var(--frame-ratio));
     margin-inline: auto;
   }
+
+  /* A company's mark, reduced to ink.
+
+     The two marks the site holds are not logos. They are the companies' own
+     Open Graph plates, 1200x630, each one an opaque ground with a wordmark
+     centred on it: Endgame is white on #111111, HEX is mint on a teal. Dropped
+     into the page as they are, one of them brings a hue onto a site whose only
+     admitted hue means a missed step goal, and both bring a filled rectangle
+     to a row that is supposed to be quiet.
+
+     So the plate is not shown, it is *removed*, in three steps that run in
+     this order and only work in this order.
+
+     grayscale() first, on the colour as authored. Take it later — after a
+     per-channel contrast() — and HEX's teal and mint have already been pulled
+     apart channel by channel, and what luminance is left of them is wrong: the
+     mark measures #363636 instead of black. Tailwind's filter utilities emit
+     contrast before grayscale, which is why this is written out here rather
+     than assembled from them.
+
+     contrast(2.5) second, to push both plates past the ends of the range. The
+     binding case is HEX, whose ground sits at 0.2514 relative luminance and
+     needs 2.01 to reach zero; 2.5 leaves a fifth of that as headroom, which is
+     what the image optimiser's re-encode is allowed to spend. Both plates are
+     flat — measured, not assumed — so there is no gradient for the clamp to
+     tear. The transition band at a glyph's edge narrows to two fifths of its
+     width and stays a band, so the wordmark keeps its antialiasing.
+
+     invert() third, and only on the light skin. Both plates are dark-ground,
+     so light needs the flip and dark does not. That is a property of these two
+     files and not a law: a light-ground mark would need the opposite, and the
+     honest fix then is to say so here rather than to ship a second file per
+     skin.
+
+     What lands is a pure white plate carrying a pure black wordmark on light,
+     and the exact opposite on dark. mix-blend-mode then takes the plate out
+     entirely — multiply drops white, screen drops black — so the mark reads as
+     ink on whatever ground it is set on. That last step is the one that lets
+     phase 4 put this row on --surface-2 on the About ladder without retuning
+     anything.
+
+     If an ancestor isolates the blend — an opacity or a transform group, which
+     is what `.arrive` is while it is arriving — the plate paints instead of
+     dropping out. It paints #ffffff on a #fcfcfc ground, or #000000 on
+     #090909: a ratio of 1.03 and 1.06, which is under the separation the light
+     skin's own elevation signal is measured at. The failure is a plate you
+     cannot see, and it heals itself the moment the arrival finishes. */
+  .mark-ink {
+    filter: grayscale(1) contrast(2.5) invert(1);
+    mix-blend-mode: multiply;
+  }
+
+  :where(.dark) .mark-ink {
+    filter: grayscale(1) contrast(2.5);
+    mix-blend-mode: screen;
+  }
 }
 
 /* Law 4, amended: an element may animate on arrival, once. It is transformed

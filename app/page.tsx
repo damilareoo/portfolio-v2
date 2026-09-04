@@ -1,3 +1,4 @@
+import { CompanyMarks } from "@/components/company-marks";
 import { FooterLine } from "@/components/footer-line";
 import { GlyphIcon } from "@/components/glyph-icon";
 import { GlyphText } from "@/components/glyph-text";
@@ -41,7 +42,7 @@ export default function Home() {
           always was: the name and statement beside the record and the call
           instead of stacked above them, so the first product still lands on
           screen rather than off the bottom of a landscape phone. */}
-      <header className="mt-10 pb-8 short:mt-6 short:pb-6">
+      <header className="mt-10 pb-8 short:mt-6 short:pb-4">
         <div className="grid min-w-0 gap-x-8 gap-y-4 short-wide:grid-cols-2 short-wide:items-start">
           <div className="min-w-0">
             <h1 className="text-xl font-bold tracking-tight">&rsquo;{site.name}</h1>
@@ -69,6 +70,24 @@ export default function Home() {
               &mdash; screens that report a real reading instead of decorating
               one.
             </p>
+            {/* The three names again, in their own marks, directly under the
+                sentence that says them. It sits below the statement rather
+                than above it because a row of logos placed before the claim
+                is a badge wall arguing for itself, and placed after it is the
+                receipt. Quiet on purpose: at `text-sm` and seven tenths of
+                the ink, it is the smallest thing in the band, and the name at
+                the top of it is still the loudest.
+
+                The row costs the band 35.6px, and on a landscape phone that
+                is most of what stood between the "Featured work" rule and the
+                bottom of the screen: measured at 800x400, the rule sat 372px
+                down before this and 408px down after, which is off the screen
+                entirely. So the row spends less on a short viewport and the
+                band's own bottom padding comes down with it — 20px recovered
+                between them, and the rule lands at 388px again. The variant
+                exists to tighten what a short screen spends vertically, and
+                this is that. */}
+            <CompanyMarks className="mt-5 short:mt-2" />
           </div>
           <div className="min-w-0">
             <p className="text-sm text-ink-3">

@@ -29,6 +29,11 @@ const GOVERNED = [
      collided with the reading it labelled. Governed now, so it cannot drift
      back off the scale the next time the face is retuned. */
   "components/glyph-bay.tsx",
+  /* The company marks. The type step is load-bearing there in a way it is
+     nowhere else on the site: the row's font size is what sets the cap height
+     of the two raster wordmarks beside the one that is set in type, so a size
+     smuggled in off the scale would resize three marks at once. */
+  "components/company-marks.tsx",
 ];
 
 const STEPS = ["2xs", "xs", "sm", "base", "lg", "xl"] as const;
