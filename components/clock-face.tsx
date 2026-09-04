@@ -21,13 +21,35 @@ import { everySecond, handAngles, type Hands } from "@/lib/clock";
     36 and clear of the edge, so nothing on the face ever touches anything
     else. */
 const INDEX_RADIUS = 43;
+
+/* Rounded, and the rounding is not cosmetic — it is what lets this component
+   be server-rendered at all.
+
+   `Math.sin` and `Math.cos` are the two functions ECMAScript declines to pin
+   down: the spec calls their results implementation-approximated, so an engine
+   is free to be a bit out in the final place and two engines are free to
+   disagree there. Node and the V8 inside Chrome do disagree, on exactly one of
+   these twelve angles — 240°, the eight o'clock mark — where Node computes
+   12.760907637269142 and the browser computes 12.760907637269149. React
+   serialises `cx` into the HTML as the one and reads it back as the other, and
+   an attribute that differs is a hydration mismatch React reports and refuses
+   to patch: "some attributes of the server rendered HTML didn't match".
+
+   Three decimals is 0.0025px at the largest size this face is ever drawn —
+   below a pixel, below a retina subpixel, below anything a rounding can cost
+   here — and every one of these twelve coordinates lands at least 0.0004 clear
+   of a three-decimal boundary, which is eleven orders of magnitude more room
+   than the disagreement needs. `Math.round` is exact, so the values it returns
+   are the same everywhere by construction rather than by luck. */
+const round = (unit: number) => Math.round(unit * 1000) / 1000;
+
 const INDEX = Array.from({ length: 12 }, (_, hour) => {
   const angle = (hour * Math.PI) / 6;
   const quarter = hour % 3 === 0;
   return {
     hour,
-    cx: 50 + INDEX_RADIUS * Math.sin(angle),
-    cy: 50 - INDEX_RADIUS * Math.cos(angle),
+    cx: round(50 + INDEX_RADIUS * Math.sin(angle)),
+    cy: round(50 - INDEX_RADIUS * Math.cos(angle)),
     r: hour === 0 ? 2.2 : quarter ? 1.6 : 0.9,
     opacity: hour === 0 ? 0.7 : quarter ? 0.5 : 0.28,
   };

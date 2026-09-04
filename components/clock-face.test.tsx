@@ -119,6 +119,33 @@ describe("ClockFace", () => {
     expect(Number(twelve.getAttribute("opacity"))).toBe(loudest);
   });
 
+  /**
+   * The marks are the one thing on this face the server draws, and `Math.sin`
+   * is the one thing here two engines are allowed to disagree about. Node put
+   * the eight o'clock mark at 12.760907637269142 and Chrome at
+   * ...49, React wrote the first into the HTML and read the second back, and
+   * the page reported a hydration mismatch it would not patch up.
+   *
+   * Asserting the rounding rather than the twelve literal coordinates: the
+   * defect is that a coordinate carries more precision than any two engines
+   * agree on, so what has to hold is the precision, not the position — which
+   * the two tests either side of this one already own.
+   */
+  it("draws the marks at coordinates both engines can agree on", () => {
+    act(() => root.render(<ClockFace />));
+    const marks = [...host.querySelectorAll("circle")].filter(
+      (circle) => circle.getAttribute("cx") !== "50" || circle.getAttribute("cy") !== "50",
+    );
+    expect(marks).toHaveLength(12);
+    for (const mark of marks) {
+      for (const axis of ["cx", "cy"] as const) {
+        const drawn = mark.getAttribute(axis)!;
+        expect(drawn).toBe(String(Math.round(Number(drawn) * 1000) / 1000));
+        expect(drawn).toMatch(/^-?\d+(\.\d{1,3})?$/);
+      }
+    }
+  });
+
   it("holds the marks clear of the hands and of the edge", () => {
     faceAt("2026-09-04T07:43:44.000Z");
     const longest = Math.max(...hands().map((hand) => hand.reach));
