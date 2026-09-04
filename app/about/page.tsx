@@ -3,6 +3,7 @@ import { Fragment, type ReactNode } from "react";
 import Link from "next/link";
 import { CopyEmail } from "@/components/copy-email";
 import { ExperienceTimeline } from "@/components/experience-timeline";
+import { Pastimes } from "@/components/pastimes";
 import { SiteNav } from "@/components/site-nav";
 import { RecordRow } from "@/components/ui";
 import { roles } from "@/data/experience";
@@ -34,15 +35,8 @@ function Out({ href, children }: { href: string; children: ReactNode }) {
 export default function AboutPage() {
   /* Derived, because the hand-written version of this row is what went stale:
      it read "Currently: ChessEver, Hex" for four months after both engagements
-     had ended, which is the page telling a visitor something untrue about right
-     now. `standing` reads the periods in `data/experience.ts` and picks the
-     label to match — the roles the site is holding, or the last one it held —
-     and it may only name a company that is in the data.
-
-     No clock is consulted. A build-time `new Date()` would freeze the page's
-     idea of "now" at whenever it last deployed, which is the same defect one
-     layer down; currency is a property of the record instead, and a role that
-     has not ended is written with "Present" as its end. */
+     had ended. `standing` reads the periods and picks the label to match — the
+     roles the site is holding, or the last one it held. */
   const now = standing(roles);
 
   return (
@@ -163,6 +157,10 @@ export default function AboutPage() {
           </div>
         </section>
       </div>
+
+      {/* Full width, below both columns, and absent entirely until there is
+          something to put in it. See components/pastimes.tsx. */}
+      <Pastimes />
     </main>
   );
 }

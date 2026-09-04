@@ -43,6 +43,7 @@ const GOVERNED = [
      row's own font size, exactly as they are in the hero. */
   "app/about/page.tsx",
   "components/experience-timeline.tsx",
+  "components/pastimes.tsx",
 ];
 
 const STEPS = ["2xs", "xs", "sm", "base", "lg", "xl"] as const;
