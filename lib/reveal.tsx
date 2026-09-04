@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useMediaQuery } from "@/lib/use-media-query";
+import { useMounted } from "@/lib/use-mounted";
 
 /**
  * Law 4, amended: "nothing moves unless touched, or arriving."
@@ -43,6 +45,58 @@ export function useEntranceOnce<T extends HTMLElement>() {
   }, []);
 
   return ref;
+}
+
+/**
+ * The same arrival, answered to React rather than written to the DOM.
+ *
+ * `useEntranceOnce` sets an attribute because CSS is the only thing that needs
+ * to know. This is for the caller whose arrival is not a transition but a piece
+ * of work — the pedometer's walk, which has to *start* when the instrument is
+ * seen rather than when it mounts. Those were the same moment on a page whose
+ * every element is above the fold, and are five thousand pixels apart on this
+ * one: the wall sits at the bottom of a page a visitor lands at the top of, so
+ * a walk keyed to mount finished a second and a half after load, unwatched.
+ *
+ * It reports once and then never changes, so a caller can put it in an effect's
+ * dependencies without that effect being re-run by scrolling.
+ *
+ * Reduced motion is told immediately, exactly as the entrance is. Withholding
+ * the *signal* would withhold the value that rides on it, and reduced motion
+ * asks for the journey to be skipped, not for the destination to be hidden.
+ */
+export function useSeenOnce<T extends HTMLElement>() {
+  const ref = useRef<T | null>(null);
+  const [crossed, setCrossed] = useState(false);
+
+  /* The two ways of being seen without being watched, read as external state
+     rather than written into state from an effect — the same reason
+     `useMounted` and `useMediaQuery` exist at all. A visitor who asked for less
+     motion, and a browser that cannot report an intersection, are both told at
+     once; anything else would be withholding the value rather than the
+     journey. */
+  const mounted = useMounted();
+  const reduced = useMediaQuery("(prefers-reduced-motion: reduce)", false);
+  const unwatchable = mounted && !("IntersectionObserver" in window);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || reduced || !("IntersectionObserver" in window)) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        setCrossed(true);
+        observer.disconnect();
+      },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.01 },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [reduced]);
+
+  return { ref, seen: crossed || reduced || unwatchable };
 }
 
 /**

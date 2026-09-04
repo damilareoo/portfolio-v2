@@ -20,6 +20,7 @@ import {
   UNREPORTED,
   walkFrame,
 } from "@/lib/glyph/steps-frames";
+import { useSeenOnce } from "@/lib/reveal";
 import type { StepsDay, StepsReading } from "@/lib/steps";
 
 const GRID = 25; // dots across
@@ -194,6 +195,11 @@ function RecordLabel({ top, name, value }: { top: string; name: string; value: s
 export function Pedometer() {
   const [reading, setReading] = useState<StepsReading | null>(null);
   const [page, setPage] = useState(0);
+  /* The walk starts when the instrument is seen, not when it mounts. The wall
+     sits at the bottom of a page a visitor lands at the top of, so a walk keyed
+     to the data arriving finished a second and a half after load, five thousand
+     pixels below the fold — built, and never once watched. */
+  const { ref: seenRef, seen } = useSeenOnce<HTMLDivElement>();
 
 
   /* The same thirty seconds the disc polls on. An unconfigured store, a failed
@@ -243,7 +249,7 @@ export function Pedometer() {
   const progress = today === null || goal <= 0 ? null : today / goal;
 
   useEffect(() => {
-    if (page !== 0 || progress === null) return;
+    if (page !== 0 || progress === null || !seen) return;
 
     /* Law 4's "unless touched": turning to this face is what causes the walk,
        and it resolves into the same figure a still card would have shown.
@@ -260,13 +266,26 @@ export function Pedometer() {
     const start = performance.now();
     const step = (now: number) => {
       const t = duration === 0 ? 1 : Math.min(1, (now - start) / duration);
-      // Out-cubic: the figure sets off at pace and settles onto its mark.
-      setWalked(progress * (1 - Math.pow(1 - t, 3)));
+      /* A constant pace, and it is the gait that requires it.
+
+         This was an out-cubic, which put half the distance inside the first
+         227ms — about five pose changes at twenty a second, which is faster
+         than a walk and faster than the field can resolve. Measured, the figure
+         was an unreadable smear for the first quarter second and only settled
+         near 600ms, by which point the walk was all but over: the gait existed
+         and was never legible.
+
+         An eased walk is a strange thing to ask for anyway. A person crossing a
+         room does not set off at a sprint and coast to a halt, and the pose here
+         is a function of distance — so easing the distance eases the cadence,
+         and a cadence that changes is a limp. Linear is both the honest motion
+         and the readable one. */
+      setWalked(progress * t);
       if (t < 1) raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [page, progress]);
+  }, [page, progress, seen]);
 
   /* There used to be a fourth thing here: a day the visitor asked to see, drawn
      as a page of its own. It was reached by pressing a day on the month face,
@@ -301,7 +320,11 @@ export function Pedometer() {
       return recordFrame(GRID, today, average);
     }
     if (progress === null) return placeholderFrame(GRID);
-    return walkFrame(GRID, walked);
+    /* `bound` is what the walk is walking towards, and it is what keeps the
+       settled figure standing. Once `walked` reaches it there is no ground left
+       to cover and the pose is a figure at rest — at every step count, not only
+       at a day that met its goal in full. */
+    return walkFrame(GRID, walked, { bound: progress });
   }, [page, today, average, progress, walked]);
 
   const todaySaid =
@@ -338,6 +361,7 @@ export function Pedometer() {
 
   return (
     <div
+      ref={seenRef}
       /* The keyboard, all of it, in one place.
      
          Enter and Space advance because the card is a real button and that is

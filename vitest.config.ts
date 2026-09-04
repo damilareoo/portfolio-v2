@@ -12,6 +12,10 @@ export default defineConfig({
     include: [
       "app/**/*.test.ts",
       "lib/**/*.test.ts",
+      /* `lib/reveal.tsx` is a pair of hooks rather than a component, but a hook
+         still has to be mounted to be run, so its test asks for jsdom the same
+         way the cell's does. */
+      "lib/**/*.test.tsx",
       "components/**/*.test.tsx",
       "data/**/*.test.ts",
     ],
