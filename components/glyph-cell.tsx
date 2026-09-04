@@ -228,7 +228,7 @@ export function GlyphCell({
        comes back — but a pair of fallbacks that quietly disagree is worse than
        either value, so they now tell one story. */
     const skin = getComputedStyle(canvas);
-    ctx.fillStyle = skin.getPropertyValue("color") || "#0f0f0f";
+    ctx.fillStyle = skin.getPropertyValue("color") || "#100f0a";
 
     const round = pixelRef.current === "round";
     const floor = unlitRef.current ?? skinFloor(skin);

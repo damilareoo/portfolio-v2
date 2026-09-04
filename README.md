@@ -4,7 +4,7 @@ Personal portfolio of Damilare Osofisan. Successor to [damilareoo.xyz](https://w
 
 ## Direction
 
-Monochrome two-skin system, with exactly one exception. Hierarchy comes from tonal value, weight, and size, never hue — the single hue on the site is `--miss`, a red carrying one meaning: a day the step goal was missed. It is the only place a colour is asked to mean something, and it is deliberate rather than decorative. Borders separate surfaces instead of shadows, and they come in two kinds: a border that separates is drawn as a row of square pixels on the icon grid, while a border that contains stays a hairline. A rule is a mark; a box edge is an edge. Set entirely in Suisse Int'l, with Suisse Int'l Mono for labels and meta.
+Two-skin system on a warm neutral ramp, with exactly one exception. The neutrals carry a faint olive cast — the hue taken from `sophia-liu.work`, at this site's own lightness ramp — and it is constant down the ladder, so hierarchy still comes from tonal value, weight, and size, never hue. The single hue on the site is `--miss`, a red carrying one meaning: a day the step goal was missed. It is the only place a colour is asked to mean something, and it is deliberate rather than decorative. Borders separate surfaces instead of shadows, and they come in two kinds: a border that separates is drawn as a row of square pixels on the icon grid, while a border that contains stays a hairline. A rule is a mark; a box edge is an edge. Set entirely in Suisse Int'l, with Suisse Int'l Mono for labels and meta.
 
 The design language is **Handled**: every surface admits to being an object with weight, an edge you can take hold of, and a memory of where you left it. Four laws govern it, the last one load-bearing:
 
@@ -13,7 +13,7 @@ The design language is **Handled**: every surface admits to being an object with
 3. If it changes, it remembers.
 4. Nothing moves unless touched, arriving, or reporting.
 
-Law 4 is what lets monochrome restraint and playfulness coexist: the site is quiet in a screenshot and alive in use, and every motion on the page was caused by the visitor.
+Law 4 is what lets the restraint and the playfulness coexist: the site is quiet in a screenshot and alive in use, and every motion on the page was caused by the visitor.
 
 The "arriving" clause is narrow and deliberate. An element may animate the first time it enters the viewport — once. It does not re-trigger when scrolled back to, because a reveal that fires twice is a performance rather than an arrival.
 

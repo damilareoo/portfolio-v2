@@ -37,8 +37,8 @@ export const viewport: Viewport = {
     /* --bg on each skin, or the browser chrome sits a shade off the page it
        is framing. Held to app/globals.css by hand: a retune that moves --bg
        moves these two. */
-    { media: "(prefers-color-scheme: light)", color: "#f2f2f2" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+    { media: "(prefers-color-scheme: light)", color: "#fcfcfc" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0906" },
   ],
 };
 
