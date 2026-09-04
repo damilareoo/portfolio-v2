@@ -86,22 +86,40 @@ const EDGES = [
   "border-l-line border-t-line sm:border-t-transparent",
 ];
 
-export function InstrumentWall({ className = "" }: { className?: string }) {
-  const reading = useWeather();
-
-  /* Null until mounted, and the reading prints its dash meanwhile — because at
-     that moment the instrument genuinely does not know. The server cannot know
-     the time either, and one time rendered there against another rendered here
-     is a hydration mismatch.
-
-     The reading now carries seconds, so every one of these ticks changes the
-     string — where before, 59 of every 60 of them were thrown away by React
-     as a render that changed nothing. That is what makes the phase matter:
-     the readout has to turn over on the second it names, beside a hand doing
-     the same, and `everySecond` is what puts both on the boundary instead of
-     wherever the mount happened to land. */
+/**
+ * The Lagos bay, and the one thing on this wall that changes on its own.
+ *
+ * It is a component rather than a `useState` in the wall for one reason: the
+ * reading carries seconds now, so every tick changes the string. Before, 59 of
+ * every 60 ticks set the same value and React threw the render away; held in
+ * the wall, the new reading would re-render all four bays every second to
+ * change eight characters in one of them. Nothing would move that should not —
+ * a diff is not a paint — but a wall that re-renders itself once a second to
+ * report the time is a thing to be able to point at and say why, and the
+ * cheaper answer is for the bay that ticks to be the only bay that renders.
+ *
+ * Null until mounted, and the reading prints its dash meanwhile — because at
+ * that moment the instrument genuinely does not know. The server cannot know
+ * the time either, and one time rendered there against another rendered here
+ * is a hydration mismatch.
+ *
+ * `everySecond` rather than an interval, so the digits turn over on the second
+ * they name — beside a hand doing the same, on the same schedule, for the same
+ * reason. See its docblock for what the interval was getting wrong.
+ */
+function LagosReading() {
   const [time, setTime] = useState<string | null>(null);
   useEffect(() => everySecond(() => setTime(clockReading(new Date()))), []);
+
+  return (
+    <InstrumentReading srLabel="Lagos" value={time ?? undefined}>
+      <ClockFace />
+    </InstrumentReading>
+  );
+}
+
+export function InstrumentWall({ className = "" }: { className?: string }) {
+  const reading = useWeather();
 
   return (
     <div
@@ -116,9 +134,7 @@ export function InstrumentWall({ className = "" }: { className?: string }) {
           panel assembles itself left to right the first time it is seen, and is
           thereafter a still picture of itself. */}
       <Reveal index={0} className={`${BAY} ${EDGES[0]}`}>
-        <InstrumentReading srLabel="Lagos" value={time ?? undefined}>
-          <ClockFace />
-        </InstrumentReading>
+        <LagosReading />
       </Reveal>
 
       <Reveal index={1} className={`${BAY} ${EDGES[1]}`}>
