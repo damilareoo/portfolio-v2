@@ -13,8 +13,8 @@ const role = (company: string, period: string): Role => ({
 
 describe("parsePeriod", () => {
   it("reads a period as two points, not as a set of months", () => {
-    /* The half-open reading: a role that ends in April does not overlap one
-       that begins in April. */
+    /* The half-open reading is the decision the whole timeline rests on: a role
+       that ends in April does not overlap one that begins in April. */
     const a = parsePeriod("Mar 2025 — Apr 2026");
     const b = parsePeriod("Apr 2026 — Aug 2026");
     expect(a.end).toBe(b.start);
@@ -96,6 +96,37 @@ describe("buildTimeline", () => {
     expect(timeline.entries.map((e) => e.concurrent)).toEqual([true, true, false]);
   });
 
+  it("travels in months: a line starts when its role did and lasts as long", () => {
+    const timeline = buildTimeline([
+      role("HEX", "Mar 2025 — Apr 2026"),
+      role("ChessEver", "Apr 2025 — Apr 2026"),
+      role("Endgame", "Apr 2026 — Aug 2026"),
+    ]);
+    const [hex, chess, endgame] = timeline.entries;
+    expect(hex.delayMs).toBe(0);
+    expect(chess.delayMs).toBeGreaterThan(0);
+    expect(chess.delayMs).toBeLessThan(hex.drawMs);
+    expect(endgame.delayMs).toBe(hex.delayMs + hex.drawMs);
+    expect(endgame.drawMs).toBeLessThan(hex.drawMs);
+  });
+
+  it("keeps a long history inside one arrival", () => {
+    const timeline = buildTimeline([role("Long", "Jan 2000 — Jan 2026")]);
+    const last = timeline.entries[timeline.entries.length - 1];
+    expect(last.delayMs + last.drawMs).toBeLessThanOrEqual(1400);
+  });
+
+  it("gives every millisecond and pixel a value both engines agree on", () => {
+    // Written on the server, read in the browser: a value that differs in its
+    // last place is a hydration mismatch React declines to patch.
+    const timeline = buildTimeline(roles);
+    for (const entry of timeline.entries) {
+      expect(Number.isInteger(entry.delayMs)).toBe(true);
+      expect(Number.isInteger(entry.drawMs)).toBe(true);
+    }
+    expect(timeline.template).not.toMatch(/\d\.\d/);
+  });
+
   it("draws an unfinished role out to the end of the chart", () => {
     const timeline = buildTimeline([
       role("Done", "Jan 2025 — Jan 2026"),
@@ -104,13 +135,6 @@ describe("buildTimeline", () => {
     const going = timeline.entries.find((e) => e.role.company === "Going")!;
     expect(going.span.end).toBe(parsePeriod("Jan 2026 — Jan 2026").start);
     expect(going.terminal).toBe(true);
-  });
-
-  it("writes a grid template both engines agree on", () => {
-    /* Written on the server and read back in the browser: a value that differs
-       in its last place is a hydration mismatch React declines to patch, the
-       same trap `clock-face.tsx` documents. */
-    expect(buildTimeline(roles).template).not.toMatch(/\d\.\d/);
   });
 
   it("takes no roles at all without inventing a chart", () => {

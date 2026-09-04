@@ -295,11 +295,51 @@ body {
   }
 }
 
+/* The About timeline's line, which is the same arrival one layer down.
+
+   `.arrive` moves a whole element into place; this draws a hairline along a
+   path. The mechanics are the only difference: `pathLength="1"` on the segment
+   redeclares its length as 1, so an offset of 1 is a line not yet drawn and 0
+   is a line finished, whatever height the row it sits in turned out to be. That
+   matters because the timeline's rows are auto — the type decides where a role
+   ends — so nothing on the chart can be given a pixel coordinate in advance.
+
+   Delay and duration come from the dates. Each segment is handed the month it
+   starts on and the months it lasts, so the wavefront travels the chart at one
+   speed in time rather than one speed in pixels: two roles held at once are
+   drawn at once, and a four-month contract takes less of the arrival than a
+   thirteen-month one.
+
+   Guarded on scripting for the same reason `.arrive` is: with no JS nothing
+   ever sets data-drawn, and a line that starts hidden would stay hidden.
+
+   Reduced motion needs both halves. The blanket rule at the foot of this file
+   takes every duration to 0.01ms, which is not enough on its own — a segment
+   nine hundred milliseconds into the sequence would still sit empty for most of
+   a second before snapping in, which is a worse thing to show someone who asked
+   for less motion than the animation was. Zeroing the delay too is what makes
+   the line simply present: the journey withheld, the information not. */
+@media (scripting: enabled) {
+  .tl-track {
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset var(--tl-draw, 600ms) linear var(--tl-delay, 0ms);
+  }
+
+  [data-drawn] .tl-track {
+    stroke-dashoffset: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+
+  /* The delay the blanket rule above cannot reach. See `.tl-track`. */
+  .tl-track {
+    transition-delay: 0ms !important;
   }
 }

@@ -64,17 +64,26 @@ export function parsePeriod(period: string): Span {
 }
 
 /**
- * How much vertical room one month is worth on the wide arrangement.
+ * How much vertical room one month is worth on the wide arrangement, and how
+ * long the line spends travelling it.
  *
- * A *floor*, not a height: a row is `minmax(months × PX_PER_MONTH, auto)`, so
- * the axis is metric until a role's own text needs more than its duration
- * bought, and then the text wins. That is the honest compromise in a 544px
- * column — a strictly proportional axis would give a one-month role twelve
- * pixels to hold four lines of type, and a purely ordinal one would place two
- * starts a month apart at the same height and lose the stagger that says one
- * began before the other.
+ * The first is a *floor*, not a height: a row is `minmax(months × PX_PER_MONTH,
+ * auto)`, so the axis is metric until a role's own text needs more than its
+ * duration bought, and then the text wins. That is the honest compromise in a
+ * 544px column — a strictly proportional axis would give a one-month role
+ * sixteen pixels to hold four lines of type, and a purely ordinal one would
+ * place two starts a month apart at the same height and lose the stagger that
+ * says one began before the other.
+ *
+ * The second is the same axis in time. The line travels at a constant speed in
+ * *months*, so two tracks that overlap are drawn at once and a four-month
+ * contract takes less of the animation than a thirteen-month one. Capped in
+ * total, because a career is not required to stay short and an arrival that
+ * runs for four seconds has stopped being an arrival.
  */
 const PX_PER_MONTH = 12;
+const MS_PER_MONTH = 55;
+const MAX_DRAW_MS = 1400;
 
 export type TimelineEntry = {
   role: Role;
@@ -88,6 +97,8 @@ export type TimelineEntry = {
   terminal: boolean;
   /** Runs at the same time as at least one other role. */
   concurrent: boolean;
+  delayMs: number;
+  drawMs: number;
 };
 
 export type Timeline = {
@@ -151,6 +162,12 @@ export function buildTimeline(roles: readonly Role[]): Timeline {
   );
   const rows = points.slice(1).map((point, i) => point - points[i]);
 
+  const first = points[0];
+  const total = points[points.length - 1] - first;
+  /* Zero only when every role is a single instant, which the parser cannot
+     produce, but a division is not the place to find that out. */
+  const perMonth = total > 0 ? Math.min(MS_PER_MONTH, MAX_DRAW_MS / total) : MS_PER_MONTH;
+
   const entries = placed.map((entry) => ({
     role: entry.role,
     span: entry.span,
@@ -164,6 +181,15 @@ export function buildTimeline(roles: readonly Role[]): Timeline {
       (other) =>
         other !== entry && other.span.start < entry.span.end && entry.span.start < other.span.end,
     ),
+    /* Rounded for the same reason `clock-face.tsx` rounds its index marks: these
+       numbers are written into the markup on the server and read back in the
+       browser, and a value that differs in its last place is a hydration
+       mismatch React reports and declines to patch. Division is exactly rounded
+       by the spec where `Math.sin` is not, so this is insurance rather than a
+       repair — but it is free, and a millisecond is far below anything the eye
+       is owed. */
+    delayMs: Math.round((entry.span.start - first) * perMonth),
+    drawMs: Math.round((entry.span.end - entry.span.start) * perMonth),
   }));
 
   return {
