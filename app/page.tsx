@@ -54,10 +54,20 @@ export default function Home() {
             <p className="mt-2 max-w-[46ch] text-lg font-medium leading-snug tracking-tight text-ink">
               I design and build the parts of a product people actually touch.
             </p>
+            {/* The claim the rest of the page has to keep. Naming the three
+                companies replaces "chess platforms and a revenue intelligence
+                tool", which described the work without ever saying whose it
+                was — a hedge that made a real record read like a category.
+                The second sentence is a promise about instruments, and the
+                instrument wall in the footer is the evidence for it: nothing
+                on this page may be allowed to make that wall quieter, or the
+                sentence becomes a thing the site says rather than a thing it
+                does. */}
             <p className="mt-3 max-w-[46ch] text-base leading-relaxed text-ink-2">
-              Interfaces, identity, and the systems underneath them — taken from
-              nothing to shipped. Most recently for chess platforms and a revenue
-              intelligence tool.
+              Most recently for Endgame AI, ChessEver and HEX. Right now
+              I&rsquo;m interested in interfaces that behave like instruments
+              &mdash; screens that report a real reading instead of decorating
+              one.
             </p>
           </div>
           <div className="min-w-0">
