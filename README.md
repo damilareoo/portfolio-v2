@@ -251,6 +251,23 @@ There was a dial rail on the colophon — theme, type scale, density — that re
 
 The light/dark control survives and moved to the nav, where it is reachable from every page rather than from one.
 
+## The type scale
+
+Six steps, every one of them used, and the same six as before. Three are fluid now, which they could not be while the dial existed.
+
+| Step | 320px | 1280px and wider |
+|---|---|---|
+| `--text-2xs` | 9px | 9px |
+| `--text-xs` | 11px | 11px |
+| `--text-sm` | 13px | 13px |
+| `--text-base` | 15px | 16px |
+| `--text-lg` | 20px | 24px |
+| `--text-xl` | 30px | 40px |
+
+The small three are fixed on purpose: they carry captions, labels, years and counts, which are already at the floor of what is readable and get worse rather than better when they grow with the window. Every ramp stops at 1280px because the page's measure is `max-w-[1240px]` — type that keeps growing after the column has stopped is not more readable, only bigger.
+
+Both ends of every `clamp()` are `rem`, and so is the leading term of the preferred value, so browser text size and zoom still reach them. Nothing is smaller at any width than it was on the fixed scale. `lib/type-scale.test.ts` holds the shape, and still forbids an ad-hoc size in any surface it governs — that was always a separate defect from the dial.
+
 ## Work model
 
 One model in `data/work.ts`, and it is the whole hierarchy. Order on the page is the order of the
