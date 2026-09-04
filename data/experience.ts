@@ -8,7 +8,7 @@
  * `mark` is the second half of that, and the two are not the same claim. A
  * `logo` is whatever picture the About ladder can put in a box; a `mark` says
  * the picture is a wordmark and records where inside the plate it sits. Only
- * the roles that have one can be set as an image in the marks row.
+ * the roles that have one can stand in the hero as an image.
  */
 
 export type Role = {
@@ -28,23 +28,28 @@ export type Role = {
 /**
  * Where a company's wordmark actually sits inside its `logo`.
  *
- * An OG plate is mostly margin. Endgame's wordmark is 75px tall on a 630px
- * plate and HEX's is 137px, so a row that scaled both plates to one box would
- * set one company's name at nearly twice the other's — the row would read as
- * two marks of different importance rather than two facts of equal weight.
- * These numbers are what let the row scale each plate until the two wordmarks
- * share a cap height, and share it with the third name, which is set in type.
+ * An OG plate is mostly margin, and the margin is not the same on any two of
+ * them. Endgame's wordmark is 75px tall on a 630px plate and HEX's is 137px,
+ * so setting both plates to one box would print one company's name at nearly
+ * twice the other's — three names at three sizes, which reads as three levels
+ * of importance rather than three facts. These numbers are what let each plate
+ * be scaled until the wordmarks share a cap height, and share it with the third
+ * name, which is set in type because there is no file for it.
  *
- * Every figure is measured off the file rather than estimated, and every one
- * is a ratio to the plate's *height*, including the width, so a single scale
- * factor drives both axes. Cap height rather than bounding box: Endgame is
- * lowercase with a descender and a sparkle above the ai, HEX is all caps, and
- * matching their outermost pixels would set HEX visibly smaller than the name
- * beside it. Cap height is what the eye measures a wordmark by.
+ * Every figure is measured off the file rather than estimated, and every one is
+ * a ratio to the plate's *height*, width included, so one scale factor drives
+ * both axes. Cap height rather than bounding box: Endgame is lowercase with a
+ * descender and a sparkle above the ai, HEX is all caps, and matching their
+ * outermost pixels would set HEX visibly smaller than the name beside it. Cap
+ * height is what the eye measures a wordmark by.
+ *
+ * Both wordmarks sit within three pixels of their plate's centre — measured —
+ * which is what lets the crop simply centre the plate rather than carry an
+ * offset per file.
  *
  * Presence is also the switch. A role with no `mark` has no wordmark the site
- * can use, whatever `logo` happens to point at, and the row sets its name in
- * mono instead of cropping product art into the shape of a logo.
+ * can use, whatever `logo` happens to point at, and its name is set in mono
+ * instead of cropping product art into the shape of a logo.
  */
 export type Mark = {
   /** The plate's pixel dimensions, as the file carries them. */
@@ -53,6 +58,13 @@ export type Mark = {
   cap: number;
   /** The wordmark's full width ÷ the plate's height. */
   width: number;
+  /**
+   * The wordmark's full height ÷ the plate's height — ascenders, descenders
+   * and anything floating above them, not just the caps. The tile is sized off
+   * the tallest of these, so a mark can never be cropped by the box that is
+   * meant to hold it.
+   */
+  height: number;
 };
 
 export const roles: Role[] = [
@@ -64,7 +76,7 @@ export const roles: Role[] = [
     location: "New York City Metropolitan Area · Remote",
     engagement: "Contract",
     logo: "/companies/endgame.png",
-    mark: { plate: [1200, 630], cap: 75 / 630, width: 596 / 630 },
+    mark: { plate: [1200, 630], cap: 75 / 630, width: 596 / 630, height: 108 / 630 },
   },
   {
     role: "Product Designer",
@@ -88,6 +100,6 @@ export const roles: Role[] = [
     location: "San Francisco, California · Remote",
     engagement: "Contract",
     logo: "/companies/hex.png",
-    mark: { plate: [1200, 630], cap: 137 / 630, width: 380 / 630 },
+    mark: { plate: [1200, 630], cap: 137 / 630, width: 380 / 630, height: 137 / 630 },
   },
 ];

@@ -42,7 +42,7 @@ export default function Home() {
           always was: the name and statement beside the record and the call
           instead of stacked above them, so the first product still lands on
           screen rather than off the bottom of a landscape phone. */}
-      <header className="mt-10 pb-8 short:mt-6 short:pb-4">
+      <header className="mt-10 pb-8 short:mt-6 short:pb-6">
         <div className="grid min-w-0 gap-x-8 gap-y-4 short-wide:grid-cols-2 short-wide:items-start">
           <div className="min-w-0">
             <h1 className="text-xl font-bold tracking-tight">&rsquo;{site.name}</h1>
@@ -55,39 +55,40 @@ export default function Home() {
             <p className="mt-2 max-w-[46ch] text-lg font-medium leading-snug tracking-tight text-ink">
               I design and build the parts of a product people actually touch.
             </p>
-            {/* The claim the rest of the page has to keep. Naming the three
-                companies replaces "chess platforms and a revenue intelligence
-                tool", which described the work without ever saying whose it
-                was — a hedge that made a real record read like a category.
+            {/* The claim the rest of the page has to keep, and the reason it
+                is not one paragraph.
+
+                The copy is "Most recently for Endgame AI, ChessEver and HEX.
+                Right now I'm interested in interfaces that behave like
+                instruments — screens that report a real reading instead of
+                decorating one." The three names in the first sentence are the
+                companies' own marks now, so the sentence's object is a list of
+                artwork rather than a list of words — and each mark carries the
+                role it was, because three logos with nothing attached say he
+                was near three companies rather than what he was at them.
+
+                That is what breaks the sentence. Set as running prose it needs
+                two identical parentheticals in the middle of it — "(Product
+                Designer)" twice — and stops being readable at exactly the
+                point it starts being informative. So the first sentence
+                becomes its lead-in and three lines, and the second stands on
+                its own. Every word survives in order; the comma, the "and" and
+                the full stop are what it costs.
+
                 The second sentence is a promise about instruments, and the
                 instrument wall in the footer is the evidence for it: nothing
                 on this page may be allowed to make that wall quieter, or the
                 sentence becomes a thing the site says rather than a thing it
                 does. */}
             <p className="mt-3 max-w-[46ch] text-base leading-relaxed text-ink-2">
-              Most recently for Endgame AI, ChessEver and HEX. Right now
-              I&rsquo;m interested in interfaces that behave like instruments
-              &mdash; screens that report a real reading instead of decorating
-              one.
+              Most recently for
             </p>
-            {/* The three names again, in their own marks, directly under the
-                sentence that says them. It sits below the statement rather
-                than above it because a row of logos placed before the claim
-                is a badge wall arguing for itself, and placed after it is the
-                receipt. Quiet on purpose: at `text-sm` and seven tenths of
-                the ink, it is the smallest thing in the band, and the name at
-                the top of it is still the loudest.
-
-                The row costs the band 35.6px, and on a landscape phone that
-                is most of what stood between the "Featured work" rule and the
-                bottom of the screen: measured at 800x400, the rule sat 372px
-                down before this and 408px down after, which is off the screen
-                entirely. So the row spends less on a short viewport and the
-                band's own bottom padding comes down with it — 20px recovered
-                between them, and the rule lands at 388px again. The variant
-                exists to tighten what a short screen spends vertically, and
-                this is that. */}
-            <CompanyMarks className="mt-5 short:mt-2" />
+            <CompanyMarks className="mt-2.5" />
+            <p className="mt-4 max-w-[46ch] text-base leading-relaxed text-ink-2">
+              Right now I&rsquo;m interested in interfaces that behave like
+              instruments &mdash; screens that report a real reading instead of
+              decorating one.
+            </p>
           </div>
           <div className="min-w-0">
             <p className="text-sm text-ink-3">
