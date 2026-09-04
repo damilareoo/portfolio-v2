@@ -4,7 +4,14 @@
  * Everything here is pure and geometry-free beyond what it is handed, so the
  * same physics can carry a disc, a counter, or anything else the site grows.
  * Canvas work and the frame loop live elsewhere — this module only integrates.
+ *
+ * The one import is `pixelGeometry`, and it is here for `fieldReach` rather
+ * than for the physics: the lattice decides where a cell stands and the pixel
+ * decides how far its ink spreads from there, so the question "how far does
+ * this field reach" needs both and can be answered honestly by neither alone.
  */
+
+import { pixelGeometry } from "./pixel";
 
 export type Cell = {
   x: number;
@@ -54,6 +61,44 @@ const VALUE_EPSILON = 0.002;
 /** Value migration rate, per second — mark into artwork and back. */
 const VALUE_RATE = 6;
 
+/**
+ * How far inside a circular field's edge the lattice stops placing cells, in
+ * cells. Named because it is half of the answer to "how far does the ink
+ * reach" — see `fieldReach`, which is the other half and the only thing that
+ * should ever be asked.
+ */
+const CIRCLE_INSET = 0.35;
+
+/**
+ * How far the ink of a circular field can reach, as a share of the field's own
+ * radius. Slightly over 1: the lattice stops short of the edge, and then each
+ * pixel is drawn outward from its cell's centre by half its own width, which
+ * puts the outermost ink a little past where the cells stop.
+ *
+ * This exists so that nothing drawn *around* a field has to restate the
+ * field's geometry to know where it ends. `now-playing-disc.tsx` held its
+ * own guess at this number — one constant for the ring and a second,
+ * independently derived, for the disc — and the two were free to disagree,
+ * which is exactly what they did: the ring was drawn through the artwork it
+ * was meant to sit outside. There is one expression of it now, and it is
+ * here, beside the cull that half of it comes from.
+ *
+ * It is an upper bound rather than a measurement. On a square lattice no cell
+ * centre lands exactly on the cull radius, so the true reach is a little less
+ * than this for any given grid — which is the direction a caller wants to be
+ * wrong in, because the number is used to clear the field rather than to fill
+ * it.
+ *
+ * It says nothing about a field in motion. A ripple or a pointer displaces
+ * cells outward by canvas units, and how much of that a caller must leave room
+ * for is the caller's own decision about its own ring.
+ */
+export function fieldReach(grid: number, size: number): number {
+  const cellSize = size / grid;
+  const radius = size / 2;
+  return (radius - cellSize * CIRCLE_INSET + pixelGeometry(cellSize).side / 2) / radius;
+}
+
 export function buildCells(grid: number, size: number, shape: "circle" | "square"): Cell[] {
   const cellSize = size / grid;
   const radius = size / 2;
@@ -62,7 +107,7 @@ export function buildCells(grid: number, size: number, shape: "circle" | "square
     for (let col = 0; col < grid; col++) {
       const x = (col + 0.5) * cellSize;
       const y = (row + 0.5) * cellSize;
-      if (shape === "circle" && Math.hypot(x - radius, y - radius) > radius - cellSize * 0.35) {
+      if (shape === "circle" && Math.hypot(x - radius, y - radius) > radius - cellSize * CIRCLE_INSET) {
         continue;
       }
       cells.push({ x, y, ox: 0, oy: 0, vx: 0, vy: 0, v: 0, tv: 0 });

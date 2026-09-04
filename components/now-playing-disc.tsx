@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { GlyphCell } from "@/components/glyph-cell";
 import { InstrumentReading } from "@/components/instrument-card";
 import { artFrame, spotifyMark } from "@/lib/glyph/glyphs";
-import { TUNING } from "@/lib/glyph/matrix";
+import { fieldReach, TUNING } from "@/lib/glyph/matrix";
 import { fingerprint, pulsesBetween } from "@/lib/glyph/pulse";
 
 type NowPlaying = {
@@ -17,24 +17,48 @@ type NowPlaying = {
   durationMs?: number;
 };
 
-const SIZE = 300; // canvas units; CSS scales it
-const GRID = 48; // dots across
-/* The arc is sized as a share of the disc rather than in pixels. Pinned at a
-   fixed width it stayed put while the disc grew, and a ring that was clearing
-   the dots by a hairline ended up drawn straight through them — a stray line
-   across the artwork with no meaning attached to it. */
-const ARC_SCALE = 1.09; // just clear of the dots, at any size the disc is set to
+/* Exported so a test can ask the field how far its ink reaches rather than
+   restating the answer — which is the shape of the defect this file was
+   carrying, two expressions of one fact free to disagree. */
+export const SIZE = 300; // canvas units; CSS scales it
+export const GRID = 48; // dots across
 
-/* How wide the disc is drawn inside the reading's face — a share of it, not a
-   number of pixels. The arc is a share of the disc and hangs outside it, and
-   the face clips at its own edge, so a disc drawn at the full measure would
-   have its progress arc sliced off at four points. The disc gives back what
-   the arc needs, and the pair of them together is what fills the face.
+/* Where the ring goes, in one expression, and everything else derived from it.
 
-   It used to be arithmetic on `CARD_FACE`, which is gone: the face now takes
-   whatever the cell gives it, so the same arithmetic is done in percent and
-   the pair scales together at any size the wall sets. */
-const DISC = `${Math.floor(100 / ARC_SCALE) - 4}%`;
+   This was two constants: an `ARC_SCALE` said to hold the ring "just clear of
+   the dots, at any size", and a `DISC` width computed separately by different
+   arithmetic from the same intent. Two independent statements of one fact can
+   disagree, and these did — the ring cleared the resting lattice by about two
+   percent of the disc's radius, which is under a pixel at the size a phone
+   draws it, and was drawn straight through the artwork the moment a pulse
+   crossed the field. The comment above `ARC_SCALE` described that exact
+   failure as already fixed, which is the worst state a comment can be in.
+
+   `fieldReach` is the field answering for itself: it is where the outermost
+   ink can land, as a share of the disc's radius, derived from the lattice's
+   own cull and the pixel's own width rather than guessed at here. Change the
+   pixel fill or the grid and the ring moves with it.
+
+   `CLEARANCE` is the only free choice left, and it is a gap rather than a
+   hairline on purpose. It has to cover a field in motion, not only a field at
+   rest: the playhead pulse displaces the outer cells outward by something over
+   four percent of the radius at full strength, and a ring that cleared only
+   the still lattice would be crossed twice a second by the thing standing
+   beside it. A finger laid on the disc pushes harder still and will reach the
+   ring — that is the visitor moving the field with their own hand, and the
+   ring giving way to it is honest; a ring crossed by a picture holding still
+   is not. */
+const CLEARANCE = 0.07; // of the disc's radius
+const RING = fieldReach(GRID, SIZE) + CLEARANCE;
+
+/* The arc is drawn in its own 100-unit box, and `ARC_RADIUS` is where the ring
+   sits inside that box — short of the edge by enough to hold the stroke and
+   its cap. The box is then scaled until the ring lands at `RING`, and the disc
+   is drawn at whatever is left, so the two together are exactly the face. One
+   number moves both, and neither can be changed without the other. */
+const ARC_RADIUS = 47;
+const ARC_SCALE = (RING * 50) / ARC_RADIUS;
+const DISC = `${100 / ARC_SCALE}%`;
 
 /* How much harder a playhead pulse strikes than a fingertip.
    The engine's damping is close to critical, so a ring at force 1 displaces the
@@ -49,10 +73,21 @@ const RING_PERIOD_MS = TUNING.PULSE_PERIOD_MS / RINGS_PER_PULSE;
 
 const PULSE_FORCE = 24;
 
-/* The arc is drawn in a 100-unit box scaled to ARC_PX, so its radius is in
-   hundredths and its length is what a full track is worth in dash. */
-const ARC_RADIUS = 47;
+/* What a full track is worth in dash — the ring's whole circumference, in the
+   arc box's own units. */
 const ARC_LENGTH = 2 * Math.PI * ARC_RADIUS;
+
+/* How thick the ring is drawn, and — because the cap is round — the shortest
+   arc that is worth drawing at all.
+
+   Measured in a headless Chrome: at a dash of exactly zero the browser draws
+   nothing, but a dash of three hundredths of a unit comes back as a full round
+   dot the width of the stroke, sitting at twelve o'clock. So the first half
+   second of a four-minute track, and any track Spotify reports at a position
+   of zero while playing, put a mark on the instrument that is entirely cap and
+   says nothing but "there is a dot here". Below one stroke's worth of arc
+   there is no arc, only its ends. */
+const ARC_STROKE = 0.6;
 
 /**
  * Now-playing as an ordered-dither disc.
@@ -149,6 +184,9 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
     const duration = trackRef.current?.durationMs ?? 0;
     const done = progressMs === null || duration <= 0 ? 0 : Math.min(1, progressMs / duration);
     arc.style.strokeDashoffset = String(ARC_LENGTH * (1 - done));
+    /* Drawn only once there is more arc than cap — see `ARC_STROKE`. Nothing
+       to report, and nothing that is only its own round ends, is not drawn. */
+    arc.style.opacity = done * ARC_LENGTH >= ARC_STROKE ? "1" : "0";
   }, []);
 
   /* A poll is a fresh reading of the playhead, and the pulse counts from it
@@ -357,10 +395,14 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
             r={ARC_RADIUS}
             fill="none"
             stroke="currentColor"
-            strokeWidth="0.6"
+            strokeWidth={ARC_STROKE}
             strokeLinecap="round"
             strokeDasharray={ARC_LENGTH}
             strokeDashoffset={ARC_LENGTH}
+            /* Hidden until something says otherwise, for the same reason
+               `paintArc` hides it: the first paint happens before any reading
+               has arrived, and an empty arc still leaves its cap behind. */
+            opacity={0}
             transform="rotate(-90 50 50)"
           />
         </svg>

@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { TUNING, buildCells, cellIndex, liveRipples, setTargets, settle, stepCells } from "./matrix";
+import {
+  TUNING,
+  buildCells,
+  cellIndex,
+  fieldReach,
+  liveRipples,
+  setTargets,
+  settle,
+  stepCells,
+} from "./matrix";
+import { pixelGeometry } from "./pixel";
 
 const GRID = 8;
 const SIZE = 80;
@@ -30,6 +40,42 @@ describe("buildCells", () => {
     expect(cellIndex(cells[GRID + 2], GRID, SIZE)).toBe(GRID + 2);
     // Row 1 column 2 is not row 2 column 1.
     expect(cellIndex(cells[GRID + 2], GRID, SIZE)).not.toBe(2 * GRID + 1);
+  });
+});
+
+describe("fieldReach", () => {
+  /* The sizes the site actually draws, plus two absurd ones, because the claim
+     is "at any size" and a bound that only holds at 48 across is a constant
+     wearing a function's clothes. */
+  const shapes: [number, number][] = [
+    [48, 300],
+    [25, 300],
+    [12, 64],
+    [7, 900],
+    [96, 120],
+  ];
+
+  it("bounds every dot the field paints", () => {
+    for (const [grid, size] of shapes) {
+      const radius = size / 2;
+      const half = pixelGeometry(size / grid).side / 2;
+      let worst = 0;
+      for (const cell of buildCells(grid, size, "circle")) {
+        worst = Math.max(worst, (Math.hypot(cell.x - radius, cell.y - radius) + half) / radius);
+      }
+      expect(worst).toBeLessThanOrEqual(fieldReach(grid, size));
+    }
+  });
+
+  it("reaches past the nominal edge, which is the whole reason to ask", () => {
+    // A caller that assumed the ink stopped at the circle would draw its ring
+    // through the outermost row of dots — which is what one of them did.
+    for (const [grid, size] of shapes) expect(fieldReach(grid, size)).toBeGreaterThan(1);
+  });
+
+  it("is a share, so it does not move when only the canvas does", () => {
+    // Same grid, four times the coordinate space: the field is the same field.
+    expect(fieldReach(48, 300)).toBeCloseTo(fieldReach(48, 1200), 12);
   });
 });
 
