@@ -119,6 +119,26 @@ export function Product({
               The chevron accompanies the words — it never stands in for them.
               Tall enough to be a comfortable touch target at any width.
 
+              The shape was right and the weight was wrong. It sat at
+              `text-2xs` — the smallest size on the entire site — in the muted
+              ink, which put the page's primary action below every caption
+              around it: findable only if you already knew it was there. It is
+              a step up the scale now and in the primary ink, which is the
+              least a door can be on a page you are scanning. It still does not
+              fill or tint, because the artwork above it is the thing being
+              looked at and a slab here would win an argument it should not be
+              having.
+
+              The glyph is held in a bounded box for the same reason. Loose on
+              the rule at 0.625rem it read as a mark pointing at something;
+              inside a hairline square at the site's own radius, at a touch
+              size, it reads as the part you press. The box does not turn — a
+              rotated square is a square — so the rotation stays on the glyph
+              inside it.
+
+              Only opacity moves on the control and only colour on the box, per
+              Law 4. Nothing lifts and nothing shadows.
+
               No count rides alongside. It read "N FRAMES" while counting
               blocks, and a block is not a frame — a four-block tail can hold
               six image slots — so the one number on the control was the one
@@ -131,13 +151,21 @@ export function Product({
             }}
             aria-expanded={open}
             aria-controls={panelId}
-            className="rule-t mt-8 flex min-h-[2.75rem] w-full items-center justify-between gap-4 py-3 text-left font-mono text-2xs uppercase tracking-[0.08em] text-ink-2 transition-colors hover:text-ink"
+            className="group rule-t mt-8 flex min-h-[2.75rem] w-full items-center justify-between gap-4 py-2 text-left font-mono text-xs uppercase tracking-[0.08em] text-ink transition-opacity hover:opacity-85 active:opacity-70"
           >
-            <span>{open ? "Close case study" : "Open case study"}</span>
-            <span
-              className={`inline-block shrink-0 text-ink-3 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
-            >
-              <GlyphIcon name="chevron-down" size="0.625rem" />
+            {/* Never wraps. At 320px the card is 280px and the longer label
+                measures 128px, so the row has room — but a label that wrapped
+                would take the glyph with it and the control would look like an
+                accident. */}
+            <span className="whitespace-nowrap">
+              {open ? "Close case study" : "Open case study"}
+            </span>
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-[4px] border border-line transition-colors group-hover:border-ink-3">
+              <span
+                className={`inline-flex transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+              >
+                <GlyphIcon name="chevron-down" size="0.75rem" />
+              </span>
             </span>
           </button>
 
