@@ -130,9 +130,50 @@ export function CompanyMarks({ className = "" }: { className?: string }) {
   );
 }
 
-function MarkRow({ role }: { role: Role }) {
+/**
+ * One company, as itself.
+ *
+ * Exported because the About timeline is the second caller phase 3 said this
+ * would have: a mark that reads one way in the hero and another on /about is
+ * two marks, and the ladder /about used to draw — a 112px box holding whatever
+ * `logo` pointed at — was exactly that. It also had ChessEver's product
+ * screenshot in it, presented as a logo. The tile-or-type decision lives here,
+ * once, so neither page can make it differently.
+ *
+ * Sized in ems throughout, so the caller's own type step sets the cap height.
+ * It is `text-sm` on both surfaces today; nothing here depends on that.
+ */
+export function CompanyMark({ role }: { role: Role }) {
   const marked = role.logo && role.mark ? { ...role, logo: role.logo, mark: role.mark } : null;
 
+  return marked ? (
+    <MarkTile role={marked} />
+  ) : (
+    /* No file, so no tile. ChessEver publishes neither a logo nor an OG
+       image, and the honest form of that is the site setting the name in
+       its own mono at the same cap height as the two marks beside it —
+       not a screenshot cropped into the shape of a logo, and not a plate
+       in the site's own colours pretending to be artwork. It will read as
+       the odd one out in a line of two coloured marks. It is the odd one
+       out. A real mark from the company ends it. */
+    <span className="whitespace-nowrap font-mono leading-none tracking-tight text-ink transition-colors group-hover:text-ink-2">
+      {role.company}
+    </span>
+  );
+}
+
+/**
+ * The height a mark stands in, in ems of the type around it.
+ *
+ * Exported so a caller can give the slot that height whether or not the
+ * company has a file: a wordmark tile is 1.9em tall and a name set in mono is
+ * about 0.7em, and a list that let each take its natural height would step up
+ * and down for a reason that is about the site's assets rather than about the
+ * companies.
+ */
+export const MARK_HEIGHT = em(TILE_H);
+
+function MarkRow({ role }: { role: Role }) {
   return (
     /* `display: contents` so the item's two cells sit in the parent grid and
        the roles share one column. The list roles are written out because
@@ -145,20 +186,7 @@ function MarkRow({ role }: { role: Role }) {
         className="group flex items-center"
         style={{ height: em(TILE_H) }}
       >
-        {marked ? (
-          <MarkTile role={marked} />
-        ) : (
-          /* No file, so no tile. ChessEver publishes neither a logo nor an OG
-             image, and the honest form of that is the site setting the name in
-             its own mono at the same cap height as the two marks beside it —
-             not a screenshot cropped into the shape of a logo, and not a plate
-             in the site's own colours pretending to be artwork. It will read as
-             the odd one out in a line of two coloured marks. It is the odd one
-             out. A real mark from the company ends it. */
-          <span className="whitespace-nowrap font-mono leading-none tracking-tight text-ink transition-colors group-hover:text-ink-2">
-            {role.company}
-          </span>
-        )}
+        <CompanyMark role={role} />
       </a>
       {/* The half that says what he was. Quieter than the mark, because the
           mark is the subject and this is what he did there — but full text at

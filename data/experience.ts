@@ -1,14 +1,18 @@
 /**
  * Roles, as recorded on LinkedIn. Newest first.
  *
- * `logo` is the company's own OG image where it publishes one, so the box
- * carries the company's mark rather than something invented here. ChessEver
- * serves no metadata at all, so its own product art stands in.
+ * Newest first is how a CV is written and it is not how the site reads them:
+ * /about draws these on a time axis, earliest first, and works out for itself
+ * which of them ran at the same time. Order here is the record's own; order
+ * there is derived. See `lib/experience.ts` — nothing outside that file parses
+ * a `period`.
  *
- * `mark` is the second half of that, and the two are not the same claim. A
- * `logo` is whatever picture the About ladder can put in a box; a `mark` says
- * the picture is a wordmark and records where inside the plate it sits. Only
- * the roles that have one can stand in the hero as an image.
+ * `logo` is the company's own OG image where it publishes one, so the mark
+ * carries the company's artwork rather than something invented here. `mark` is
+ * the second half of that, and the two are not the same claim: a `logo` is a
+ * picture the company published, a `mark` says the picture is a wordmark and
+ * records where inside the plate it sits. Only a role with both can stand as an
+ * image; a role with neither is set in the site's own mono.
  */
 
 export type Role = {
@@ -85,12 +89,14 @@ export const roles: Role[] = [
     period: "Apr 2025 — Apr 2026",
     location: "United States · Remote",
     engagement: "Contract",
-    /* Product art, not a mark. ChessEver publishes no OG image and no logo
-       file, so this is a screenshot standing in for one on the About ladder.
-       It carries no `mark`, which is what keeps it out of the marks row as an
-       image: a screenshot cropped square in a line of two real wordmarks reads
-       as a mistake rather than as a third company. */
-    logo: "/work/chessever/01-featured.jpg",
+    /* No `logo` and no `mark`. It used to carry `/work/chessever/01-featured.jpg`
+       — a product screenshot — because the About ladder had a box to fill and
+       that was the only ChessEver picture the repo held. The ladder is a
+       timeline now and draws the same marks the hero does, so the box is gone
+       and the field with it: a screenshot filed under `logo` is a claim that
+       the site has a mark for this company, and it does not. The screenshot is
+       still in `data/work.ts`, where it is what it actually is. A real mark
+       from ChessEver is what ends this. */
   },
   {
     role: "Design Partner",

@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import { RecordRow } from "@/components/ui";
-import Image from "next/image";
-import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
+import Link from "next/link";
 import { CopyEmail } from "@/components/copy-email";
+import { ExperienceTimeline } from "@/components/experience-timeline";
 import { SiteNav } from "@/components/site-nav";
-import { Reveal } from "@/lib/reveal";
-import { roles, type Role } from "@/data/experience";
+import { RecordRow } from "@/components/ui";
+import { roles } from "@/data/experience";
 import { elsewhere, site } from "@/data/site";
 import { standing } from "@/lib/experience";
 
@@ -17,51 +16,6 @@ export const metadata: Metadata = {
 
 function Heading({ children }: { children: ReactNode }) {
   return <h2 className="text-xs text-ink-2">{children}</h2>;
-}
-
-/** A role: the period outside the rule, everything known about it inside. */
-function RoleRow({ role }: { role: Role }) {
-  return (
-    <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-x-5 sm:grid-cols-[96px_minmax(0,1fr)]">
-      <span className="pt-px text-xs leading-[1.45] text-ink-3">{role.period}</span>
-      <div className="border-l border-line pb-9 pl-5">
-        <a
-          href={role.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group block"
-        >
-          <div className="flex items-baseline gap-2">
-            <span className="text-sm font-medium tracking-tight text-ink">
-              {role.role}
-            </span>
-            <span
-              aria-hidden
-              className="shrink-0 text-2xs text-ink-3 transition-colors group-hover:text-ink"
-            >
-              ↗
-            </span>
-          </div>
-          <p className="mt-1 text-xs leading-[1.45] text-ink-2">
-            {role.company}
-            {role.engagement && <span className="text-ink-3"> · {role.engagement}</span>}
-          </p>
-          <p className="mt-0.5 text-xs leading-[1.45] text-ink-3">{role.location}</p>
-          {role.logo && (
-            <div className="relative mt-3 aspect-[2/1] w-[112px] overflow-hidden border border-line bg-surface-2 transition-colors group-hover:border-ink-3">
-              <Image
-                src={role.logo}
-                alt=""
-                fill
-                sizes="112px"
-                className="object-cover"
-              />
-            </div>
-          )}
-        </a>
-      </div>
-    </div>
-  );
 }
 
 function Out({ href, children }: { href: string; children: ReactNode }) {
@@ -139,17 +93,24 @@ export default function AboutPage() {
             </p>
           </div>
 
-          {/* Experience carries the shape the home's work list used to have —
-              the period outside the rule, the record inside it. The box holds
-              each company's own OG image, and the row leaves for its site. */}
+          {/* The ladder is a timeline now, because the roles will not stand in
+              a ladder: two of the three ran at the same time. What replaced it
+              draws them on an axis instead — tracks beside each other where the
+              dates overlap, one track where they do not — with the line that
+              travels it as the section's arrival. See the component; the shape
+              is derived from the periods, not arranged here.
+
+              The block that used to hold each company's OG image is gone with
+              it. It showed whatever `logo` pointed at, which for ChessEver was
+              a product screenshot presented as a logo; the marks row the hero
+              already draws is the honest version of the same idea and this page
+              now calls the same component. There is no `Reveal` around the
+              roles any more either — the line is the arrival, and two of them
+              on one section would be two things arriving at each other. */}
           <div className="mt-12">
             <Heading>Experience</Heading>
-            <div className="mt-4 max-w-[34rem]">
-              {roles.map((role, i) => (
-                <Reveal key={`${role.company}-${role.period}`} index={i}>
-                  <RoleRow role={role} />
-                </Reveal>
-              ))}
+            <div className="mt-5 max-w-[34rem]">
+              <ExperienceTimeline roles={roles} />
             </div>
           </div>
         </section>

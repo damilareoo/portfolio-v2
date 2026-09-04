@@ -37,8 +37,12 @@ const GOVERNED = [
   /* /about was out of scope while it was scaffolding and set its own eight
      sizes as literals — 0.8125rem for the prose, 0.75rem for the headings,
      0.6875rem for the periods — three of which happened to equal a step on the
-     scale and none of which said so. It is a built surface now. */
+     scale and none of which said so. It is a built surface now, and the
+     experience timeline it holds is the one place on the site where a type step
+     sizes something other than type: the mark tiles are measured in ems of the
+     row's own font size, exactly as they are in the hero. */
   "app/about/page.tsx",
+  "components/experience-timeline.tsx",
 ];
 
 const STEPS = ["2xs", "xs", "sm", "base", "lg", "xl"] as const;

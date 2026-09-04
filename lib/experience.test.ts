@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parsePeriod, standing } from "@/lib/experience";
+import { buildTimeline, parsePeriod, standing } from "@/lib/experience";
 import { roles } from "@/data/experience";
 import type { Role } from "@/data/experience";
 
@@ -28,6 +28,93 @@ describe("parsePeriod", () => {
   it("refuses a period it cannot read", () => {
     expect(() => parsePeriod("sometime in 2025")).toThrow();
     expect(() => parsePeriod("Mar 2025 — Feb 2025")).toThrow();
+  });
+});
+
+describe("buildTimeline", () => {
+  it("gives concurrent roles their own tracks and returns overlapping ones to the first", () => {
+    const timeline = buildTimeline([
+      role("HEX", "Mar 2025 — Apr 2026"),
+      role("ChessEver", "Apr 2025 — Apr 2026"),
+      role("Endgame", "Apr 2026 — Aug 2026"),
+    ]);
+    expect(timeline.lanes).toBe(2);
+    expect(timeline.entries.map((e) => [e.role.company, e.lane])).toEqual([
+      ["HEX", 0],
+      ["ChessEver", 1],
+      ["Endgame", 0],
+    ]);
+  });
+
+  it("opens a third track only when three roles are actually held at once", () => {
+    const timeline = buildTimeline([
+      role("A", "Jan 2024 — Jan 2026"),
+      role("B", "Feb 2024 — Jan 2026"),
+      role("C", "Mar 2024 — Jan 2026"),
+    ]);
+    expect(timeline.lanes).toBe(3);
+  });
+
+  it("reads earliest first, whatever order the data is written in", () => {
+    const timeline = buildTimeline([
+      role("Last", "Apr 2026 — Aug 2026"),
+      role("First", "Mar 2025 — Apr 2026"),
+    ]);
+    expect(timeline.entries.map((e) => e.role.company)).toEqual(["First", "Last"]);
+  });
+
+  it("puts every role on rows that span its own period", () => {
+    const timeline = buildTimeline([
+      role("HEX", "Mar 2025 — Apr 2026"),
+      role("ChessEver", "Apr 2025 — Apr 2026"),
+      role("Endgame", "Apr 2026 — Aug 2026"),
+    ]);
+    // Four moments — Mar 25, Apr 25, Apr 26, Aug 26 — so three rows.
+    expect(timeline.rows).toEqual([1, 12, 4]);
+    expect(timeline.entries.map((e) => [e.rowStart, e.rowEnd])).toEqual([
+      [1, 3],
+      [2, 3],
+      [3, 4],
+    ]);
+  });
+
+  it("caps a track only where no later role takes it", () => {
+    const timeline = buildTimeline([
+      role("HEX", "Mar 2025 — Apr 2026"),
+      role("ChessEver", "Apr 2025 — Apr 2026"),
+      role("Endgame", "Apr 2026 — Aug 2026"),
+    ]);
+    expect(timeline.entries.map((e) => e.terminal)).toEqual([false, true, true]);
+  });
+
+  it("marks the roles that ran beside another one", () => {
+    const timeline = buildTimeline([
+      role("HEX", "Mar 2025 — Apr 2026"),
+      role("ChessEver", "Apr 2025 — Apr 2026"),
+      role("Endgame", "Apr 2026 — Aug 2026"),
+    ]);
+    expect(timeline.entries.map((e) => e.concurrent)).toEqual([true, true, false]);
+  });
+
+  it("draws an unfinished role out to the end of the chart", () => {
+    const timeline = buildTimeline([
+      role("Done", "Jan 2025 — Jan 2026"),
+      role("Going", "Jun 2025 — Present"),
+    ]);
+    const going = timeline.entries.find((e) => e.role.company === "Going")!;
+    expect(going.span.end).toBe(parsePeriod("Jan 2026 — Jan 2026").start);
+    expect(going.terminal).toBe(true);
+  });
+
+  it("writes a grid template both engines agree on", () => {
+    /* Written on the server and read back in the browser: a value that differs
+       in its last place is a hydration mismatch React declines to patch, the
+       same trap `clock-face.tsx` documents. */
+    expect(buildTimeline(roles).template).not.toMatch(/\d\.\d/);
+  });
+
+  it("takes no roles at all without inventing a chart", () => {
+    expect(buildTimeline([])).toEqual({ entries: [], lanes: 0, rows: [], template: "" });
   });
 });
 
