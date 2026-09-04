@@ -36,7 +36,7 @@ export const viewport: Viewport = {
        is framing. Held to app/globals.css by hand: a retune that moves --bg
        moves these two. */
     { media: "(prefers-color-scheme: light)", color: "#fcfcfc" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0906" },
+    { media: "(prefers-color-scheme: dark)", color: "#090909" },
   ],
 };
 

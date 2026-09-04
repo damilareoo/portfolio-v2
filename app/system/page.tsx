@@ -33,7 +33,7 @@ export default function SystemPage() {
         <Sheet className="p-6 sm:p-7">
           <h1 className="text-[1.0625rem] font-medium tracking-tight">Values</h1>
           <p className="mt-1 text-[0.8125rem] text-ink-2">
-            The full ladder. Every step is a warm neutral; hierarchy comes from
+            The full ladder. Every step is a true grey; hierarchy comes from
             tonal value, never hue. The one hue is --miss, and it is not on this
             ladder.
           </p>

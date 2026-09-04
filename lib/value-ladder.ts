@@ -25,12 +25,12 @@ export type ValueRow = {
 };
 
 export const VALUE_LADDER: readonly ValueRow[] = [
-  { token: "bg", cls: "bg-bg", light: "#fcfcfc", dark: "#0a0906" },
-  { token: "surface", cls: "bg-surface", light: "#ffffff", dark: "#171612" },
-  { token: "surface-2", cls: "bg-surface-2", light: "#f5f3eb", dark: "#201f1a" },
-  { token: "border", cls: "bg-line", light: "#dedbd2", dark: "#312e29" },
-  { token: "text-3", cls: "bg-ink-3", light: "#7b776e", dark: "#6e6c62" },
-  { token: "text-2", cls: "bg-ink-2", light: "#5a574f", dark: "#9d9a91" },
-  { token: "text-1", cls: "bg-ink", light: "#100f0a", dark: "#f8f5ef" },
-  { token: "fill-strong", cls: "bg-strong", light: "#100f0a", dark: "#f8f5ef" },
+  { token: "bg", cls: "bg-bg", light: "#fcfcfc", dark: "#090909" },
+  { token: "surface", cls: "bg-surface", light: "#ffffff", dark: "#161616" },
+  { token: "surface-2", cls: "bg-surface-2", light: "#f3f3f3", dark: "#1f1f1f" },
+  { token: "border", cls: "bg-line", light: "#dbdbdb", dark: "#2e2e2e" },
+  { token: "text-3", cls: "bg-ink-3", light: "#777777", dark: "#6c6c6c" },
+  { token: "text-2", cls: "bg-ink-2", light: "#575757", dark: "#9a9a9a" },
+  { token: "text-1", cls: "bg-ink", light: "#0f0f0f", dark: "#f5f5f5" },
+  { token: "fill-strong", cls: "bg-strong", light: "#0f0f0f", dark: "#f5f5f5" },
 ];

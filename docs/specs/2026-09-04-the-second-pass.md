@@ -118,3 +118,20 @@ page's voice is.
 - The glyph engine's two-renderer split, and `CEIL` in `lib/glyph/panel.ts`.
 - `data/changelog.ts` and everything under `docs/specs/` remain historical
   records. Neither is edited to match the present.
+
+## Amendment, 2026-09-04: decision 1 is reversed in part
+
+The warm ramp shipped, the owner looked at it, and did not want the cast. The
+hue is out; the ground stays.
+
+What this keeps from decision 1: `--bg` is `#fcfcfc`, the frame crosses below
+the ground, and every contrast gain the ramp made. Each grey now in the
+stylesheet was chosen by matching the relative luminance of the warm value it
+replaces, level for level, so no ratio moved by more than 0.02.
+
+What it reverses: pure monochrome is the law again. `lib/contrast.test.ts`
+enforces equal channels, and the colophon and `/system` say grey rather than
+warm. `--miss` remains the single admitted hue.
+
+The section above is left as written. It records what was decided at the time
+and why, which is the part worth keeping.

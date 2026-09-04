@@ -81,7 +81,7 @@ export default function ColophonPage() {
         <div>
           <Section
             label="Palette"
-            note="One value ladder, two skins, one hue. The neutrals are warm rather than grey — every step carries the same faint olive cast, so the ramp still moves on value alone. Each row reads its own live computed value, so it cannot drift out of date with the stylesheet. Click a row to copy the hex. The last row is the exception: --miss is the only hue on the site, and it means one thing — a day the step goal was missed."
+            note="One value ladder, two skins, one hue. Every step is a true grey with equal channels, so the ramp moves on value alone. Each row reads its own live computed value, so it cannot drift out of date with the stylesheet. Click a row to copy the hex. The last row is the exception: --miss is the only hue on the site, and it means one thing — a day the step goal was missed."
           >
             <div className="max-w-[26rem]">
               {TOKENS.map((token) => (

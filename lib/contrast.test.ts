@@ -96,26 +96,22 @@ describe("the two skins", () => {
   });
 
   it("admits exactly one hue, and it is --miss", () => {
-    // Pure monochrome was the law until the ramp went warm, and equal channels
-    // was how it was enforced. What replaces it is not "anything goes": every
-    // token except --miss is a *warm neutral*, which is two assertions. The
-    // channels descend — red highest, blue lowest — so the cast is warm rather
-    // than cool, and they descend by very little, so it stays a neutral rather
-    // than becoming a colour. --miss is the one documented exception and is not
-    // asserted here.
+    // Pure monochrome is the law, and equal channels is how it is enforced.
     //
-    // Thirteen levels is the widest step in the ramp as authored (--text-3 on
-    // the light skin). The bound is one above it, so the law is checked and not
-    // merely restated by the values it was measured from.
-    const SPREAD = 14;
+    // It was briefly not the law: the ramp went warm, and this assertion was
+    // rewritten to admit a faint olive cast rather than deleted. The owner
+    // looked at the result and did not want it, so the hue came back out and
+    // this came back with it. The greys that replaced the warm ones were
+    // chosen by matching relative luminance level for level, so every contrast
+    // gain the warm ramp made survives the hue being taken out of it — the
+    // brightness of the ground was the part worth keeping.
+    //
+    // --miss is the one documented exception and is not asserted here.
     for (const [name, skin] of both) {
       for (const [token, value] of Object.entries(skin)) {
         if (token === "--miss") continue;
-        const [r, g, b] = [1, 3, 5].map((i) => parseInt(value.slice(i, i + 2), 16));
-        expect(`${name} ${token} warm`, `${value} is not warm`).toBe(
-          r >= g && g >= b ? `${name} ${token} warm` : `${name} ${token} cool`,
-        );
-        expect(r - b, `${name} ${token} ${value}`).toBeLessThanOrEqual(SPREAD);
+        const [r, g, b] = [1, 3, 5].map((i) => value.slice(i, i + 2).toLowerCase());
+        expect(`${name}${token}:${r}${g}${b}`).toBe(`${name}${token}:${r}${r}${r}`);
       }
     }
   });
