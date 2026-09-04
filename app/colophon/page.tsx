@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
-import { RecordRow } from "@/components/ui";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { GlyphToys } from "@/components/glyph-toys";
 import { Readouts } from "@/components/readouts";
 import { SiteNav } from "@/components/site-nav";
 import { TokenRow, TypeSpecimen } from "@/components/colophon-instruments";
+import { RecordRow } from "@/components/ui";
 import { changelog } from "@/data/changelog";
 import { isPortfolio } from "@/lib/site-mode";
 
 export const metadata: Metadata = {
   title: "Colophon — Damilare Osofisan",
-  description: "The typography, palette, and craft behind this site.",
+  description: "How this site is built: the type, the palette, and what the instruments read from.",
 };
 
 const TOKENS = [
@@ -27,7 +27,7 @@ const TOKENS = [
 ];
 
 function Heading({ children }: { children: ReactNode }) {
-  return <h2 className="text-[0.75rem] text-ink-2">{children}</h2>;
+  return <h2 className="text-xs text-ink-2">{children}</h2>;
 }
 
 function Section({
@@ -42,7 +42,7 @@ function Section({
   return (
     <section className="mt-12">
       <Heading>{label}</Heading>
-      {note && <p className="mt-2 max-w-[34rem] text-[0.75rem] leading-[1.6] text-ink-3">{note}</p>}
+      {note && <p className="mt-2 max-w-[34rem] text-xs leading-[1.6] text-ink-3">{note}</p>}
       <div className="mt-4">{children}</div>
     </section>
   );
@@ -61,6 +61,17 @@ function Out({ href, children }: { href: string; children: ReactNode }) {
   );
 }
 
+function Inward({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="underline decoration-line underline-offset-4 transition-colors hover:decoration-ink-3"
+    >
+      {children}
+    </Link>
+  );
+}
+
 export default function ColophonPage() {
   const current = changelog[0];
 
@@ -69,11 +80,10 @@ export default function ColophonPage() {
       <SiteNav current="/colophon" />
 
       <header className="mt-12 max-w-[38rem]">
-        <h1 className="text-[1.25rem] font-medium leading-tight tracking-tight">Colophon</h1>
-        <p className="mt-1.5 text-[0.8125rem] leading-snug text-ink-2">
-          The typography, palette, and craft behind this site. Nothing here is a
-          screenshot of the system &mdash; every control on this page is the real
-          one, wired to the tokens the page is drawn from.
+        <h1 className="text-lg font-medium leading-tight tracking-tight">Colophon</h1>
+        <p className="mt-1.5 text-sm leading-snug text-ink-2">
+          What the site runs on, and what it reads from. Every control here is
+          the real one, wired to the tokens the page is drawn from.
         </p>
       </header>
 
@@ -81,7 +91,7 @@ export default function ColophonPage() {
         <div>
           <Section
             label="Palette"
-            note="One value ladder, two skins, one hue. Every step is a true grey with equal channels, so the ramp moves on value alone. Each row reads its own live computed value, so it cannot drift out of date with the stylesheet. Click a row to copy the hex. The last row is the exception: --miss is the only hue the design system spends, and it means one thing — a day the step goal was missed. Company marks are reproduced in their own colours, because they belong to someone else."
+            note="One value ladder, two skins. Every step is a true grey with equal channels, so the ramp moves on value alone. Each row reads its own live computed value; click to copy the hex. --miss is the only hue the system spends, and it means one thing: a day the step goal was missed. Company marks are reproduced in their own colours, because they belong to someone else."
           >
             <div className="max-w-[26rem]">
               {TOKENS.map((token) => (
@@ -91,20 +101,20 @@ export default function ColophonPage() {
           </Section>
 
           <Section
-            label="The toys"
-            note="Phone (3) puts 489 LEDs on its back and then hands you a Magic 8 Ball and a bottle to spin, all worked by a single button: press to change toy, press and hold to start. That constraint is the design, so it is copied exactly — one button, five toys, and a field that reports nothing at all. Arrow keys steer the snake."
+            label="Readouts"
+            note="What the site can say about itself right now."
           >
             <div className="max-w-[26rem]">
-              <GlyphToys />
+              <Readouts version={current.version} commit={process.env.VERCEL_GIT_COMMIT_SHA} />
             </div>
           </Section>
 
           <Section
-            label="Readouts"
-            note="What the site can say about itself right now. The type and density dials stood here and are gone: the sizes are set once, fluidly, and the light-dark control lives in the nav where it is reachable from every page."
+            label="The toys"
+            note="Phone (3) works five toys with one button: press to change toy, press and hold to start. One button is the design, so it is copied exactly. Arrow keys steer the snake."
           >
             <div className="max-w-[26rem]">
-              <Readouts version={current.version} commit={process.env.VERCEL_GIT_COMMIT_SHA} />
+              <GlyphToys />
             </div>
           </Section>
         </div>
@@ -112,7 +122,7 @@ export default function ColophonPage() {
         <div>
           <Section
             label="Typography"
-            note="Two faces, one family. Suisse Int'l carries everything a person reads; the mono carries everything the site says about itself. Set the weight and drag the size — these are specimens, not pictures of specimens."
+            note="Suisse Int'l carries everything a person reads; the mono carries everything the site says about itself. Six sizes, three of them fluid. Set the weight and drag the size — these are specimens, not pictures of specimens."
           >
             <div>
               <TypeSpecimen
@@ -137,67 +147,56 @@ export default function ColophonPage() {
             </div>
           </Section>
 
-          <Section label="Stack">
+          <Section label="Stack" note="What it runs on, and what the instruments read from.">
             <div className="max-w-[26rem]">
               <RecordRow label="Framework">Next.js, React, TypeScript</RecordRow>
               <RecordRow label="Styling">Tailwind CSS on CSS custom properties</RecordRow>
               <RecordRow label="Store">Upstash Redis</RecordRow>
               <RecordRow label="Music">Spotify, dithered to a dot field</RecordRow>
+              <RecordRow label="Steps">Health Connect, pushed from the phone</RecordRow>
+              <RecordRow label="Weather">Open-Meteo, for Lagos</RecordRow>
               <RecordRow label="Hosting">Vercel</RecordRow>
               <RecordRow label="Version">
-                <Link
-                  href="/changelog"
-                  className="underline decoration-line underline-offset-4 transition-colors hover:decoration-ink-3"
-                >
+                <Inward href="/changelog">
                   v{current.version} — {current.title}
-                </Link>
+                </Inward>
               </RecordRow>
               {!isPortfolio && (
                 <RecordRow label="Workshop">
-                  <Link
-                    href="/system"
-                    className="underline decoration-line underline-offset-4 transition-colors hover:decoration-ink-3"
-                  >
-                    System
-                  </Link>
+                  <Inward href="/system">System</Inward>
                 </RecordRow>
               )}
             </div>
           </Section>
 
           <Section label="Provenance">
-            <div className="max-w-[34rem] space-y-3 text-[0.8125rem] leading-[1.6] text-ink-2">
+            <div className="max-w-[34rem] space-y-3 text-sm leading-[1.6] text-ink-2">
               <p>
                 The dot-matrix language here is an original web implementation
                 and a homage to Nothing&rsquo;s interface &mdash; the Glyph
-                Matrix on Phone (3), a circle of 489 LEDs that shows symbols
-                rather than light patterns, and the Glyph Toys worked by the
-                single button beside it. No Nothing code, assets, or trademarks
-                are used; the glyphs, the alphabet, and the engine that draws
-                them were written for this site.
+                Matrix on Phone (3) and the Glyph Toys beside it. No Nothing
+                code, assets, or trademarks are used: the glyphs, the alphabet,
+                and the engine that draws them were written for this site.
               </p>
               <p>
                 The steps card reports how far a day went and nothing else.
-                There is no GPS on this site and none is planned; no reading
-                here has ever said anything about where anybody was.
+                There is no GPS on this site and none is planned.
               </p>
               <p>
-                Spotify&rsquo;s <span className="font-mono text-[0.75rem]">audio-features</span>{" "}
-                and <span className="font-mono text-[0.75rem]">audio-analysis</span> endpoints
-                return 403 for this application, so there is no tempo and no beat
-                grid to be had. The pulse is driven by playback position against
-                the clock. It is not beat detection, and it does not claim to be.
+                Spotify returns 403 for its{" "}
+                <span className="font-mono text-xs">audio-features</span> and{" "}
+                <span className="font-mono text-xs">audio-analysis</span>{" "}
+                endpoints, so there is no beat grid to be had. The pulse runs on
+                playback position against the clock. It is not beat detection.
               </p>
             </div>
           </Section>
 
           <Section label="Thanks">
-            <div className="max-w-[34rem] space-y-3 text-[0.8125rem] leading-[1.6] text-ink-2">
+            <div className="max-w-[34rem] space-y-3 text-sm leading-[1.6] text-ink-2">
               <p>
                 <Out href="https://intempus.org">Intempus</Out>, whose colophon
-                established the labelled-record structure this one descends from,
-                and whose tint field is the direct ancestor of the instruments
-                on this page.
+                established the labelled-record structure this one descends from.
               </p>
               <p>
                 <Out href="https://guglieri.com/work">Guglieri</Out>,{" "}
@@ -209,6 +208,7 @@ export default function ColophonPage() {
           </Section>
         </div>
       </div>
+
     </main>
   );
 }

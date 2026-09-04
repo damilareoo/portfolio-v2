@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 const root = resolve(__dirname, "..");
 const css = readFileSync(resolve(root, "app/globals.css"), "utf8");
 
-/** The surfaces this scale governs. /colophon is still out of scope. */
+/** The surfaces this scale governs. */
 const GOVERNED = [
   "app/page.tsx",
   "app/shots/page.tsx",
@@ -47,6 +47,17 @@ const GOVERNED = [
      exactly when a file is worth adding to this list: a caption or a credit
      added later has nowhere off the scale to land. */
   "components/portrait.tsx",
+  /* The colophon's own type. It was written before the scale had a floor small
+     enough for a label and set eight literals of its own — 1.25rem, 0.8125rem
+     and 0.75rem, two of which happened to equal a step and none of which said
+     so. Governed from the rewrite that shortened it.
+
+     Precisely the page, and not everything on it. `colophon-instruments.tsx`
+     and `glyph-toys.tsx` still set their controls at 0.625rem, which is between
+     two steps and belongs to a specimen row measured in fixed column widths.
+     Moving those is a retune of the instruments, not of the page's type, and
+     claiming them here would be claiming a tidiness that is not there yet. */
+  "app/colophon/page.tsx",
 ];
 
 const STEPS = ["2xs", "xs", "sm", "base", "lg", "xl"] as const;
