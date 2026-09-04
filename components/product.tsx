@@ -113,33 +113,11 @@ export function Product({
 
       {more && (
         <>
-          {/* The primary action on the page's most important element, and
-              until now the quietest thing near it: `text-2xs` — the smallest
-              size the site has — set in the muted ink, on a rule, with the
-              glyph pushed to the far edge. That is a footnote. Every caption
-              around it was louder.
-
-              So it takes the treatment the one other call to action on the
-              site already has: the filled bar in the hero. Same fill, same
-              mono, same tracking, same touch height, same radius. It is not a
-              second language, it is the same button — and it runs the width of
-              the card rather than hugging its label, because the card is what
-              it opens.
-
-              Open, it drops to an outline. A filled bar still shouting "close
-              case study" at someone who is already reading the case study is
-              the control competing with the thing it opened; the outline says
-              the same word without asking for the eye back. That is a state
-              change on press, which Law 4 admits — and it is why the closed
-              state carries a transparent border rather than none, so the box
-              does not grow by two pixels when the border arrives.
-
-              The rule above it is gone with the same reasoning. A dotted rule
-              drawn immediately above a filled bar is two boundaries where the
-              reader needs one, and the bar is the stronger of them.
-
-              Nothing moves under a pointer but opacity, and nothing moves on
-              press but opacity and colour. No lift, no shadow.
+          {/* A bar, not a chip. The chip this replaces was a small grey pill
+              below the reel that read as metadata; a control spanning the
+              column, ruled off above, naming what it opens, reads as a door.
+              The chevron accompanies the words — it never stands in for them.
+              Tall enough to be a comfortable touch target at any width.
 
               No count rides alongside. It read "N FRAMES" while counting
               blocks, and a block is not a frame — a four-block tail can hold
@@ -153,25 +131,11 @@ export function Product({
             }}
             aria-expanded={open}
             aria-controls={panelId}
-            className={`mt-8 flex min-h-[2.75rem] w-full items-center justify-between gap-3 rounded-[4px] border px-5 text-left font-mono text-xs uppercase tracking-[0.08em] transition-[background-color,border-color,color,opacity] duration-200 hover:opacity-90 active:opacity-80 ${
-              open
-                ? "border-line bg-transparent text-ink"
-                : "border-transparent bg-strong text-on-strong"
-            }`}
+            className="rule-t mt-8 flex min-h-[2.75rem] w-full items-center justify-between gap-4 py-3 text-left font-mono text-2xs uppercase tracking-[0.08em] text-ink-2 transition-colors hover:text-ink"
           >
-            {/* Never wraps. At 320px the card is 280px wide and the longer of
-                the two labels measures 190px with the padding and the glyph,
-                so there is room — but a label that wraps would take the bar to
-                two lines and the glyph with it, and the one thing this control
-                cannot do is look accidental. */}
-            <span className="whitespace-nowrap">
-              {open ? "Close case study" : "Open case study"}
-            </span>
-            {/* No colour of its own: it is part of the label, so it takes the
-                label's ink in both states rather than staying a third grey
-                that only matches one of them. */}
+            <span>{open ? "Close case study" : "Open case study"}</span>
             <span
-              className={`inline-block shrink-0 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+              className={`inline-block shrink-0 text-ink-3 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
             >
               <GlyphIcon name="chevron-down" size="0.625rem" />
             </span>
