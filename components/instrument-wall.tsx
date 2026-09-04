@@ -7,7 +7,7 @@ import { Pedometer } from "@/components/glyph-bay";
 import { InstrumentReading } from "@/components/instrument-card";
 import { NowPlayingDisc } from "@/components/now-playing-disc";
 import { WeatherFace } from "@/components/weather-face";
-import { clockReading } from "@/lib/clock";
+import { clockReading, everySecond } from "@/lib/clock";
 import { Reveal } from "@/lib/reveal";
 import { useWeather } from "@/lib/use-weather";
 
@@ -92,16 +92,16 @@ export function InstrumentWall({ className = "" }: { className?: string }) {
   /* Null until mounted, and the reading prints its dash meanwhile — because at
      that moment the instrument genuinely does not know. The server cannot know
      the time either, and one time rendered there against another rendered here
-     is a hydration mismatch. Ticked every second rather than every minute so
-     the readout turns over *on* the minute; React drops the render when the
-     string has not changed, which for 59 of every 60 ticks it has not. */
+     is a hydration mismatch.
+
+     The reading now carries seconds, so every one of these ticks changes the
+     string — where before, 59 of every 60 of them were thrown away by React
+     as a render that changed nothing. That is what makes the phase matter:
+     the readout has to turn over on the second it names, beside a hand doing
+     the same, and `everySecond` is what puts both on the boundary instead of
+     wherever the mount happened to land. */
   const [time, setTime] = useState<string | null>(null);
-  useEffect(() => {
-    const tick = () => setTime(clockReading(new Date()));
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, []);
+  useEffect(() => everySecond(() => setTime(clockReading(new Date()))), []);
 
   return (
     <div

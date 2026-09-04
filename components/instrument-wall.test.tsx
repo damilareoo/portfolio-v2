@@ -50,12 +50,15 @@ describe("InstrumentWall", () => {
     expect(wall.className).toMatch(/divide-x|border/);
   });
 
-  it("tells the time rather than a dash, because the clock can always read", () => {
+  it("tells the time to the second rather than a dash, because the clock can always read", () => {
     // The dash means "this instrument cannot read". A clock whose hands are
-    // ticking beside one is the reading contradicting its own face.
+    // ticking beside one is the reading contradicting its own face — and so is
+    // a reading that turns over on the minute beside a hand that turns over on
+    // the second, which is why the seconds are asserted here rather than
+    // tolerated.
     render(<InstrumentWall />);
     const lagos = reading("Lagos");
-    expect(lagos.textContent).toMatch(/\d{2}:\d{2}/);
+    expect(lagos.textContent).toMatch(/\d{2}:\d{2}:\d{2}/);
     expect(lagos.textContent).not.toContain("—");
   });
 
