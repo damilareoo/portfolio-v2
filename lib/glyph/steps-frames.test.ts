@@ -226,3 +226,87 @@ describe("weekMarks on days nobody reported", () => {
     }
   });
 });
+
+/**
+ * Every mark on the walker belongs to the walker.
+ *
+ * The defect this guards: the contact poses drew a hand as a single dot with a
+ * clear cell on every side of it, and at the size the wall renders the field
+ * that is a speck, not an arm. A limb has to touch the body — diagonally is
+ * enough at six cells wide, orthogonally is not always possible — or it reads
+ * as dirt on the panel.
+ *
+ * The figure is read out of `walkFrame` rather than off the poses directly,
+ * because the poses are private and the thing worth protecting is what the
+ * field actually draws. It sits in the eight rows above the path, so the
+ * region can be lifted out without the track's own dots coming with it.
+ */
+describe("the walker", () => {
+  const FIGURE_W = 6;
+  const FIGURE_H = 8;
+
+  /* `bound` is what makes this exercise the gait at all. Without it `walkFrame`
+     reports nothing remaining, `poseAt` returns the standing pose every time,
+     and a sweep of forty samples tests one frame of a four-frame cycle — which
+     is exactly how the first version of this test passed while the contact
+     poses still carried detached hands. */
+  function figureAt(progress: number): number[][] {
+    const frame = walkFrame(GRID, progress, { bound: 1 });
+    const pathRow = Math.round((GRID - 1) / 2);
+    const top = Math.max(0, pathRow - FIGURE_H);
+    const left = walkCells(GRID, progress);
+    return Array.from({ length: FIGURE_H }, (_, row) =>
+      Array.from({ length: FIGURE_W }, (_, col) => frame[(top + row) * GRID + (left + col)]),
+    );
+  }
+
+  /* Across the walk, so every pose in the gait is caught rather than whichever
+     one the resting figure happens to hold. */
+  const SAMPLES = Array.from({ length: 41 }, (_, i) => (i / 40) * 0.98);
+
+  it("has no mark standing on its own", () => {
+    for (const progress of SAMPLES) {
+      const cells = figureAt(progress);
+      for (let row = 0; row < FIGURE_H; row++) {
+        for (let col = 0; col < FIGURE_W; col++) {
+          if (!cells[row][col]) continue;
+          let touching = 0;
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+              if (dr === 0 && dc === 0) continue;
+              if (cells[row + dr]?.[col + dc]) touching++;
+            }
+          }
+          expect(touching, `orphan dot at ${row},${col} — progress ${progress}`).toBeGreaterThan(0);
+        }
+      }
+    }
+  });
+
+  it("is one figure, not several", () => {
+    for (const progress of SAMPLES) {
+      const cells = figureAt(progress);
+      const lit: [number, number][] = [];
+      for (let row = 0; row < FIGURE_H; row++) {
+        for (let col = 0; col < FIGURE_W; col++) if (cells[row][col]) lit.push([row, col]);
+      }
+      expect(lit.length, `nothing drawn at progress ${progress}`).toBeGreaterThan(0);
+
+      const seen = new Set<string>([`${lit[0][0]},${lit[0][1]}`]);
+      const queue = [lit[0]];
+      while (queue.length > 0) {
+        const [row, col] = queue.pop()!;
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            const [r, c] = [row + dr, col + dc];
+            const key = `${r},${c}`;
+            if (seen.has(key) || !cells[r]?.[c]) continue;
+            seen.add(key);
+            queue.push([r, c]);
+          }
+        }
+      }
+      expect(seen.size, `figure is in pieces at progress ${progress}`).toBe(lit.length);
+    }
+  });
+});

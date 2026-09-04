@@ -44,21 +44,38 @@ function pose(...rows: string[]): Uint8Array {
 }
 
 /**
- * Mid-stride, with the body at its highest and the legs closed under it. It is
- * also what standing still looks like: in a
- * silhouette this small the passing pose and a figure at rest are the same
- * shape, which is why the cycle opens on it and why `poseAt` settles on it —
- * a walk that has not begun and a walk that is over are both a figure standing.
+ * Mid-stride, with the body at its highest and the legs under it. It is also
+ * what standing still looks like: at this size the passing pose and a figure at
+ * rest are the same shape, which is why the cycle opens on it and why `poseAt`
+ * settles on it — a walk that has not begun and a walk that is over are both a
+ * figure standing.
+ *
+ * Because it is the resting pose it is the one almost every visitor sees, and
+ * it has to read as a person while standing perfectly still — with no gait to
+ * tell them what they are looking at. It did not. The head sat directly on the
+ * shoulders with no neck, so the top four rows fused into one wide bar, and
+ * below them the legs were a single two-wide column: head, crossbar, stem. It
+ * read as a totem, or a `⊤`. Three changes, none of which cost a row:
+ *
+ *   - the arms come down the sides, which narrows the shoulder bar to one row
+ *     and stops it reading as the top of a T;
+ *   - the legs part, so the figure ends in two feet rather than a post;
+ *   - the waist stays two wide, which is what reads as a waist between them.
+ *
+ * Every mark still touches the body, diagonally where not orthogonally — the
+ * arms at rows 3-4 meet the shoulders at row 2 on the diagonal, and the legs at
+ * row 6 meet the hips at row 5 the same way. A dot with a clear cell on every
+ * side is a speck, not a limb, which is the defect the contact poses had.
  */
 const PASSING = pose(
   "..##..",
   "..##..",
   ".####.",
-  ".####.",
+  "#.##.#",
+  "#.##.#",
   "..##..",
-  "..##..",
-  "..##..",
-  "..##..",
+  ".#..#.",
+  ".#..#.",
 );
 
 /**
