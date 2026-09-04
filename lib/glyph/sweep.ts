@@ -87,7 +87,23 @@ export function runPanelSweep(
      * looking.
      */
     rootMargin = LEAD,
-  }: { rootMargin?: string } = {},
+    /**
+     * A last pass over a panel's values, before anything is painted.
+     *
+     * `panelFrom` already levels every frame against itself, which fixes its
+     * *extent* — the picture is guaranteed to span the panel's range. It says
+     * nothing about where inside that range the picture sits, and for a
+     * low-key photograph those are different problems: the About portrait
+     * levels correctly and still stacks a third of its emitters on one step.
+     *
+     * The hook is here rather than inside `panelFrom` because the panel's
+     * constants are shared with every shot and case frame on the site and were
+     * settled in phase 1. A caller whose photograph needs a correction asks for
+     * it; every existing caller passes nothing and renders exactly what it
+     * rendered before. See `centreMidtone` in lib/glyph/tone.ts.
+     */
+    tone,
+  }: { rootMargin?: string; tone?: (values: Float32Array) => Float32Array } = {},
 ): () => void {
   const panels = new WeakMap<HTMLElement, Panel>();
 
@@ -106,7 +122,8 @@ export function runPanelSweep(
     if (!ctx) return null;
     ctx.drawImage(img, 0, 0, cols, rows);
     try {
-      return panelFrom(ctx.getImageData(0, 0, cols, rows).data, cols, rows);
+      const panel = panelFrom(ctx.getImageData(0, 0, cols, rows).data, cols, rows);
+      return tone ? { ...panel, values: tone(panel.values) } : panel;
     } catch {
       return null;
     }

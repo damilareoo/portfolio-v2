@@ -18,10 +18,17 @@ import { runPanelSweep } from "@/lib/glyph/sweep";
  * `rootMargin` is passed straight to the sweep's observer, and only a caller
  * whose frames are full-bleed has any business setting it. Omitted, it is the
  * shots field's 220px lead, unchanged.
+ *
+ * `tone` goes to the sweep the same way and is the same kind of thing: an
+ * escape hatch for one photograph, not a new default. It is a function, so a
+ * caller passing it has to be a client component itself — which is the correct
+ * shape of that requirement rather than an inconvenience, because a tone
+ * correction is a rendering decision and rendering here happens in the browser.
  */
 export function PanelField({
   revision,
   rootMargin,
+  tone,
   className,
   style,
   children,
@@ -29,6 +36,8 @@ export function PanelField({
   revision?: string | number;
   /** How far outside the viewport frames start arriving. Defaults to the sweep's own. */
   rootMargin?: string;
+  /** A last pass over each panel's values. See lib/glyph/sweep.ts. */
+  tone?: (values: Float32Array) => Float32Array;
   className?: string;
   style?: React.CSSProperties;
   children: React.ReactNode;
@@ -38,8 +47,8 @@ export function PanelField({
   useEffect(() => {
     const host = root.current;
     if (!host) return;
-    return runPanelSweep(host, { rootMargin });
-  }, [revision, rootMargin]);
+    return runPanelSweep(host, { rootMargin, tone });
+  }, [revision, rootMargin, tone]);
 
   return (
     <div ref={root} className={className} style={style}>
