@@ -58,8 +58,19 @@ const AT_REST = 0.05;
 /** Below this the value has arrived; holding the difference would never resolve. */
 const VALUE_EPSILON = 0.002;
 
-/** Value migration rate, per second — mark into artwork and back. */
-const VALUE_RATE = 6;
+/**
+ * Value migration rate, per second — mark into artwork and back.
+ *
+ * A cross-fade, and tuned as one: at six per second a cell is two thirds of the
+ * way to its new value after 170ms and settled after about 400, which is the
+ * right length for a disc dissolving between the Spotify mark and a sleeve.
+ *
+ * It is the wrong length for a field whose frames are a *sequence* rather than
+ * two pictures. A walker crossing one cell every hundred milliseconds leaves
+ * five cells of itself behind at this rate, and the gait is read through its
+ * own ghost. That is what `valueRate` is for — see `stepCells`.
+ */
+export const VALUE_RATE = 6;
 
 /**
  * How far inside a circular field's edge the lattice stops placing cells, in
@@ -174,13 +185,17 @@ export function stepCells(
   now: number,
   pointer: Pointer,
   ripples: Ripple[],
+  /** How fast a cell travels to the value it has been given, per second.
+      Defaulted rather than fixed because the answer depends on what the frames
+      are: two pictures want a dissolve, a run of frames wants a cut. */
+  valueRate: number = VALUE_RATE,
 ): boolean {
   let busy = false;
 
   for (const cell of cells) {
     // Value migration — one frame into the next.
     if (Math.abs(cell.tv - cell.v) > VALUE_EPSILON) {
-      cell.v += (cell.tv - cell.v) * Math.min(1, dt * VALUE_RATE);
+      cell.v += (cell.tv - cell.v) * Math.min(1, dt * valueRate);
       busy = true;
     } else {
       cell.v = cell.tv;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { groupDigits, numberFrame, walkFrame, weekMarks } from "./steps-frames";
+import { groupDigits, numberFrame, walkCells, walkFrame, weekMarks } from "./steps-frames";
 
 const GRID = 25;
 
@@ -70,9 +70,13 @@ describe("walkFrame", () => {
 
   /** The figure alone — the path row dropped, and the shape moved back to its
       own left edge, so two positions can be compared as forms rather than as
-      places. */
-  const formAt = (progress: number): string => {
-    const frame = walkFrame(GRID, progress);
+      places.
+
+      `bound` is where the walk is headed. Passed, the figure is mid-journey and
+      steps; omitted, it has arrived and stands. Every assertion about the gait
+      is a mid-journey one, so these pass a bound of the far end of the path. */
+  const formAt = (progress: number, bound = 1): string => {
+    const frame = walkFrame(GRID, progress, { bound });
     const lit: [number, number][] = [];
     for (let row = 0; row < PATH_ROW; row++) {
       for (let col = 0; col < GRID; col++) {
@@ -110,16 +114,49 @@ describe("walkFrame", () => {
 
   it("keeps the walker's feet on the path in every form", () => {
     for (let left = 0; left < GRID - 6; left++) {
-      const frame = walkFrame(GRID, at(left));
+      const frame = walkFrame(GRID, at(left), { bound: 1 });
       const feet = Array.from({ length: GRID }, (_, col) => frame[(PATH_ROW - 1) * GRID + col]);
       expect(feet.some((value) => value > 0)).toBe(true);
+    }
+  });
+
+  /**
+   * The still state, which is the one anybody looks at.
+   *
+   * The defect: a settled walk stood up only for a day that met its goal in
+   * full. Every other day held whichever phase the last cell landed on, and the
+   * phase flips every two cells — so about half of all days sat on a contact
+   * pose, arms out and legs splayed, for as long as the page was open.
+   */
+  it("stands the walker up wherever a finished walk stopped", () => {
+    const standing = formAt(0, 0);
+    for (let left = 0; left <= GRID - 6; left++) {
+      // No bound: the walk is over. Whatever cell it ended on, the figure is up.
+      expect(formAt(at(left), at(left))).toBe(standing);
+      expect(walkFrame(GRID, at(left))).toEqual(walkFrame(GRID, at(left), { bound: at(left) }));
     }
   });
 
   it("stands the walker up at either end of the path", () => {
     // Nothing walked and the whole goal walked are both a figure standing: one
     // has not set off, the other has arrived, and neither is mid-stride.
-    expect(formAt(1)).toBe(formAt(0));
+    expect(formAt(1, 1)).toBe(formAt(0, 0));
+  });
+
+});
+
+describe("walkCells", () => {
+  /* The walk's duration is counted in these, so the caller can pace an arrival
+     without knowing how wide the figure is. */
+  it("counts the cells the figure travels", () => {
+    expect(walkCells(GRID, 0)).toBe(0);
+    expect(walkCells(GRID, 1)).toBe(GRID - 6);
+    expect(walkCells(GRID, 0.5)).toBe(Math.round((GRID - 6) / 2));
+  });
+
+  it("clamps rather than walking off the grid", () => {
+    expect(walkCells(GRID, 3)).toBe(GRID - 6);
+    expect(walkCells(GRID, -1)).toBe(0);
   });
 });
 

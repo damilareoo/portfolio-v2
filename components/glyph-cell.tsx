@@ -122,6 +122,7 @@ export function GlyphCell({
   onTick,
   pixel = "square",
   unlit,
+  migrate,
   polarity = "luminance",
   pages,
   page = 0,
@@ -153,6 +154,15 @@ export function GlyphCell({
       that should read as marks on a clean surface, which is what `unlit={0}`
       is for. A number given here is meant, so it wins over the skin. */
   unlit?: number;
+  /** How fast a cell travels to the value it has been handed, per second.
+
+      Left unsaid it is the engine's own rate, which is a cross-fade — right for
+      a disc dissolving between the Spotify mark and a sleeve, and wrong for a
+      field being handed a run of frames. A walker crossing a cell every hundred
+      milliseconds is drawn through five cells of its own afterimage at that
+      rate; a caller animating a sequence says so here and gets a cut instead of
+      a dissolve. See `VALUE_RATE` in lib/glyph/matrix.ts. */
+  migrate?: number;
   /** What a value *is*. See `draw`. */
   polarity?: "luminance" | "ink";
   /** How many faces this field wears. Paging is off entirely without it. */
@@ -175,6 +185,7 @@ export function GlyphCell({
   const invertRef = useRef(false);
   const pixelRef = useRef(pixel);
   const unlitRef = useRef(unlit);
+  const migrateRef = useRef(migrate);
   const polarityRef = useRef(polarity);
   const swipeRef = useRef<{ x: number; y: number } | null>(null);
   const sweepRef = useRef<number | null>(null);
@@ -307,7 +318,7 @@ export function GlyphCell({
       }
 
       const pointer = pointerRef.current;
-      const busy = stepCells(cells, dt, now, pointer, ripplesRef.current);
+      const busy = stepCells(cells, dt, now, pointer, ripplesRef.current, migrateRef.current);
       ripplesRef.current = liveRipples(ripplesRef.current, now);
 
       draw();
@@ -429,6 +440,15 @@ export function GlyphCell({
     const booked = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(booked);
   }, [invert, draw]);
+
+  /* Kept apart from the pair below on purpose. This one changes how fast the
+     field travels rather than what it looks like when it arrives, so it has
+     nothing to repaint — and folding it in would put a prop with no bearing on
+     the picture inside two effects whose synchronous draws the first paint
+     depends on. */
+  useEffect(() => {
+    migrateRef.current = migrate;
+  }, [migrate]);
 
   /* These two draw synchronously, and that is load-bearing beyond their own
      props. They are flushed after the skin effect above, which now only books

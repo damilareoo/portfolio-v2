@@ -45,9 +45,10 @@ function pose(...rows: string[]): Uint8Array {
 
 /**
  * Mid-stride, with the body at its highest and the legs closed under it. It is
- * also what standing still looks like: in a silhouette this small the passing
- * pose and a figure at rest are the same shape, which is why the cycle opens
- * on it — a walk that has not begun starts from a figure standing.
+ * also what standing still looks like: in a
+ * silhouette this small the passing pose and a figure at rest are the same
+ * shape, which is why the cycle opens on it and why `poseAt` settles on it —
+ * a walk that has not begun and a walk that is over are both a figure standing.
  */
 const PASSING = pose(
   "..##..",
@@ -118,31 +119,41 @@ const GAIT = [PASSING, CONTACT_RIGHT, PASSING, CONTACT_LEFT];
 /**
  * How much ground a full cycle covers, in cells.
  *
- * This is the one number that decides how fast the legs go, because speed here
- * is not a property of the gait at all — the walk covers whatever distance it
- * covers, and the legs turn over as often as the ground says. Eight cells puts
- * the average crossing of a 25-cell field at about nine poses a second, which
- * is where a four-frame cycle reads as walking; the arrival's ease-out then
- * makes the figure step quickly as it sets off and slowly as it settles, which
- * is what a body does and what a timer could not have produced.
+ * This is half of what decides how fast the legs go. The gait has no clock: it
+ * turns over as often as the ground passes, so the pose rate is the walk's
+ * speed divided by this. The other half is the caller's, and it is the half
+ * that was wrong — see `CELL_MS` in `components/glyph-bay.tsx`.
  *
- * A cycle of four cells was tried first — a pose for every cell moved, so the
- * figure could never move without stepping. It is the tidier rule and the wrong
- * speed: the ease-out puts half the path inside the first fifth of a second,
- * and the legs came out as a vibration rather than a stride.
+ * Eight cells means a pose every two, and at the even cadence the arrival now
+ * walks at, that is a pose the field has time to draw. It was chosen against an
+ * out-cubic that put half the path in the first fifth of a second, where the
+ * argument for it was that a four-cell stride "came out as a vibration" — but
+ * an ease that fast makes a vibration of any stride, and eight was only a
+ * quieter version of the same failure. The number survives its own reasoning:
+ * a stride longer than the figure is wide is what a walking pace looks like,
+ * and four cells is a shuffle.
  */
 const STRIDE = 8;
 
 /**
- * Which pose stands at `left` cells along.
+ * Which pose stands at `left` cells along, given how far there is still to go.
  *
- * A finished walk stands rather than freezing mid-stride: a day that met its
- * goal puts the figure at the end of the path with no road ahead of it, and
- * that reading is finished, not paused. A walk that has not begun gets the same
- * pose without being asked, because the cycle opens on it.
+ * A figure that has arrived stands. This is the still state — the one a visitor
+ * actually looks at, for as long as the page is open — and it used to be a
+ * standing figure only for a day that met its goal in full. Every other day
+ * settled on whichever phase the last cell happened to land on, and since the
+ * phase flips every two cells, about half of all days froze on a contact: arms
+ * flung out, legs splayed, permanently. The docblock here claimed the opposite
+ * and had done since the gait was written.
+ *
+ * So the pose is a function of two distances rather than one. `left` says which
+ * phase of the cycle the ground has reached; `remaining` says whether the
+ * figure is still covering ground at all. Nothing here consults a clock, which
+ * is what keeps Law 4: hand it the same pair twice and it answers the same way
+ * forever, and a page at rest hands it the same pair forever.
  */
-function poseAt(progress: number, left: number): Uint8Array {
-  if (progress >= 1) return PASSING;
+function poseAt(left: number, remaining: number): Uint8Array {
+  if (remaining <= 0) return PASSING;
   const phase = Math.floor((left * GAIT.length) / STRIDE) % GAIT.length;
   return GAIT[phase];
 }
@@ -218,6 +229,18 @@ export function recordFrame(
 }
 
 /**
+ * How many cells the figure travels for a given progress.
+ *
+ * Exported because the walk's *duration* is measured in these: the arrival
+ * covers one cell per `CELL_MS`, so the caller has to be able to ask how many
+ * cells there are without knowing how wide the figure is. It is the same
+ * arithmetic `walkFrame` does for its own left edge, said once.
+ */
+export function walkCells(grid: number, progress: number): number {
+  return Math.round(clamp01(progress) * Math.max(0, grid - FIGURE_W));
+}
+
+/**
  * The walk. Progress is today against the goal, clamped — a good day carries
  * the figure to the end of the path and no further, because there is no further
  * for it to go and an overshoot would read as a bug rather than an achievement.
@@ -227,12 +250,21 @@ export function recordFrame(
  * without reading a number, which is what a glanceable instrument is for.
  *
  * The figure changes shape as it goes — see `GAIT`. Its pose comes off the same
- * `progress` its position does, so the two cannot come apart: the legs turn
- * over as the ground passes and stop dead when it does, and a figure that is
- * not travelling holds whatever pose the distance it stands at asks for.
+ * distance its position does, so the two cannot come apart: the legs turn over
+ * as the ground passes and stop dead when it does.
+ *
+ * `bound` is where this walk is going, when it is still on its way there. A
+ * caller that omits it is drawing a figure that has arrived, and gets a figure
+ * standing — which is the right default, because the still frame is what a
+ * visitor spends all but two seconds of their visit looking at.
  */
-export function walkFrame(grid: number, progress: number, horizon?: number): Float32Array {
+export function walkFrame(
+  grid: number,
+  progress: number,
+  options: { bound?: number; horizon?: number } = {},
+): Float32Array {
   const frame = emptyFrame(grid);
+  const { bound, horizon } = options;
 
   /* The path is the card's horizon and sits on its middle line; the figure
      stands on it. Centring the pair as one block instead drops the horizon to
@@ -241,13 +273,17 @@ export function walkFrame(grid: number, progress: number, horizon?: number): Flo
   const pathRow = Math.min(grid - 1, horizon ?? Math.round((grid - 1) / 2));
   const top = Math.max(0, pathRow - FIGURE_H);
   const walked = clamp01(progress);
-  const left = Math.round(walked * Math.max(0, grid - FIGURE_W));
+  const left = walkCells(grid, walked);
   /* Ground covered is measured from the middle of the figure rather than from
      whichever foot is down. Which foot that is changes four times a stride, and
      a heel that followed it would run the bright half of the path backwards and
      forwards as the walker went. */
   const heel = left + (FIGURE_W >> 1);
-  const figure = poseAt(walked, left);
+  /* Cells, not shares: a walk with a fraction of a cell left to cover has
+     nowhere further to put the figure, so it has arrived whatever the numbers
+     say. Measuring what remains in the same units the pose is indexed by is
+     what stops the last stride from being held half-finished. */
+  const figure = poseAt(left, bound === undefined ? 0 : walkCells(grid, clamp01(bound)) - left);
 
   for (let col = 0; col < grid; col++) {
     frame[pathRow * grid + col] = col < heel ? 1 : AHEAD;
