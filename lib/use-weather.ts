@@ -18,8 +18,8 @@ const REFRESH = 15 * 60 * 1000;
  * could open on 29° and close on an admission that it could not read, from one
  * mount, with nothing wrong. Held as an external store rather than in a
  * provider because the reading is genuinely external to React and the hook's
- * signature stays the caller's business; lib/settings.tsx keeps localStorage
- * the same way.
+ * signature stays the caller's business — no consumer has to be wrapped in
+ * anything to ask for the weather.
  *
  * A failure publishes null rather than leaving the last success standing. A
  * shared cache that held the old number would turn one throttled request into
