@@ -112,11 +112,14 @@ const GAMMA_MAX = 3;
  * it is given. An image already centred gets `γ = 1` and passes through
  * untouched.
  *
- * Measured on that portrait at both the wide and narrow cell counts: the top
- * step falls from 32% of the panel to 17%, and the busiest step goes from 13x
- * the quietest to 3.5x. Same ten steps in use either way — `CEIL` decides that
- * — but the picture is now spread across them instead of stacked on the last
- * one.
+ * Measured on that portrait when it stood in a 384px column as the whole 9:16
+ * file: the top step falls from 32.2% of the panel to 17.2%, and the busiest
+ * step goes from 13.6x the quietest to 3.5x. Re-measured after the picture went
+ * full width as a 16:9 band — a different crop at three times the cell count,
+ * levelled median 0.631 rather than 0.728 — it still earns its place: 16.5% to
+ * 12.0%, and 4.7x to 1.7x. Same ten steps in use in every case, because `CEIL`
+ * decides that; what changes is whether the picture is spread across them or
+ * stacked on the last one.
  *
  * Opt-in, and deliberately not folded into `panelFrom`. The panel's constants
  * are shared with every shot and case frame on the site and were settled in

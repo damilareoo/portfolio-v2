@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import { Fragment, type ReactNode } from "react";
-import Link from "next/link";
 import { CopyEmail } from "@/components/copy-email";
-import { ExperienceTimeline } from "@/components/experience-timeline";
 import { Portrait } from "@/components/portrait";
+import { RoleList } from "@/components/role-list";
 import { SiteNav } from "@/components/site-nav";
-import { RecordRow } from "@/components/ui";
 import { roles } from "@/data/experience";
 import { elsewhere, site } from "@/data/site";
 import { standing } from "@/lib/experience";
@@ -48,7 +46,7 @@ function Standing() {
   if (now.roles.length === 0) return null;
 
   return (
-    <p className="mt-4 text-sm leading-snug text-ink">
+    <p className="mt-4 text-sm leading-snug text-ink-2">
       {now.open ? "I’m currently " : "Most recently I was "}
       {now.roles.map((role, i) => (
         <Fragment key={role.company}>
@@ -56,148 +54,103 @@ function Standing() {
           {role.role} at <Out href={role.url}>{role.company}</Out>
         </Fragment>
       ))}
-      .
+      . Based in Lagos.
     </p>
   );
 }
 
+/**
+ * About, cut to the bone.
+ *
+ * The reference the owner named opens first person with a greeting and a
+ * self-description that is not a job title, then a separate *currently*
+ * sentence, then experience as company and role. This page had all three and
+ * five other things on top of them, and his note on it was that it is too
+ * bulky. What went, and why:
+ *
+ *   - "Specialising in interfaces, systems, and shipping them." A second
+ *     tagline directly under a greeting that already says he is a product
+ *     designer and builder making 0–1 experiences. Two subtitles is one
+ *     subtitle and a repetition.
+ *   - Two of the three Practice paragraphs. The one that survives is the one a
+ *     visitor could not get from the work itself: what he takes on, and why
+ *     what he makes is quiet. The other two narrated it.
+ *   - The Practice column's email and coordinates line, which said the address
+ *     the copy field below already carries and the city this page now says in
+ *     its opening sentence.
+ *   - The Record block. Three rows: "Based", which is one short fact and has
+ *     moved into the *currently* sentence where it reads as English rather than
+ *     as a table row; "Focus: 0–1 products", which is the greeting again; and
+ *     "Site: Colophon", which is a link the nav and the footer both carry.
+ *   - The experience timeline. See `components/role-list.tsx`.
+ *
+ * What is left is a greeting, a photograph across the whole measure, one
+ * paragraph, the roles, and the ways to reach him. Elsewhere stays and stays
+ * whole: the footer stopped carrying the seven networks in this same pass, so
+ * this is now the only place on the site that lists them, which is the trade
+ * that made the footer worth cutting.
+ */
 export default function AboutPage() {
   return (
     <main className="mx-auto w-full max-w-[1240px] px-5 py-4 pb-12 sm:px-6">
       <SiteNav current="/about" />
 
-      {/* The opening band: the portrait, the greeting, and the prose.
-
-          Three arrangements of the same three blocks, and the document order is
-          the same in all of them — greeting, portrait, prose. On a phone that
-          order is the layout: the words come first, because a reader who has
-          just arrived wants to know whose page this is before they scroll past
-          a face, and the portrait sits under the greeting at about three
-          quarters of the column, inset, so it reads as a print laid on the page
-          rather than a header they have to get past.
-
-          From `sm` the portrait takes a column of its own on the left and the
-          greeting and the prose stack to its right — the arrangement the
-          picture was actually chosen for, a tall 9:16 standing beside a
-          measure of text. It is placed by the grid rather than by its position
-          in the markup, so nothing moves for a screen reader when the columns
-          appear.
-
-          The portrait is above the Experience section rather than beside it on
-          purpose. It belongs with the sentence that says who he is; the
-          timeline is a record, and a face beside a record reads as a byline on
-          it. */}
-      {/* `grid-rows-[auto_1fr]` is load-bearing, not tidiness. The portrait
-          spans both rows and is taller than the two text blocks together, so
-          with automatic rows the grid hands the surplus to *both* of them —
-          measured at 1440, 114px of it landed between the greeting and
-          "Practice", opening a hole in the middle of a paragraph's worth of
-          nothing. A `1fr` second row takes the free space instead, and the
-          greeting keeps the height it asked for. */}
-      <section className="mt-12 grid items-start gap-y-8 sm:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] sm:grid-rows-[auto_1fr] sm:gap-x-8 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] lg:gap-x-14">
-        <div className="max-w-[34rem] sm:col-start-2 sm:row-start-1">
-          {/* First person, and a greeting rather than a title card. The words
-              after the comma are the owner's own description of himself,
-              unchanged; what is new is that the page now says hello with them
-              instead of announcing a name and then a job. */}
-          <h1 className="text-lg font-medium leading-snug tracking-tight">
-            Hey &mdash; I&rsquo;m {site.name}, a product designer and builder
-            creating 0&ndash;1 experiences.
-          </h1>
-          <p className="mt-2 text-sm leading-snug text-ink-2">
-            Specialising in interfaces, systems, and shipping them.
-          </p>
-          <Standing />
-        </div>
-
-        <Portrait className="w-3/4 sm:col-start-1 sm:row-start-1 sm:row-span-2 sm:w-full" />
-
-        {/* Stretched, with the contact line pushed to the foot of it, so the
-            column ends level with the bottom edge of the picture instead of
-            three hundred pixels above it. The white below the prose is then a
-            decision rather than a leftover. */}
-        <div className="flex max-w-[34rem] flex-col sm:col-start-2 sm:row-start-2 sm:self-stretch">
-          <Heading>Practice</Heading>
-          <div className="mt-3 space-y-3 text-sm leading-[1.6] text-ink-2">
-            <p>
-              I work on 0&ndash;1 products &mdash; the part where the shape of the
-              thing is still an open question &mdash; and I build enough of them
-              myself that the answer has to survive contact with a real
-              implementation.
-            </p>
-            <p>
-              That means the design work does not stop at a file. Interface,
-              system, and the code that makes it move are one job, and the ones
-              that ship are the ones where nobody had to translate between them.
-            </p>
-            <p>
-              Most of what I make is quiet on purpose. Restraint is not the
-              absence of an idea; it is what makes the one idea legible.
-            </p>
-          </div>
-          <p className="mt-5 text-sm text-ink-3 sm:mt-auto sm:pt-8">
-            <a
-              href={`mailto:${site.email}`}
-              className="text-ink transition-colors hover:text-ink-2"
-            >
-              {site.email}
-            </a>
-            <span className="px-1.5">·</span>
-            {site.coordinates}
-          </p>
-        </div>
+      {/* Words first, and the same order at every width. A reader who has just
+          arrived wants to know whose page this is before they meet a face. */}
+      <section className="mt-12 max-w-[34rem]">
+        {/* First person, and a greeting rather than a title card. The words
+            after the comma are the owner's own description of himself. */}
+        <h1 className="text-lg font-medium leading-snug tracking-tight">
+          Hey &mdash; I&rsquo;m {site.name}, a product designer and builder
+          creating 0&ndash;1 experiences.
+        </h1>
+        <Standing />
       </section>
 
-      <div className="mt-16 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
-        <section>
-          {/* Company and role lead each entry now; the dates have moved beneath
-              them. The reference the owner named lists experience as company and
-              role only and lets the sequence carry it, and that turns out to
-              settle an argument this section was having with itself: while the
-              period was the first thing read, two overlapping roles were a
-              contradiction the layout had to resolve on screen. Read as a
-              sequence of companies, the overlap is simply a fact recorded lower
-              down. The dates are still on the page, still exact, and still the
-              thing the tracks are built from. */}
-          <Heading>Experience</Heading>
-          <div className="mt-5 max-w-[34rem]">
-            <ExperienceTimeline roles={roles} />
-          </div>
-        </section>
+      {/* The photograph, across the whole measure, still dissolved through the
+          glyph engine. It is its own band rather than a column beside the
+          words: a 9:16 file in a 24rem column was a portrait the page had made
+          room for, and this is the page making room for the portrait. See
+          `components/portrait.tsx` for how a tall file goes wide. */}
+      <Portrait className="mt-10" />
 
-        <section>
-          <Heading>Record</Heading>
-          <div className="mt-3">
-            <RecordRow label="Based">Lagos, Nigeria</RecordRow>
-            <RecordRow label="Focus">0&ndash;1 products</RecordRow>
-            <RecordRow label="Site">
-              <Link
-                href="/colophon"
-                className="underline decoration-line underline-offset-4 transition-colors hover:decoration-ink-3"
-              >
-                Colophon
-              </Link>
-            </RecordRow>
-          </div>
+      <div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
+        <div>
+          {/* One paragraph, and it is the one thing on this page a visitor
+              could not have worked out from the work itself. */}
+          <p className="max-w-[34rem] text-sm leading-[1.6] text-ink-2">
+            I work on 0&ndash;1 products &mdash; the part where the shape of the
+            thing is still an open question &mdash; and I build enough of them
+            myself that the answer has to survive a real implementation. Most of
+            what I make is quiet on purpose: restraint is not the absence of an
+            idea, it is what makes the one idea legible.
+          </p>
 
-          <div className="mt-8">
-            <Heading>Elsewhere</Heading>
-            <div className="mt-3">
-              {elsewhere.map((place) => (
-                <a
-                  key={place.label}
-                  href={place.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group grid grid-cols-[72px_minmax(0,1fr)] gap-x-5 rule-b py-2.5 last:bg-none sm:grid-cols-[96px_minmax(0,1fr)]"
-                >
-                  <span className="text-xs text-ink-3">{place.label}</span>
-                  <span className="text-sm text-ink-2 transition-colors group-hover:text-ink">
-                    {place.handle}
-                  </span>
-                </a>
-              ))}
+          <section className="mt-10">
+            <Heading>Experience</Heading>
+            <div className="mt-4 max-w-[34rem]">
+              <RoleList roles={roles} />
             </div>
+          </section>
+        </div>
+
+        <section>
+          <Heading>Elsewhere</Heading>
+          <div className="mt-3">
+            {elsewhere.map((place) => (
+              <a
+                key={place.label}
+                href={place.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group grid grid-cols-[72px_minmax(0,1fr)] gap-x-5 rule-b py-2.5 last:bg-none sm:grid-cols-[96px_minmax(0,1fr)]"
+              >
+                <span className="text-xs text-ink-3">{place.label}</span>
+                <span className="text-sm text-ink-2 transition-colors group-hover:text-ink">
+                  {place.handle}
+                </span>
+              </a>
+            ))}
           </div>
 
           <div className="mt-6 max-w-[20rem]">

@@ -26,6 +26,7 @@ export function Frame({
   height,
   ratio,
   label,
+  position,
   sizes = "(min-width: 1024px) 50vw, 92vw",
   preload = false,
   panel = false,
@@ -38,6 +39,18 @@ export function Frame({
   /** CSS aspect-ratio for the slot when no intrinsic size is known. */
   ratio?: string;
   label?: string;
+  /**
+   * Where the picture sits inside a slot that crops it — a CSS
+   * `object-position`, so "50% 34%" is centred across and above centre down.
+   *
+   * Every slot here is `object-cover`, which means a slot whose ratio differs
+   * from the picture's is a crop, and until now every crop was taken from the
+   * middle. That is right for artwork composed to its own frame and wrong for a
+   * photograph of a person: a phone portrait shown as a wide band loses the top
+   * of the head, which is the one part of it a reader came for. The default is
+   * still the middle, so no existing frame moves.
+   */
+  position?: string;
   sizes?: string;
   /**
    * Put a `<link rel="preload">` for this image in the head.
@@ -83,6 +96,7 @@ export function Frame({
           /* The optimiser flattens an animated GIF to its first frame, so a
              moving mark would arrive static. Serve those untouched. */
           unoptimized={src.endsWith(".gif")}
+          style={position ? { objectPosition: position } : undefined}
           className={`object-cover ${swept ? "opacity-0" : ""}`}
         />
       ) : (

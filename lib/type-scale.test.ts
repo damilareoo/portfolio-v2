@@ -42,7 +42,10 @@ const GOVERNED = [
      sizes something other than type: the mark tiles are measured in ems of the
      row's own font size, exactly as they are in the hero. */
   "app/about/page.tsx",
-  "components/experience-timeline.tsx",
+  /* The roles, as a list. It took the timeline's place and the timeline's
+     entry here with it: the type step is load-bearing in the same way — the
+     row's font size sets the cap height of the marks standing in it. */
+  "components/role-list.tsx",
   /* The page's one photograph. It carries no type of its own today, which is
      exactly when a file is worth adding to this list: a caption or a credit
      added later has nowhere off the scale to land. */
