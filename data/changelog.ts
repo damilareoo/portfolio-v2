@@ -21,6 +21,7 @@ export const changelog: ChangelogEntry[] = [
       "Endgame's and HEX's tiles did not move. Their geometry and their rendered pixels were diffed against the previous version on both skins, rather than assumed",
       "The type now says which kind of artwork a company brought instead of every mark declaring a cap height, since a symbol has not got one. The bare-type path is still there for the next company that arrives without a file; it just has no caller today",
     ],
+    deployment: "https://portfolio-v2-12v2c7vwu-damilares-projects-fc682e5f.vercel.app",
   },
   {
     version: "1.14.0",
