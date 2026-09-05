@@ -121,17 +121,17 @@ export function weatherFrame(face: WeatherFace, grid: number): Float32Array {
       }
       break;
     case "unreported":
-      /* Not knowing looks like not knowing. Four cells at the cardinals: the
-         instrument is present and has nothing to say, which is a different
-         statement from an empty disc that might merely be broken. */
-      for (const [x, y] of [
-        [0.5, 0.3],
-        [0.7, 0.5],
-        [0.5, 0.7],
-        [0.3, 0.5],
-      ] as const) {
-        disc(paint, x, y, 0.045, 0.6);
-      }
+      /* Nothing. Not an omission — it is the whole of the answer, and it is the
+         same answer the other three bays give when they have nothing to report.
+
+         Four cells at the cardinals stood here, on the argument that an empty
+         disc might read as broken where a mark reads as present. The mark was
+         the wrong half of that argument: what says the instrument is present is
+         the *field*, which `GlyphCell` draws at the skin's own floor whether
+         anything is lit on it or not. So the four dots were a second statement
+         of a thing the lattice was already saying, in a shape that resembled
+         none of the six real faces and read as a loading state. A weather dial
+         with no weather on it is a weather dial. */
       break;
   }
 

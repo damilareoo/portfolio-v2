@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GlyphCell } from "@/components/glyph-cell";
 import { InstrumentReading } from "@/components/instrument-card";
-import { artwork, spotifyMark } from "@/lib/glyph/glyphs";
+import { artwork, emptyFrame } from "@/lib/glyph/glyphs";
 import { fieldReach, TUNING } from "@/lib/glyph/matrix";
 import { fingerprint, pulsesBetween } from "@/lib/glyph/pulse";
 
@@ -115,6 +115,28 @@ const PULSE_FORCE = 24;
  */
 const FULL = new Float32Array(GRID * GRID).fill(1);
 
+/**
+ * The disc with nothing playing: its own field, and nothing on it.
+ *
+ * What stood here was the Spotify mark, rasterised into the lattice, on the
+ * argument that the disc should always say what it is. It was the right answer
+ * while a cover arrived as a grey dither — the mark and the sleeve were then
+ * the same kind of drawing, and the disc was legible as a music instrument
+ * either way. A cover in its own colours makes the mark the leftover of a
+ * language this bay stopped speaking: a black logo dithered into dots, beside
+ * three other bays, is the loudest thing on a wall that has nothing to report.
+ *
+ * So the resting face is the field. `GlyphCell` draws an unlit cell at the
+ * skin's own floor, so a circle of faint dots stands there — present, on,
+ * empty — and the word beneath it says "Silent". That is an instrument working
+ * and having nothing to say, which is a different picture from one that failed,
+ * and the reading's own em dash is what the site already uses for the failure.
+ *
+ * It is also the same picture the weather bay and the pedometer show when they
+ * have nothing, which is the point: four bays at rest read as one panel.
+ */
+const RESTING = emptyFrame(GRID);
+
 /* What a full track is worth in dash — the ring's whole circumference, in the
    arc box's own units. */
 const ARC_LENGTH = 2 * Math.PI * ARC_RADIUS;
@@ -151,9 +173,10 @@ const ARC_MINIMUM = ARC_STROKE * 4;
 /**
  * Now-playing as a disc of dots holding the cover.
  *
- * Silent, the cells hold the Spotify mark. When a track starts they migrate
- * into the album artwork and back again when it stops, so the disc always says
- * what it is even when there is nothing to show.
+ * Silent, the cells hold nothing: the lattice is there, unlit, which is what a
+ * display that is on and has nothing to report looks like. When a track starts
+ * they migrate into the album artwork and back out of it when it stops. See
+ * `RESTING` for what used to stand in that state and why it went.
  *
  * The artwork arrives in its own colours, and the argument that used to stand
  * here is the one being overturned. It ran: dithering is what lets real artwork
@@ -186,7 +209,6 @@ const ARC_MINIMUM = ARC_STROKE * 4;
  * canvas's own coordinate space and CSS decides how large that space is drawn.
  */
 export function NowPlayingDisc({ className = "" }: { className?: string }) {
-  const markRef = useRef<Float32Array | null>(null);
   const [frame, setFrame] = useState<Float32Array | null>(null);
   /* What each cell is filled with, when it is filled with something that is not
      the site's own ink. Null while the disc is drawing the mark, and the cover's
@@ -294,13 +316,10 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
       setTint(colour);
     };
 
-    const toMark = () => {
-      markRef.current ??= spotifyMark(GRID);
-      show(markRef.current, markRef.current, null);
-    };
+    const toRest = () => show(RESTING, RESTING, null);
 
     if (!art) {
-      toMark();
+      toRest();
       return;
     }
 
@@ -333,11 +352,11 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
            is for. */
         show(FULL, cover.tone, cover.colour);
       } catch {
-        return; // tainted despite the proxy — hold the mark
+        return; // tainted despite the proxy — hold whatever is there
       }
     };
 
-    img.onerror = toMark;
+    img.onerror = toRest;
     img.src = art;
     return () => {
       cancelled = true;

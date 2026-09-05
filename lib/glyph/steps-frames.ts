@@ -1,23 +1,28 @@
 /**
  * The pedometer's faces, as fields.
  *
- * Three ways of saying the same number. The walk puts today's total on a path
- * and lets distance do the talking; the record states it and names it; the week
- * sets it beside the six days behind it. None of them knows about a canvas, a
- * skin, or React — a face is arithmetic over a grid, and that is why it can be
- * argued with in a test rather than squinted at in a browser.
+ * Two faces are drawn here: the walk puts today's total on a path and lets
+ * distance do the talking, and the record states it and names it. The month is
+ * a calendar drawn in SVG over an empty field, so it belongs to the component.
+ * None of these knows about a canvas, a skin, or React — a face is arithmetic
+ * over a grid, and that is why it can be argued with in a test rather than
+ * squinted at in a browser.
  *
- * One rule runs underneath all three: a day nobody reported is not a day of no
- * walking. `lib/steps.ts` keeps those apart all the way here, and here is the
- * last place they could be flattened back together.
+ * There was a third, a week of columns, and it went when the month face
+ * replaced it — but `weekMarks` and its `UNREPORTED` placeholder stayed behind,
+ * called by nothing but their own tests, which is the most convincing kind of
+ * dead code there is. `UNREPORTED` was also the number the pedometer's empty
+ * face was drawn at, and the design decision it was left waiting for turned out
+ * to be that there should not be a number: an instrument with nothing to report
+ * shows its own field, unlit, at the floor the skin already sets for every
+ * other field on the site. See `components/glyph-bay.tsx`.
+ *
+ * One rule still runs underneath what is left: a day nobody reported is not a
+ * day of no walking. `lib/steps.ts` keeps those apart all the way here.
  */
 
 import { stampText, textWidth } from "./font";
 import { emptyFrame } from "./glyphs";
-import type { StepsDay } from "@/lib/steps";
-
-/** One dot of the week view. `hollow` is the monochrome word for a missed day. */
-export type CellMark = { value: number; hollow: boolean };
 
 /** The dot alphabet is five rows tall; `font.ts` keeps that to itself. */
 const GLYPH_ROWS = 5;
@@ -184,28 +189,6 @@ function poseAt(left: number, remaining: number): Uint8Array {
    absent from the design, but the reading being finished. */
 const AHEAD = 0.32;
 
-/** How many dots stand in a week column. Seven, to rhyme with the seven days. */
-export const WEEK_ROWS = 7;
-
-/**
- * The value a cell carries when there is nothing to carry — the dot-matrix
- * version of the placeholder digits the counters show before they are read.
- *
- * This is a *value*, not an alpha: the field turns it into ink through whatever
- * floor it is drawing on. It used to be calibrated against a single floor of
- * 0.16 and described as reading "as the field at rest", and that sentence is no
- * longer true anywhere. The field's floor is now the skin's — 0.1 light, 0.05
- * dark — and the pedometer, which is this constant's only caller, draws at
- * `unlit={0}`, so there is no resting lattice here at all. A placeholder cell
- * is the only thing in its cell, read against the card rather than against
- * dots around it.
- *
- * The number is left where it was on purpose. What it should be is a design
- * call about how loudly an unread reading announces itself, and it is not one
- * this file can make alone.
- */
-export const UNREPORTED = 0.16;
-
 function clamp01(n: number): number {
   if (!Number.isFinite(n)) return 0;
   return n < 0 ? 0 : n > 1 ? 1 : n;
@@ -317,34 +300,4 @@ export function walkFrame(
   }
 
   return frame;
-}
-
-/**
- * The week, one column per day, filling from the bottom.
- *
- * Magnitude rides the dots themselves rather than the height of a bar: the
- * topmost dot of a part-filled column is a partial value, so it is smaller and
- * dimmer than the ones under it, and a column reads as a quantity rather than
- * as a step. Whether the goal was met is a separate fact and gets a separate
- * language — filled for met, an open ring for missed. No hue is spent on it.
- *
- * A day nobody reported is neither: it is a column of placeholder dots, which
- * is what the field looks like when it has not been told anything.
- */
-export function weekMarks(days: StepsDay[], goal: number): CellMark[][] {
-  return days.map((day) => {
-    if (day.steps === null) {
-      return Array.from({ length: WEEK_ROWS }, () => ({ value: UNREPORTED, hollow: false }));
-    }
-
-    const level = goal > 0 ? clamp01(day.steps / goal) * WEEK_ROWS : 0;
-    const hollow = day.steps < goal;
-
-    const column: CellMark[] = [];
-    for (let row = 0; row < WEEK_ROWS; row++) {
-      // Rows come back top-first, so the fill has to be measured from the floor.
-      column.push({ value: clamp01(level - (WEEK_ROWS - 1 - row)), hollow });
-    }
-    return column;
-  });
 }

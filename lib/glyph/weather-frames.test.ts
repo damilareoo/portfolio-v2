@@ -20,16 +20,25 @@ describe("weatherFrame", () => {
     }
   });
 
-  it("draws something, and never everything", () => {
+  it("draws a reading, and never fills the disc", () => {
+    /* Every face that reports weather has to put something on the field, and
+       none of them may cover it — a full disc is not a reading, it is a lamp.
+       `unreported` is deliberately not in this: it is the one face that reports
+       nothing, and it draws nothing. See the frame itself. */
     for (const face of WEATHER_FACES) {
+      if (face === "unreported") continue;
       const lit = [...weatherFrame(face, GRID)].filter((v) => v > 0).length;
-      // The brief's original floor (`toBeGreaterThan(GRID)`) contradicts the
-      // "unreported is sparsest" test below: unreported draws four dots of
-      // radius 0.045, nowhere near GRID (25) cells. Lowered to 4 — enough to
-      // catch a genuinely empty frame — while the ceiling stays as specified.
-      expect(lit, face).toBeGreaterThanOrEqual(4);
+      expect(lit, face).toBeGreaterThan(GRID);
       expect(lit, face).toBeLessThan(GRID * GRID);
     }
+  });
+
+  it("leaves the field empty when there is nothing to report", () => {
+    /* The resting state, which is what most visitors see, and the rule all four
+       bays now keep: an instrument with nothing to say shows its own field and
+       nothing on it. The lattice is what says it is working; a mark would be a
+       second answer to a question already answered. */
+    expect([...weatherFrame("unreported", GRID)].every((v) => v === 0)).toBe(true);
   });
 
   it("tells every face apart from every other", () => {
@@ -42,13 +51,12 @@ describe("weatherFrame", () => {
     }
   });
 
-  it("makes the unreported face the sparsest of them all", () => {
-    // Not knowing should look like not knowing, not like weather.
+  it("cannot be mistaken for a reading", () => {
+    // Not knowing must not look like weather, at any grid.
     const count = (face: (typeof WEATHER_FACES)[number]) =>
       [...weatherFrame(face, GRID)].filter((v) => v > 0).length;
-    const unreported = count("unreported");
     for (const face of WEATHER_FACES) {
-      if (face !== "unreported") expect(unreported).toBeLessThan(count(face));
+      if (face !== "unreported") expect(count(face)).toBeGreaterThan(0);
     }
   });
 

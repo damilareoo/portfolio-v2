@@ -80,9 +80,7 @@ function coverLoads() {
   }
   vi.stubGlobal("Image", LoadedImage);
 
-  /* Big enough for the largest read either caller makes: `spotifyMark`
-     supersamples its own grid fourfold before averaging it back down. */
-  const SIDE = GRID * 4;
+  const SIDE = GRID;
   const pixels = new Uint8ClampedArray(SIDE * SIDE * 4);
   for (let i = 0; i < pixels.length; i += 4) {
     const v = (i / 4) % 256;

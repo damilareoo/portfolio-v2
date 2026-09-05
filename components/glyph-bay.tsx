@@ -14,12 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 import { GlyphCell } from "@/components/glyph-cell";
 import { InstrumentReading } from "@/components/instrument-card";
 import { emptyFrame } from "@/lib/glyph/glyphs";
-import {
-  groupDigits,
-  recordFrame,
-  UNREPORTED,
-  walkFrame,
-} from "@/lib/glyph/steps-frames";
+import { groupDigits, recordFrame, walkFrame } from "@/lib/glyph/steps-frames";
 import { useSeenOnce } from "@/lib/reveal";
 import type { StepsDay, StepsReading } from "@/lib/steps";
 
@@ -83,11 +78,6 @@ const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frida
  * shape of "we do not know yet", and it renders as placeholder dots.
  */
 const BLANK_WEEK: StepsDay[] = Array.from({ length: 7 }, () => ({ date: "", steps: null }));
-
-/** The field at rest: enough ink to be seen, not enough to claim anything. */
-function placeholderFrame(grid: number): Float32Array {
-  return new Float32Array(grid * grid).fill(UNREPORTED);
-}
 
 function share(value: number | null, goal: number): string {
   if (value === null || goal <= 0) return "—";
@@ -314,18 +304,24 @@ export function Pedometer() {
   /* Memoised on the values rather than the reading, so a poll that comes back
      saying the same thing hands the field the same array and wakes nothing. */
   const frame = useMemo(() => {
-    if (page === 2) return emptyFrame(GRID); // the week is drawn over the field
+    if (page === 2) return emptyFrame(GRID); // the month is drawn over the field
     if (page === 1) {
-      if (today === null && average === null) return placeholderFrame(GRID);
+      if (today === null && average === null) return emptyFrame(GRID);
       return recordFrame(GRID, today, average);
     }
-    if (progress === null) return placeholderFrame(GRID);
+    if (progress === null) return emptyFrame(GRID);
     /* `bound` is what the walk is walking towards, and it is what keeps the
        settled figure standing. Once `walked` reaches it there is no ground left
        to cover and the pose is a figure at rest — at every step count, not only
        at a day that met its goal in full. */
     return walkFrame(GRID, walked, { bound: progress });
   }, [page, today, average, progress, walked]);
+
+  /* Whether this face has a reading on it at all. Not "is the frame empty" —
+     the month face draws an empty frame on purpose and puts its calendar over
+     the top, so an empty frame there is a face doing its job. */
+  const unread =
+    page === 0 ? progress === null : page === 1 ? today === null && average === null : monthDays.length === 0;
 
   const todaySaid =
     today === null
@@ -409,9 +405,24 @@ export function Pedometer() {
               frame={frame}
               /* Round cells on a clean surface: the readings quote the LED
                  panel rather than imitate it, so there is no unlit lattice
-                 behind them and a cell that is off is simply not there. */
+                 behind them and a cell that is off is simply not there.
+
+                 Except when there is no reading, and that is the design call
+                 `UNREPORTED` was left in `steps-frames.ts` waiting for. That
+                 constant was a value — 0.16 — calibrated against a floor the
+                 field stopped having, and its own comment said so and said the
+                 number was somebody else's decision. The decision is: there is
+                 no such number. An instrument with nothing to report shows its
+                 own field, unlit, at whatever the skin says an unlit cell is
+                 worth — which is what the other three bays now do, and what
+                 makes four resting bays read as one panel instead of four
+                 different apologies. A grey wash at a value nobody could
+                 justify was the worse half of "the widgets are ugly".
+
+                 So the zero is a property of a face that has something to say,
+                 not of this instrument. */
               pixel="round"
-              unlit={0}
+              unlit={unread ? undefined : 0}
               /* The field no longer owns the gesture. `pages` would make it a
                  focusable `group`, and a focusable element inside the card's
                  button is not markup HTML allows — so the card is the control
