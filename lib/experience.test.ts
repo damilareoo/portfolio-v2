@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildTimeline, parsePeriod, standing } from "@/lib/experience";
+import { buildTimeline, byRole, parsePeriod, standing } from "@/lib/experience";
 import { roles } from "@/data/experience";
 import type { Role } from "@/data/experience";
 
@@ -174,5 +174,42 @@ describe("standing", () => {
     const known = new Set(roles.map((r) => r.company));
     expect(answer.roles.length).toBeGreaterThan(0);
     for (const r of answer.roles) expect(known.has(r.company)).toBe(true);
+  });
+});
+
+describe("byRole", () => {
+  const titled = (title: string, company: string): Role => ({
+    ...role(company, "Mar 2025 — Apr 2026"),
+    role: title,
+  });
+
+  it("gathers a run of one title so the sentence has one clause for it", () => {
+    const runs = byRole([
+      titled("Product Designer", "A"),
+      titled("Product Designer", "B"),
+      titled("Design Partner", "C"),
+    ]);
+    expect(runs.map((run) => run.role)).toEqual(["Product Designer", "Design Partner"]);
+    expect(runs[0].companies.map((r) => r.company)).toEqual(["A", "B"]);
+  });
+
+  it("keeps the record's order rather than reordering it to suit the grammar", () => {
+    /* Two like roles either side of an unlike one are two stretches, not one.
+       Bucketing them would read as a single spell at both companies. */
+    const runs = byRole([
+      titled("Product Designer", "A"),
+      titled("Design Partner", "B"),
+      titled("Product Designer", "C"),
+    ]);
+    expect(runs.map((run) => run.role)).toEqual([
+      "Product Designer",
+      "Design Partner",
+      "Product Designer",
+    ]);
+  });
+
+  it("names every company the record holds, once", () => {
+    const named = byRole(roles).flatMap((run) => run.companies.map((r) => r.company));
+    expect(named).toEqual(roles.map((r) => r.company));
   });
 });

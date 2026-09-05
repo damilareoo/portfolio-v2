@@ -227,3 +227,31 @@ export function standing(roles: readonly Role[]): { open: boolean; roles: Role[]
     roles: spans.filter(({ span }) => span.end === last).map(({ role }) => role),
   };
 }
+
+/**
+ * The roles as a sentence says them: runs of one title, in the record's order.
+ *
+ * The hero reads "Most recently a product designer at Endgame AI and ChessEver,
+ * and design partner at HEX", and that sentence has two clauses because two of
+ * the three roles share a title — not because there are three roles. Written out
+ * by hand it would be prose that has to be rewritten the first time a fourth
+ * company arrives, which is the defect the marks list already fixed once.
+ *
+ * Runs, not buckets. `data/experience.ts` is newest first and that order is the
+ * record's own; gathering every Product Designer role wherever it sits would
+ * reorder the sentence to suit the grammar and quietly claim a sequence the
+ * record does not. Two like roles either side of an unlike one get two clauses,
+ * which is the honest shape — they were two separate stretches.
+ *
+ * Facts out, not words, the same as `standing`. The article, the case of the
+ * title and the commas belong to whoever is reading it aloud.
+ */
+export function byRole(roles: readonly Role[]): { role: string; companies: Role[] }[] {
+  const runs: { role: string; companies: Role[] }[] = [];
+  for (const role of roles) {
+    const open = runs[runs.length - 1];
+    if (open && open.role === role.role) open.companies.push(role);
+    else runs.push({ role: role.role, companies: [role] });
+  }
+  return runs;
+}

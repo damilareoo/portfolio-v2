@@ -2,24 +2,27 @@ import Image from "next/image";
 import { roles, type Role, type SymbolMark, type Wordmark } from "@/data/experience";
 
 /**
- * The companies, as their own marks, with what he did at each of them.
+ * A company, as its own mark, at the size of the type around it.
  *
- * This is the hero's first sentence, not an ornament under it. "Most recently
- * for Endgame AI, ChessEver and HEX" leads in and these three lines are its
- * object: the names have become the marks, and each one carries the role it
- * was. A row of logos on its own says he was *near* three companies. The role
- * beside each mark is the half that says what he was, and it is set as text —
- * not a title attribute, not a tooltip — because a tooltip does not exist on a
- * phone and hides the substance on everything else.
+ * This is the hero's sentence, not an ornament under it: "Most recently a
+ * product designer at Endgame AI and ChessEver, and design partner at HEX",
+ * with the names set as the companies' own artwork. It used to be a lead-in
+ * followed by a three-row grid — a mark, a role column, a fixed row height —
+ * and the owner's verdict on that was the plainest note in the phase: *"all of
+ * this should be like a copy not one after the other like this."* He was right.
+ * A list of three logos with a role beside each is a table pretending to be a
+ * sentence, and it says he was near three companies rather than what he was at
+ * them.
  *
- * The trade the arrangement makes, stated plainly: the sentence loses its
- * comma, its "and" and its full stop. Three marks each carrying a role cannot
- * be read as running prose without two identical parentheticals in the middle
- * of it, and the roles are the requirement. Every word survives, in order.
+ * The grammar carries the roles now, which is what running prose is for, so the
+ * grid, the role column and the row height are gone. What is kept is every
+ * number: CAP, `plateHeight`, the tile crop, SYMBOL_H and the ChessEver lockup
+ * were measured against real artwork and none of them changed when the list
+ * around them did.
  *
- * One component, two callers. The About ladder takes the same one in phase 4
- * rather than drawing a second, because a mark that reads two ways on two pages
- * is two marks.
+ * One component, two callers — the hero's sentence and the About ladder. A mark
+ * that reads two ways on two pages is two marks, so the which-treatment
+ * decision lives here, once.
  *
  * Each mark is the company's own artwork in the company's own colours. That is
  * not the site spending a hue: `--miss` is still the only colour the design
@@ -29,15 +32,15 @@ import { roles, type Role, type SymbolMark, type Wordmark } from "@/data/experie
  * against.
  *
  * Two shapes of artwork, and the difference is not only geometry. Endgame's and
- * HEX's files *spell their names*, so the mark can stand alone and the line
- * still reads as a sentence naming three companies. ChessEver's file is a
+ * HEX's files *spell their names*, so the mark can stand in the sentence where
+ * the name would and the sentence still names a company. ChessEver's file is a
  * symbol — a plus-shaped field with a king at its centre — and a symbol names
  * nobody who does not already know it. Dropped in alone it would leave the
- * hero's first sentence naming two companies and showing a shape for a third.
- * So a symbol is drawn as a **lockup**: the artwork, then the company's name
- * set in the site's own mono at the same cap height the two wordmarks print at.
- * The name stays in the sentence, which is the whole job of the line, and the
- * real artwork is used rather than the bare-type stand-in that preceded it.
+ * sentence naming two companies and showing a shape for a third. So a symbol is
+ * drawn as a **lockup**: the artwork, then the company's name set in the site's
+ * own mono at the same cap height the two wordmarks print at. The name stays in
+ * the sentence, which is the whole job, and the real artwork is used rather
+ * than the bare-type stand-in that preceded it.
  */
 
 /**
@@ -226,36 +229,21 @@ function SymbolLockup({ role }: { role: Symboled }) {
   );
 }
 
-export function CompanyMarks({ className = "" }: { className?: string }) {
-  return (
-    /* A grid rather than three flex rows, so the roles line up in a column of
-       their own. The three marks are 88px, 94px and 39px wide at the size they
-       print: ragged right edges would leave the three roles at three indents
-       and the list would read as three unrelated facts instead of one
-       record. */
-    <ul
-      role="list"
-      className={`grid w-fit grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-2 text-sm ${className}`}
-    >
-      {roles.map((role) => (
-        <MarkRow key={role.company} role={role} />
-      ))}
-    </ul>
-  );
-}
-
 /**
  * One company, as itself.
  *
- * Exported because the About timeline is the second caller phase 3 said this
- * would have: a mark that reads one way in the hero and another on /about is
- * two marks, and the ladder /about used to draw — a 112px box holding whatever
- * `logo` pointed at — was exactly that. It also had ChessEver's product
- * screenshot in it, presented as a logo. The which-treatment decision lives
- * here, once, so neither page can make it differently.
+ * Both surfaces draw this one: the hero sets it inline in a sentence, the About
+ * timeline stands it in a row. A mark that reads one way in the hero and
+ * another on /about is two marks, and the ladder /about used to draw — a 112px
+ * box holding whatever `logo` pointed at — was exactly that. It also had
+ * ChessEver's product screenshot in it, presented as a logo. The
+ * which-treatment decision lives here, once, so neither page can make it
+ * differently.
  *
- * Sized in ems throughout, so the caller's own type step sets the cap height.
- * It is `text-sm` on both surfaces today; nothing here depends on that.
+ * Sized in ems throughout, so the caller's own type step sets the cap height —
+ * `text-base` in the hero's sentence and `text-sm` on the timeline, and nothing
+ * here depends on either. The hover colours ride a `group` the caller opens,
+ * because what is hoverable is the link around the mark, not the mark.
  */
 export function CompanyMark({ role }: { role: Role }) {
   const { logo, mark } = role;
@@ -289,29 +277,8 @@ export function CompanyMark({ role }: { role: Role }) {
  * company takes: a wordmark tile is 1.9em tall, a symbol lockup is 1.12em and
  * a name set in mono alone is about 0.7em, and a list that let each take its
  * natural height would step up and down for a reason that is about the site's
- * assets rather than about the companies.
+ * assets rather than about the companies. The About timeline is that list; the
+ * hero is a sentence and lets each mark sit on the line at its own height,
+ * which is what an inline mark is for.
  */
 export const MARK_HEIGHT = em(TILE_H);
-
-function MarkRow({ role }: { role: Role }) {
-  return (
-    /* `display: contents` so the item's two cells sit in the parent grid and
-       the roles share one column. The list roles are written out because
-       contents drops the implicit ones. */
-    <li role="listitem" className="contents">
-      <a
-        href={role.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="group flex items-center"
-        style={{ height: em(TILE_H) }}
-      >
-        <CompanyMark role={role} />
-      </a>
-      {/* The half that says what he was. Quieter than the mark, because the
-          mark is the subject and this is what he did there — but full text at
-          the list's own size, never a hover. */}
-      <span className="leading-snug text-ink-2">{role.role}</span>
-    </li>
-  );
-}

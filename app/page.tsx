@@ -1,4 +1,5 @@
-import { CompanyMarks } from "@/components/company-marks";
+import { Fragment } from "react";
+import { CompanyMark } from "@/components/company-marks";
 import { FooterLine } from "@/components/footer-line";
 import { GlyphIcon } from "@/components/glyph-icon";
 import { GlyphText } from "@/components/glyph-text";
@@ -7,7 +8,20 @@ import { Product } from "@/components/product";
 import { SiteNav } from "@/components/site-nav";
 import { workAssets } from "@/data/assets.generated";
 import { site } from "@/data/site";
+import { roles } from "@/data/experience";
 import { work } from "@/data/work";
+import { byRole } from "@/lib/experience";
+
+/**
+ * "a" or "an", by the letter the title starts with.
+ *
+ * Only the first clause of the record takes one — "a product designer at X and
+ * Y, and design partner at Z" — because English drops the article on the second
+ * of two titles and repeating it reads as two separate announcements. Which
+ * title comes first is `data/experience.ts`'s business, so the article cannot
+ * be written into the copy.
+ */
+const article = (title: string) => (/^[aeiou]/i.test(title) ? "an" : "a");
 
 /**
  * The home is the work.
@@ -29,113 +43,109 @@ export default function Home() {
     <main className="mx-auto w-full max-w-[1240px] px-5 py-4 sm:px-6">
       <SiteNav current="/" />
 
-      {/* One band, not a section. The record table it replaces read as a form,
-          and ten comma-separated skills was the least evidential thing on the
-          page — the work below argues it better. Contact and Elsewhere moved to
-          the footer, where a reader looks once they have seen something worth
-          writing about. */}
-      {/* The name leads, bold, because it is the one fact a visitor should
-          leave with even if they read nothing else. The statement — the
-          owner's own words, untouched here — follows it, then the record,
-          then a way to act on what they just read. On a short viewport the
-          band is two columns rather than one stack, for the same reason it
-          always was: so the first product still lands on screen rather than
-          off the bottom of a landscape phone.
+      {/* One band, not a section, and one voice.
 
-          Four grid children, not two, and that is what makes the two columns
-          worth having. Phase 3 attached a role to each company mark, which
-          turned the first sentence into a lead-in plus three lines and pushed
-          the "Featured work" rule from 372px down an 800x400 screen to 488px —
-          off the bottom of it. No spacing retune pays for 116px, and the
-          `short` ones that used to buy twenty were reverted rather than kept
-          for the smaller number. But the right column on `short-wide` held
-          nothing except a contact line and a button, and the marks are the tall
-          thing with nowhere to be. So the marks and the closing paragraph are
-          grid children in their own right: stacked they sit where they always
-          did, and on `short-wide` the marks stand beside the name and the
-          paragraph beside the call.
+          What this replaced first was a record table that read as a form. What
+          it replaces now is the shape phase 3 left behind: a lead-in, "Most
+          recently for", pointing at three stacked rows of mark-and-role. The
+          owner's note on that is the plainest sentence in the phase — *"all of
+          this should be like a copy not one after the other like this"* — and
+          it is the correct reading. Three logos in a column with a role beside
+          each is a table wearing a sentence's clothes.
 
-          One set of marks in the DOM either way. A duplicated block would be
-          two sets of links for a screen reader and two things to keep in step,
-          for a rearrangement that is only ever visual — so document order is
-          unchanged and the sentence still reads lead-in, marks, close, on every
-          screen.
+          So the record is a sentence again and the marks stand inside it, where
+          the names would be. The roles are carried by the grammar rather than
+          by a column, which is the thing the column was invented to do and the
+          reason the sentence broke: two identical parentheticals in the middle
+          of running prose. "A product designer at X and Y, and design partner
+          at Z" says the same two facts with none of that, because English
+          already has a way to give two companies one title.
 
-          The gap moves with them. Stacked, the spacing is the margins these
-          elements carried when they were siblings inside one column, so that
-          layout is pixel-identical; in two columns the grid's own row gap takes
-          over and the margins stand down. */}
-      {/* The `short` retune is back, and this time it is paid for. Phase 3
-          reverted a pair of these because sixteen pixels could not answer a
-          hundred-and-sixteen-pixel regression, which was right: a retune that
-          no longer reaches the thing it was justified by is only a smaller
-          number. The rearrangement above is what reaches it — 126px of the 116
-          back — and these sixteen are what carry the first product's top edge
-          from one pixel on screen to twenty, at 800x400 and at the 844x390 that
-          is a pixel shorter still. */}
+          Derived from `data/experience.ts`, not written out. `byRole` gathers
+          the runs; the article, the lower case and the commas are chosen here,
+          because a verb tense is not data and neither is a comma. Two designers
+          and one partner is today's grouping, not a rule — a fourth role
+          changes the sentence without anybody editing prose.
+
+          Two things left. The email went because "Book a call" is the action
+          and the email was the same action said again in a quieter voice — the
+          owner's own note. And the gloss on the last sentence went: it used to
+          run "— screens that report a real reading instead of decorating one",
+          which is the site explaining in words what the four instruments at the
+          foot of the page do in front of you. The wall is the evidence; a
+          caption on the evidence is not more evidence.
+
+          Two columns on `short-wide` and one stack everywhere else. The
+          arrangement is simpler than the four-child grid it replaces because
+          the marks are no longer a tall block with nowhere to be — they are
+          inside the paragraph. Height is still the scarce axis on a landscape
+          phone, so the copy and the call stand side by side there rather than
+          spending 400px of screen in sequence. */}
       <header className="mt-10 pb-8 short:mt-4 short:pb-4">
-        <div className="grid min-w-0 gap-x-8 short-wide:grid-cols-2 short-wide:items-start short-wide:gap-y-4">
-          <div className="min-w-0 short-wide:col-start-1 short-wide:row-start-1">
+        <div className="grid min-w-0 gap-x-10 short-wide:grid-cols-[minmax(0,1fr)_auto] short-wide:items-start">
+          <div className="min-w-0">
+            {/* The name leads, bold, because it is the one fact a visitor
+                should leave with even if they read nothing else. */}
             <h1 className="text-xl font-bold tracking-tight">&rsquo;{site.name}</h1>
-            {/* Demoted from the h1 it used to be: the name now carries that
-                role, and this is the second thing said, not a second title.
-                `text-lg` sits between the bold name and the `text-base`
-                paragraph beneath it on the site's own six-step scale, so all
-                three keep a visible order rather than the tagline reading as
-                a peer of either neighbour. */}
+            {/* The claim, in the owner's own words. `text-lg` sits between the
+                bold name and the `text-base` paragraph beneath it on the
+                six-step scale, so all three keep a visible order rather than
+                the tagline reading as a peer of either neighbour. */}
             <p className="mt-2 max-w-[46ch] text-lg font-medium leading-snug tracking-tight text-ink">
               I design and build the parts of a product people actually touch.
             </p>
-            {/* The claim the rest of the page has to keep, and the reason it
-                is not one paragraph.
+            {/* The leading is set for the marks rather than for the type.
 
-                The copy is "Most recently for Endgame AI, ChessEver and HEX.
-                Right now I'm interested in interfaces that behave like
-                instruments — screens that report a real reading instead of
-                decorating one." The three names in the first sentence are the
-                companies' own marks now, so the sentence's object is a list of
-                artwork rather than a list of words — and each mark carries the
-                role it was, because three logos with nothing attached say he
-                was near three companies rather than what he was at them.
-
-                That is what breaks the sentence. Set as running prose it needs
-                two identical parentheticals in the middle of it — "(Product
-                Designer)" twice — and stops being readable at exactly the
-                point it starts being informative. So the first sentence
-                becomes its lead-in and three lines, and the second stands on
-                its own. Every word survives in order; the comma, the "and" and
-                the full stop are what it costs.
-
-                The second sentence is a promise about instruments, and the
-                instrument wall in the footer is the evidence for it: nothing
-                on this page may be allowed to make that wall quieter, or the
-                sentence becomes a thing the site says rather than a thing it
-                does. */}
-          </div>
-          {/* The lead-in travels with what it leads into. Left behind in the
-              first column it pointed up and across at a list in the other one,
-              which is a sentence with its object on the far side of a gutter. */}
-          <div className="mt-3 min-w-0 short-wide:col-start-2 short-wide:row-start-1 short-wide:mt-0">
-            <p className="max-w-[46ch] text-base leading-relaxed text-ink-2">
-              Most recently for
+                A wordmark tile is `MARK_HEIGHT` — 1.9em — because that is what
+                puts Endgame's cap on the cap height of the words around it, and
+                an inline box that tall makes its own line box taller than the
+                strut whatever the line-height says. Left at `leading-relaxed`
+                the lines holding a mark would stand 1.9em apart and the lines
+                without one 1.63em, so the paragraph would breathe unevenly for
+                a reason nobody could see. 2.2 is the tile plus a little air on
+                each side, applied to every line, so the block is even and the
+                marks sit in it rather than on it. */}
+            <p className="mt-4 max-w-[46ch] text-base leading-[2.2] text-ink-2">
+              Most recently{" "}
+              {byRole(roles).map((run, i) => (
+                <Fragment key={`${run.role}-${i}`}>
+                  {i > 0 && ", and "}
+                  {i === 0 && `${article(run.role)} `}
+                  {run.role.toLowerCase()} at{" "}
+                  {run.companies.map((role, n) => (
+                    <Fragment key={role.company}>
+                      {n > 0 && (n === run.companies.length - 1 ? " and " : ", ")}
+                      {/* `align-middle` centres the mark on the line's own
+                          x-height, which is where a word would sit. The group
+                          is opened here because the hoverable thing is the
+                          link, not the artwork inside it. */}
+                      <a
+                        href={role.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={role.company}
+                        className="group inline-flex items-center align-middle"
+                      >
+                        <CompanyMark role={role} />
+                      </a>
+                    </Fragment>
+                  ))}
+                </Fragment>
+              ))}
+              .
             </p>
-            <CompanyMarks className="mt-2.5" />
-          </div>
-          <p className="mt-4 max-w-[46ch] text-base leading-relaxed text-ink-2 short-wide:col-start-1 short-wide:row-start-2 short-wide:mt-0">
-            Right now I&rsquo;m interested in interfaces that behave like
-            instruments &mdash; screens that report a real reading instead of
-            decorating one.
-          </p>
-          <div className="mt-4 min-w-0 short-wide:col-start-2 short-wide:row-start-2 short-wide:mt-0">
-            <p className="text-sm text-ink-3">
-              Lagos ·{" "}
-              <a
-                href={`mailto:${site.email}`}
-                className="text-ink-2 underline decoration-line underline-offset-4 transition-colors hover:text-ink hover:decoration-ink-3"
-              >
-                {site.email}
-              </a>
+            {/* The promise the rest of the page has to keep, and the reason the
+                instrument wall may never be made quieter: the wall is what
+                makes this a thing the site does rather than a thing it says. */}
+            <p className="mt-4 max-w-[46ch] text-base leading-relaxed text-ink-2">
+              Right now I&rsquo;m interested in interfaces that behave like
+              instruments.
             </p>
+          </div>
+          <div className="mt-6 min-w-0 short-wide:mt-0">
+            {/* One useful fact, and the only place the home says where he is.
+                It used to carry the email beside it; see the band's note. */}
+            <p className="text-sm text-ink-3">Lagos</p>
             {/* Filled, mono, uppercase, tracked: the nav's active chip at CTA
                 scale rather than a new control inventing its own language.
                 `min-h` clears the touch floor; opacity is the only thing that
@@ -144,7 +154,7 @@ export default function Home() {
               href={site.calendly}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 inline-flex min-h-[2.75rem] items-center gap-2 rounded-[4px] bg-strong px-5 font-mono text-xs uppercase tracking-[0.08em] text-on-strong transition-opacity hover:opacity-90 active:opacity-80"
+              className="mt-3 inline-flex min-h-[2.75rem] items-center gap-2 rounded-[4px] bg-strong px-5 font-mono text-xs uppercase tracking-[0.08em] text-on-strong transition-opacity hover:opacity-90 active:opacity-80"
             >
               Book a call
               <GlyphIcon name="arrow-out" size="0.5rem" />
