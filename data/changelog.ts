@@ -27,6 +27,7 @@ export const changelog: ChangelogEntry[] = [
       "One photograph, dissolved through the glyph engine. It is a night shot, so a third of its dots were landing on a single brightness step and the picture came out a slab; the frame now derives one exponent for itself that puts its median mid-range, and every existing shot renders byte-identically because it is opt-in",
       "The colophon has a field anyone can draw on, a wall of the last forty drawings, and a place to leave a line. Rate limiting, length caps and a moderation route shipped in the same commits as the feature, because a free-text field on a public site without a way to take something down is not a finished feature",
     ],
+    deployment: "https://portfolio-v2-3eypmx3m9-damilares-projects-fc682e5f.vercel.app",
   },
   {
     version: "1.13.0",
