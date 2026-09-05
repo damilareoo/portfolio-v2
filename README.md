@@ -31,8 +31,8 @@ Four, and the nav names all four.
 |---|---|
 | `/` | The work itself — a hero statement, then three numbered products, each unfolding in place, and the instrument wall at the foot |
 | `/shots` | The gallery. `/feed` redirects here permanently |
-| `/about` | The record about the person, and the roles behind it |
-| `/colophon` | How the site is made, and the instruments |
+| `/about` | Him, one photograph dissolved through the glyph engine, and the roles behind the work |
+| `/colophon` | How the site is made, the instruments, and a field anyone can draw on |
 
 `/work/[slug]` is gone. The home carries the case studies now, and the three URLs that existed redirect to the product that holds them — `/#<slug>`, the anchor on the product's own section. Written out one per line rather than patterned: slug and anchor are now identical, so `/work/:slug -> /#:slug` would resolve correctly and would also send every slug that never existed to the top of the home page. A URL that was never real should 404, and three explicit lines say which three were. `/system` and `/changelog` stay live and stay out of the nav; the colophon links to both.
 
@@ -218,6 +218,8 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+`PAD_CLIENT_SALT` in `.env.local` is what makes the colophon's field writable locally; without it the pad renders and refuses every write. `docs/pad-setup.md` explains why it has no default.
+
 ## Two links, one codebase
 
 | Deployment | Vercel project | Purpose |
@@ -311,7 +313,9 @@ Blocks without a `src` consume the project's assets in filename order, so droppi
 
 ## The colophon
 
-Nothing on `/colophon` is a screenshot of the system. Token rows read their own live computed value — so the page cannot drift out of date with the stylesheet — and copy the hex on click. Type specimens are set, not shown: pick a weight, drag the size. The live readouts sit here too.
+The page carries a 12×12 field anyone can draw on, a wall of the last forty drawings, and a flat list of the last thirty comments. It is the only place on the site a stranger may write to, and it is guarded accordingly: writes are rate-limited per visitor, text is capped server-side, and a secret-checked route can take any drawing or comment down. Nothing about a visitor is stored beyond what they typed and a salted hash of their address — see `docs/pad-setup.md` for the two environment variables it needs and how moderation works. It stores its lists in the Redis already attached to the project; no new store and no new dependency.
+
+Nothing else on `/colophon` is a screenshot of the system. Token rows read their own live computed value — so the page cannot drift out of date with the stylesheet — and copy the hex on click. Type specimens are set, not shown: pick a weight, drag the size. The live readouts sit here too.
 
 ## The value field
 

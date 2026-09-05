@@ -10,6 +10,25 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.14.0",
+    date: "2026-09-05",
+    title: "The second pass",
+    notes: [
+      "The first pass built the instruments. This one makes them worth looking at, and finishes the three surfaces that were left as scaffolding",
+      "The clock keeps time to the second, on the second — scheduled onto the boundary rather than run off an interval that drifts. It has twelve index marks now, because a face with nothing on it is only readable while the hands are apart, and the minute hand is drawn over the hour hand rather than under it. Half of a sample of twelve times had been rendering as a lozenge on a needle",
+      "The pedometer has a gait. It was a figure translated along a static track on a timer, which reads as a decal on a wire; the pose is now a function of how far along the path the walker stands, so the legs turn over as the ground passes and stop dead when it does. A day that has arrived stands still, which about half of all days were not doing",
+      "Every frame is held to 78% of the viewport, so a frame, its caption, and the top edge of what follows are on screen together. Scrolling to see the rest of a picture is now a choice rather than a repair",
+      "The ground went to #fcfcfc and the frames crossed under it. There is no room above #fcfcfc for a raised surface, so what was the reading ground became the frame and the reading ground climbed a rung — every text pair measured against the page improved, and every pair measured against a frame now measures what it used to measure against the page",
+      "The ramp went warm on the way there and came back. Each grey that replaced a warm value was chosen by matching its relative luminance level for level, so no ratio moved by more than 0.02: the brightness was doing the work and the cast was along for the ride. Pure monochrome is the law again, and the test that enforces it is the original one",
+      "The type dial is gone, and with it the reason every size on the site was locked to rem. Three of the six steps are fluid now, ramping from 320px to 1280px and stopping where the measure stops widening. The three small steps stay fixed: type already at its floor gets worse when it grows with the window, not better",
+      "The hero says what he did and where. The company names in the sentence are the companies' own marks, in their own colours, each carrying the role he held — the only hue the design system spends is still --miss, and a mark reproduced in its own colours is a quotation rather than a palette decision",
+      "The way into a case study was set at the smallest size on the site, in secondary ink, which put the page's primary action below every caption around it. Same shape, at a weight you can find",
+      "About opens with him. The roles read as companies and titles with the dates demoted — two of the three run concurrently, and a ladder that led with dates had to argue with that on screen. A line travels the timeline once, on first sight, and never again",
+      "One photograph, dissolved through the glyph engine. It is a night shot, so a third of its dots were landing on a single brightness step and the picture came out a slab; the frame now derives one exponent for itself that puts its median mid-range, and every existing shot renders byte-identically because it is opt-in",
+      "The colophon has a field anyone can draw on, a wall of the last forty drawings, and a place to leave a line. Rate limiting, length caps and a moderation route shipped in the same commits as the feature, because a free-text field on a public site without a way to take something down is not a finished feature",
+    ],
+  },
+  {
     version: "1.13.0",
     date: "2026-08-26",
     title: "Built for thirty",
