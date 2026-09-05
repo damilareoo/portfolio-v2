@@ -58,7 +58,6 @@ export function GlyphLoading({ label = "Loading" }: { label?: string }) {
         grid={GRID}
         size={SIZE}
         frame={frame}
-        polarity="ink"
         label={`${label}…`}
         className="w-[180px] text-ink"
       />

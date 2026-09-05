@@ -224,3 +224,68 @@ export function artFrame(pixels: Uint8ClampedArray, grid: number): Float32Array 
 
   return sharpen(values, grid, EDGE);
 }
+
+/**
+ * A cover, as the disc actually holds it: its tone, and its own colour.
+ *
+ * The disc used to keep only the tone and throw the colour away — a cover
+ * arrived as a grey dither, and the argument for it was that value is the one
+ * thing this palette trades in. That argument is overruled, and it was the
+ * wrong one to make: the site is monochrome because its *tokens* are, and a
+ * sleeve is no more the site's to recolour than a company's logo is. The marks
+ * in the hero settled this already. Nothing here spends a hue on the design
+ * system; it declines to spend one on somebody else's artwork.
+ *
+ * `tone` is `artFrame` unchanged — levels, midtone, local contrast — and it is
+ * still what makes a sleeve legible at this size. `colour` is each cell's own
+ * average RGB, re-exposed until its luma is the tone the correction asked for.
+ *
+ * Re-exposure rather than a curve per channel, and that is the whole of why
+ * this is still the artwork. A gain is one multiplier on all three channels, so
+ * the ratios between them survive it exactly: hue and saturation come out
+ * untouched and only the exposure moves. Running the levels curve down R, G and
+ * B separately would have shifted every colour on the cover towards grey, which
+ * is the dither again with more steps.
+ *
+ * Two honest costs, stated:
+ *
+ *   - A gain that would take a channel past 255 clips it, and a clipped channel
+ *     loses a little saturation. It happens where the correction is lifting a
+ *     dark cover hard, and the alternative — refusing to lift it — is a black
+ *     disc.
+ *   - A near-black cell has almost no colour to scale, so the epsilon floor on
+ *     its luma keeps the gain finite rather than inventing a hue out of noise.
+ *     Such a cell comes out near-black, which is what it is.
+ */
+export type Artwork = {
+  tone: Float32Array;
+  /** Three bytes per cell, row-major: red, green, blue. */
+  colour: Uint8ClampedArray;
+};
+
+/**
+ * The darkest luma a cell can be read at before the gain stops being a gain.
+ *
+ * Below this a cell is three channels of sensor noise, and dividing by it would
+ * multiply that noise by a hundred and hand back a saturated colour that is not
+ * in the picture.
+ */
+const BLACK = 0.02;
+
+export function artwork(pixels: Uint8ClampedArray, grid: number): Artwork {
+  const count = grid * grid;
+  const tone = artFrame(pixels, grid);
+  const brightness = luma(pixels, count);
+  const colour = new Uint8ClampedArray(count * 3);
+
+  for (let i = 0; i < count; i++) {
+    const gain = tone[i] / Math.max(brightness[i], BLACK);
+    const p = i * 4;
+    const at = i * 3;
+    colour[at] = pixels[p] * gain;
+    colour[at + 1] = pixels[p + 1] * gain;
+    colour[at + 2] = pixels[p + 2] * gain;
+  }
+
+  return { tone, colour };
+}

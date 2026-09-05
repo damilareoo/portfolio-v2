@@ -29,6 +29,7 @@ function recordCanvas() {
     alphas: [] as number[],
     radii: [] as number[],
     xs: [] as number[],
+    inks: [] as string[],
   };
   const ctx = {
     setTransform: () => {},
@@ -45,6 +46,7 @@ function recordCanvas() {
       painted.radii.push(r);
       painted.xs.push(x + w / 2);
       painted.alphas.push(ctx.globalAlpha);
+      painted.inks.push(ctx.fillStyle);
     },
     fill: () => {},
     fillStyle: "",
@@ -308,38 +310,64 @@ describe("GlyphCell", () => {
     expect(clock.pending).toBe(1);
   });
 
-  /* The light skin turns a value into its opposite, which is right for a
-     photograph and catastrophic for a drawing: a figure on an empty field would
-     come out as a hole punched in a solid block of ink. The pedometer card is
-     the caller that would suffer it, so the distinction is pinned here. */
-  it("inverts a luminance on the light skin and leaves ink alone", () => {
-    const dark = new Float32Array(CELLS); // Nothing lit: the empty field.
+  /* A field holds somebody else's picture by being handed its colours, and a
+     colour the site did not choose must survive the skin unchanged. What this
+     replaces is the `polarity` test: the field used to read a value two ways —
+     as a brightness, which inverted on the light skin, or as ink, which did
+     not — because the album disc handed it a photograph's luminance. It hands
+     over the cover's own colours now, so nothing left on the site reads a value
+     as a brightness, and the axis went with the dither. */
+  it("fills a tinted cell with the colour it was given, on either skin", () => {
+    const lit = new Float32Array(CELLS).fill(1);
+    const tint = new Uint8ClampedArray(CELLS * 3);
+    for (let i = 0; i < CELLS; i++) {
+      tint[i * 3] = 200;
+      tint[i * 3 + 1] = 40;
+      tint[i * 3 + 2] = 10;
+    }
 
-    const paint = (polarity: "luminance" | "ink") => {
+    const paint = (theme: "light" | "dark") => {
       reducedMotion(false);
       frameClock();
       const painted = recordCanvas();
       mount(
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-          <GlyphCell grid={GRID} size={SIZE} frame={dark} label="empty" polarity={polarity} />
+        <ThemeProvider attribute="class" defaultTheme={theme} enableSystem={false}>
+          <GlyphCell grid={GRID} size={SIZE} frame={lit} tint={tint} label="cover" />
         </ThemeProvider>,
       );
-      /* The last paint, not the first. The skin effect no longer paints at all
-         — it books a frame, and this test never turns the clock — so what
-         lands last is the trailing `[polarity, draw]` effect, flushed after
-         the skin effect set `invertRef`. That is the coupling noted at those
-         effects in `glyph-cell.tsx`, and this assertion is what would catch
-         it being broken. */
-      const values = painted.alphas.slice(-CELLS).map(valueOf);
+      /* The last paint, not the first. The skin effect books a frame rather
+         than painting, and this test never turns the clock — so what lands last
+         is the trailing `[tint, draw]` effect. That ordering is the coupling
+         noted at those effects in `glyph-cell.tsx`, and this is what would
+         catch it being broken. */
+      const inks = painted.inks.slice(-CELLS);
       act(() => root?.unmount());
       vi.restoreAllMocks();
-      return values;
+      return inks;
     };
 
-    // A dark photograph on a light ground is ink everywhere.
-    for (const value of paint("luminance")) expect(value).toBeCloseTo(1, 6);
-    // An empty drawing is empty on either ground.
-    for (const value of paint("ink")) expect(value).toBeCloseTo(0, 6);
+    for (const theme of ["light", "dark"] as const) {
+      for (const ink of paint(theme)) expect(ink).toBe("rgb(200 40 10)");
+    }
+  });
+
+  it("goes back to its own ink when the tint is taken away", () => {
+    /* The half a "does it tint" test cannot reach: every field on the site
+       draws untinted, so an assertion that a tint arrives passes just as well
+       against a component that never lets go of one. A disc that kept the last
+       cover's colours under the Spotify mark is the failure. */
+    reducedMotion(false);
+    frameClock();
+    const lit = new Float32Array(CELLS).fill(1);
+    const tint = new Uint8ClampedArray(CELLS * 3).fill(90);
+    const painted = recordCanvas();
+
+    mount(<GlyphCell grid={GRID} size={SIZE} frame={lit} tint={tint} label="cover" />);
+    expect(painted.inks.at(-1)).toBe("rgb(90 90 90)");
+
+    act(() => root?.render(<GlyphCell grid={GRID} size={SIZE} frame={lit} label="mark" />));
+    // Whatever jsdom resolves `color` to, it is not the tint that was dropped.
+    expect(painted.inks.at(-1)).not.toBe("rgb(90 90 90)");
   });
 
   it("repaints on the next frame, not inside the effect", () => {
@@ -559,7 +587,7 @@ describe("the floor an unlit dot sits on", () => {
   it("takes the floor from the skin, not from a constant", () => {
     skinDeclares("0.05");
     const painted = paintOne(
-      <GlyphCell grid={GRID} size={SIZE} frame={frame()} polarity="ink" label="dark skin" />,
+      <GlyphCell grid={GRID} size={SIZE} frame={frame()} label="dark skin" />,
     );
 
     // The dark skin's floor, which is not the fallback — so it was read.
@@ -571,7 +599,7 @@ describe("the floor an unlit dot sits on", () => {
   it("falls back to the constant when no stylesheet declares one", () => {
     skinDeclares("");
     const painted = paintOne(
-      <GlyphCell grid={GRID} size={SIZE} frame={frame()} polarity="ink" label="no sheet" />,
+      <GlyphCell grid={GRID} size={SIZE} frame={frame()} label="no sheet" />,
     );
 
     // A field that paints on the fallback floor beats a field that does not paint.
@@ -581,7 +609,7 @@ describe("the floor an unlit dot sits on", () => {
   it("clamps a floor no stylesheet should have declared", () => {
     skinDeclares("5");
     const painted = paintOne(
-      <GlyphCell grid={GRID} size={SIZE} frame={frame()} polarity="ink" label="broken sheet" />,
+      <GlyphCell grid={GRID} size={SIZE} frame={frame()} label="broken sheet" />,
     );
 
     /* Hardening, not a live defect — only an edit to globals.css could get
@@ -598,7 +626,7 @@ describe("the floor an unlit dot sits on", () => {
   it("lets a caller who named a zero keep it, whatever the skin says", () => {
     skinDeclares("0.05");
     const painted = paintOne(
-      <GlyphCell grid={GRID} size={SIZE} frame={frame()} polarity="ink" unlit={0} label="card" />,
+      <GlyphCell grid={GRID} size={SIZE} frame={frame()} unlit={0} label="card" />,
     );
 
     /* `unlit={0}` is the widget cards saying a cell that is off is simply not
@@ -613,7 +641,7 @@ describe("the floor an unlit dot sits on", () => {
   it("lets a caller who named any other floor keep that too", () => {
     skinDeclares("0.05");
     const painted = paintOne(
-      <GlyphCell grid={GRID} size={SIZE} frame={frame()} polarity="ink" unlit={0.3} label="lit card" />,
+      <GlyphCell grid={GRID} size={SIZE} frame={frame()} unlit={0.3} label="lit card" />,
     );
 
     /* Zero is the interesting falsy case and it is not the only case. A caller

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GlyphCell } from "@/components/glyph-cell";
 import { InstrumentReading } from "@/components/instrument-card";
-import { artFrame, spotifyMark } from "@/lib/glyph/glyphs";
+import { artwork, spotifyMark } from "@/lib/glyph/glyphs";
 import { fieldReach, TUNING } from "@/lib/glyph/matrix";
 import { fingerprint, pulsesBetween } from "@/lib/glyph/pulse";
 
@@ -21,7 +21,36 @@ type NowPlaying = {
    restating the answer — which is the shape of the defect this file was
    carrying, two expressions of one fact free to disagree. */
 export const SIZE = 300; // canvas units; CSS scales it
-export const GRID = 48; // dots across
+
+/**
+ * How many dots across the cover is read at.
+ *
+ * It was 48, and 48 was chosen when a cover was a grey dither, where the count
+ * decides how much *shape* survives and nothing else. A cover in its own colour
+ * has to be recognisable as the sleeve it is, and at 48 it was not: measured
+ * against twelve real covers — Kind of Blue, OK Computer, Blonde, Random Access
+ * Memories, Rumours, Made in Lagos, Unknown Pleasures, To Pimp a Butterfly,
+ * Nevermind, Discovery, In Rainbows, Songs About Jane — an album title was
+ * never legible and a face never resolved.
+ *
+ * 48, 56, 64, 72, 80 and 96 were rendered against all twelve on both skins, at
+ * the three sizes the wall actually draws this disc: 218 CSS px at four-up on a
+ * wide screen, 118 in the two-column layout at 375, and 94 at 320.
+ *
+ * The small end is what decides it. The disc is 94px wide on a 320px screen,
+ * and a grid divides that: 64 leaves 1.47 CSS px per cell, 80 leaves 1.18 and
+ * 96 leaves 0.98. Below about one and a half the dot and its gap are the same
+ * pixel, the lattice stops existing, and the instrument is a small blurry
+ * photograph — which is a different thing from the one this site draws. At 64
+ * it is still a field of dots there.
+ *
+ * The wide end is what it buys. At 218px, 64 resolves "MILES DAVIS", the word
+ * "blond", and both Daft Punk helmets, all of which 48 turned to mush. 72 and
+ * 80 read a little sharper still at that size and pay for it at the other one,
+ * which is the trade this number exists to make: one count has to hold at both
+ * ends, and the end that breaks first is the phone.
+ */
+export const GRID = 64; // dots across
 
 /* Where the ring goes, in one expression, and everything else derived from it.
 
@@ -73,6 +102,19 @@ const RING_PERIOD_MS = TUNING.PULSE_PERIOD_MS / RINGS_PER_PULSE;
 
 const PULSE_FORCE = 24;
 
+/**
+ * Every cell lit, which is what a sleeve is: it covers the whole square.
+ *
+ * One array for every cover, deliberately. The field migrates when the values
+ * it is handed change, so this is what makes the two *states* dissolve — mark
+ * to cover and back — and what makes one cover replacing another a cut. Both
+ * covers are full fields; there is nothing between them for the values to
+ * travel through, and a dip to nothing and back would be an animation invented
+ * to cover an edit. A track change is a discrete event and the disc reports it
+ * as one.
+ */
+const FULL = new Float32Array(GRID * GRID).fill(1);
+
 /* What a full track is worth in dash — the ring's whole circumference, in the
    arc box's own units. */
 const ARC_LENGTH = 2 * Math.PI * ARC_RADIUS;
@@ -107,15 +149,29 @@ const ARC_STROKE = 0.6;
 const ARC_MINIMUM = ARC_STROKE * 4;
 
 /**
- * Now-playing as an ordered-dither disc.
+ * Now-playing as a disc of dots holding the cover.
  *
  * Silent, the cells hold the Spotify mark. When a track starts they migrate
- * into the dithered album artwork and back again when it stops, so the disc
- * always says what it is even when there is nothing to show.
+ * into the album artwork and back again when it stops, so the disc always says
+ * what it is even when there is nothing to show.
  *
- * Dithering is what lets real artwork onto a site with no accent hue: the
- * colour is not suppressed, it is discarded, and what is left is the one thing
- * the palette trades in — value.
+ * The artwork arrives in its own colours, and the argument that used to stand
+ * here is the one being overturned. It ran: dithering is what lets real artwork
+ * onto a site with no accent hue, because the colour is not suppressed but
+ * discarded, leaving the one thing the palette trades in — value. That is a
+ * good sentence about a bad decision. The site is monochrome because its
+ * *tokens* are; a sleeve is not a token. Rendering somebody else's cover in
+ * grey is the site recolouring a quotation to match itself, which is exactly
+ * what the company marks in the hero already refused to do, in their own
+ * colours, without a single token moving. Nothing has moved for this one
+ * either.
+ *
+ * What is kept is everything that made it an instrument rather than a picture:
+ * the lattice, the circle, the arrival, the migration between states, and the
+ * ring that reports the playhead. A cell is still a dot on a grid. What changed
+ * is what a lit dot is filled with. See `GRID` for the second half of the
+ * owner's note — *"the artwork should be clearer"* — which colour alone does
+ * not answer.
  *
  * Two things move while a track plays, and both are readouts rather than
  * decoration: an arc that says how far through it is, and a ring every two
@@ -132,17 +188,11 @@ const ARC_MINIMUM = ARC_STROKE * 4;
 export function NowPlayingDisc({ className = "" }: { className?: string }) {
   const markRef = useRef<Float32Array | null>(null);
   const [frame, setFrame] = useState<Float32Array | null>(null);
-  /* How the field's values are to be read, which is a property of what is in
-     it and not of this component — so it travels with the frame rather than
-     being fixed once at the call site. Artwork is a photograph: its values say
-     how bright the sleeve is, so they have to flip with the ground. The
-     Spotify mark is a figure: its values say where the mark is, and a mark is
-     a mark on either skin. Read as a luminance it inverted on the light skin
-     and the disc became a solid field of ink with the logo punched out of it.
-
-     It opens on "ink" because the mark is the first thing the disc ever
-     holds. */
-  const [polarity, setPolarity] = useState<"luminance" | "ink">("ink");
+  /* What each cell is filled with, when it is filled with something that is not
+     the site's own ink. Null while the disc is drawing the mark, and the cover's
+     own colours while a track is playing. It travels with the frame, always —
+     see `show`. */
+  const [tint, setTint] = useState<Uint8ClampedArray | null>(null);
   const [track, setTrack] = useState<NowPlaying | null>(null);
 
   const trackRef = useRef<NowPlaying | null>(null);
@@ -222,29 +272,31 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
   useEffect(() => {
     const art = track?.isPlaying ? track.artUrl : undefined;
 
-    /* Whatever the field is handed, the pulse needs to know where its light
-       gathers — the one thing that differs between one cover and the next.
+    /* A frame and its colours are one statement and are set together, never
+       apart. The two setters land in one batched commit, and GlyphCell flushes
+       its frame effect before its tint effect — so the frame is drawn once
+       against the *previous* tint before the second effect redraws it
+       correctly. That is harmless only because both of those draws are
+       synchronous inside the same commit and the browser never gets a paint
+       between them. It stops being harmless the moment either is deferred, and
+       the failure would be one frame of this cover wearing the last one's
+       colours. If a frame ever has to be scheduled rather than drawn, the tint
+       has to travel with it rather than arrive in its own effect.
 
-       These two setters land in one batched commit, and GlyphCell flushes its
-       frame effect before its polarity effect — so the frame is drawn once
-       against the *previous* polarity before the second effect redraws it
-       correctly. Harmless today, and only because both of those draws are
-       synchronous inside the same commit: the browser never gets a paint
-       between them. It stops being harmless the moment either one is deferred,
-       and the failure would be a single inverted frame of the disc — a black
-       circle with the sleeve punched out of it, which is the exact defect the
-       polarity distinction exists to prevent. If a frame ever has to be
-       scheduled rather than drawn, the polarity has to travel with it rather
-       than arrive in its own effect. */
-    const show = (values: Float32Array, reading: "luminance" | "ink") => {
-      printRef.current = fingerprint(values);
+       `tone` is what the pulse reads, and it is not what the field draws. The
+       ring's strength rides on how much light a cover gathers, which is a
+       property of the picture rather than of the dots — so the fingerprint is
+       taken on the cover's corrected brightness, and the field is handed the
+       presence values and the colours separately. */
+    const show = (values: Float32Array, tone: Float32Array, colour: Uint8ClampedArray | null) => {
+      printRef.current = fingerprint(tone);
       setFrame(values);
-      setPolarity(reading);
+      setTint(colour);
     };
 
     const toMark = () => {
       markRef.current ??= spotifyMark(GRID);
-      show(markRef.current, "ink");
+      show(markRef.current, markRef.current, null);
     };
 
     if (!art) {
@@ -272,7 +324,14 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
       octx.imageSmoothingQuality = "high";
       octx.drawImage(img, 0, 0, GRID, GRID);
       try {
-        show(artFrame(octx.getImageData(0, 0, GRID, GRID).data, GRID), "luminance");
+        const cover = artwork(octx.getImageData(0, 0, GRID, GRID).data, GRID);
+        /* Every cell of a sleeve is lit, because a sleeve covers its whole
+           square: the picture is in the colours now, not in which dots are on.
+           What the values still do is carry the migration between the mark and
+           the cover, and the arrival sweep — both of which are about how much
+           of the field has surfaced, which is exactly what a presence channel
+           is for. */
+        show(FULL, cover.tone, cover.colour);
       } catch {
         return; // tainted despite the proxy — hold the mark
       }
@@ -390,7 +449,7 @@ export function NowPlayingDisc({ className = "" }: { className?: string }) {
           size={SIZE}
           shape="circle"
           frame={frame}
-          polarity={polarity}
+          tint={tint}
           onTick={onTick}
           label={label}
           /* No `cursor-pointer`: a pointer cursor over something that is not

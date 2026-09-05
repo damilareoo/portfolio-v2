@@ -81,7 +81,6 @@ function Tile({ drawing }: { drawing: Drawing }) {
         grid={PAD_GRID}
         size={TILE}
         frame={frame}
-        polarity="ink"
         label={
           drawing.signature
             ? `A drawing, signed ${drawing.signature}`

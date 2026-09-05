@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { artFrame, emptyFrame } from "./glyphs";
+import { artFrame, artwork, emptyFrame } from "./glyphs";
 
 const GRID = 48;
 
@@ -111,5 +111,45 @@ describe("artFrame", () => {
     // Both are flat, so both come back as their own luma, untouched.
     expect(artFrame(green, 4)[0]).toBeCloseTo(0.587, 3);
     expect(artFrame(blue, 4)[0]).toBeCloseTo(0.114, 3);
+  });
+});
+
+describe("artwork", () => {
+  /** One flat colour across the whole cover, as a pixel buffer. */
+  const flat = (r: number, g: number, b: number): Uint8ClampedArray => {
+    const pixels = new Uint8ClampedArray(GRID * GRID * 4);
+    for (let i = 0; i < GRID * GRID; i++) {
+      pixels[i * 4] = r;
+      pixels[i * 4 + 1] = g;
+      pixels[i * 4 + 2] = b;
+      pixels[i * 4 + 3] = 255;
+    }
+    return pixels;
+  };
+
+  it("keeps the tone `artFrame` derived", () => {
+    const narrow = cover((row) => 0.42 + (row / GRID) * 0.1);
+    expect(Array.from(artwork(narrow, GRID).tone)).toEqual(Array.from(artFrame(narrow, GRID)));
+  });
+
+  it("carries three bytes for every cell", () => {
+    expect(artwork(flat(120, 60, 30), GRID).colour).toHaveLength(GRID * GRID * 3);
+  });
+
+  it("leaves hue and saturation where the artwork put them", () => {
+    /* The whole reason the exposure is a gain rather than a curve per channel:
+       a multiplier cannot move the ratios between the channels, so the colour
+       that comes out is the colour that went in at a different brightness. Run
+       down R, G and B separately and every cover drifts towards grey, which is
+       the dither again with more steps. */
+    const { colour } = artwork(flat(180, 90, 45), GRID);
+    expect(colour[0] / colour[1]).toBeCloseTo(2, 2);
+    expect(colour[1] / colour[2]).toBeCloseTo(2, 2);
+  });
+
+  it("does not invent a colour for a cell that has none", () => {
+    // Near-black is three channels of noise. The floor keeps the gain finite.
+    const { colour } = artwork(flat(2, 1, 1), GRID);
+    expect(colour[0]).toBeLessThan(40);
   });
 });

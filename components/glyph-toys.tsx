@@ -286,7 +286,6 @@ export function GlyphToys() {
           size={SIZE}
           shape="circle"
           frame={frame}
-          polarity="ink"
           label={`${toy}: ${said}`}
           className="w-[200px] max-w-full text-ink select-none"
         />

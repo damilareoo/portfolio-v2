@@ -32,12 +32,6 @@ export function WeatherFace({ face }: { face: Face }) {
       size={SIZE}
       shape="circle"
       pixel="round"
-      /* A sun, a cloud, four rain strokes: figures, not a photograph. A value
-         here says where the marks are, and a mark is a mark on either skin —
-         so it must not flip. Left on the default `luminance` the light skin
-         inverted the whole field and drew a solid black disc with a
-         cloud-shaped hole punched out of it. */
-      polarity="ink"
       frame={frame}
       label="Lagos weather"
       className="w-full"

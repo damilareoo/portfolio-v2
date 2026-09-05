@@ -1,34 +1,35 @@
-// components/glyph-polarity.test.tsx
+// components/glyph-tint.test.tsx
 // @vitest-environment jsdom
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * Which faces flip with the skin, and which ones must not.
+ * Which faces draw in somebody else's colours, and which draw in the site's.
  *
- * `GlyphCell` reads a value two ways. A luminance says how bright the depicted
- * thing is, so it has to flip with the ground — right for a photograph. Ink
- * says where the marks are, and a mark is a mark on either skin. A figure read
- * as a luminance comes out on the light skin as a hole punched in a solid
- * field: the weather disc was a black circle with a cloud-shaped gap in it,
- * and the silent music disc a black circle with the Spotify logo cut out.
+ * `GlyphCell` fills a cell with its own ink unless it is handed a tint. A tint
+ * is a quotation — an album cover, today — and it must arrive exactly when the
+ * field is holding one and never a frame longer. What a tint *does* to the
+ * paint is pinned in `glyph-cell.test.tsx`, against the fills. What each face
+ * asks for is pinned here, because that is the part a caller gets wrong.
  *
- * What that polarity *means* is pinned in `glyph-cell.test.tsx`, against the
- * pixels. What each face asks for is pinned here, because that is the part a
- * caller gets wrong — both defects were a missing or mis-fixed prop, not a
- * fault in the paint.
+ * This replaces the polarity test that stood here. The field used to read a
+ * value two ways — as a brightness that inverted on the light skin, or as ink
+ * that did not — and the whole reason was that the disc handed it a
+ * photograph's luminance. Colour cells took the photograph out of the value
+ * channel, the axis lost its only caller, and it went. The cases below are the
+ * same cases: they ask the same question about the same transitions.
  *
- * The music disc is the interesting one: its polarity belongs to whatever the
- * field is holding, not to whether a track is playing. Artwork is a photograph
- * and wants luminance; the mark is a figure and wants ink — and the disc holds
- * the mark for a while after a track starts, until the cover has loaded.
+ * The music disc is the interesting one: what it hands over belongs to whatever
+ * the field is holding, not to whether a track is playing. The disc holds the
+ * mark for a while after a track starts, until the cover has loaded, and it
+ * must be drawing in the site's ink for every frame of that.
  */
 
-const seen: { polarity?: string }[] = [];
+const seen: { tint?: Uint8ClampedArray | null }[] = [];
 
 vi.mock("@/components/glyph-cell", () => ({
-  GlyphCell: (props: { polarity?: string }) => {
+  GlyphCell: (props: { tint?: Uint8ClampedArray | null }) => {
     seen.push(props);
     return null;
   },
@@ -39,13 +40,13 @@ const { WeatherFace } = await import("@/components/weather-face");
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-const GRID = 48; // The disc's own grid; the fake cover is read back at this size.
+const GRID = 64; // The disc's own grid; the fake cover is read back at this size.
 
 let root: Root | null = null;
 let host: HTMLElement | null = null;
 
-/** The polarity the face is asking for right now. */
-const polarity = () => seen.at(-1)?.polarity;
+/** Whether the face is asking to be drawn in colours of its own right now. */
+const tinted = () => Boolean(seen.at(-1)?.tint);
 
 async function mount(element: React.ReactElement) {
   host = document.createElement("div");
@@ -64,8 +65,8 @@ const answers = (body: unknown) =>
  *
  * jsdom neither loads images nor rasterises, so both are stood in for: the
  * image reports itself loaded, and the offscreen canvas it is drawn into hands
- * back a real byte array for `artFrame` to average. The bytes are a gradient
- * rather than anything meaningful — this test is about which reading is asked
+ * back a real byte array for `artwork` to average. The bytes are a gradient
+ * rather than anything meaningful — this test is about whether a tint is asked
  * for, not what the sleeve looked like.
  */
 function coverLoads() {
@@ -122,28 +123,28 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("what each face says a value means", () => {
-  it("reads the weather as ink, because a sun and a cloud are figures", async () => {
+describe("which faces draw in colours of their own", () => {
+  it("draws the weather in the site's ink, because a sun and a cloud are ours", async () => {
     await mount(<WeatherFace face="cloudy" />);
-    expect(polarity()).toBe("ink");
+    expect(tinted()).toBe(false);
   });
 
-  it("reads the silent Spotify mark as ink", async () => {
+  it("draws the silent Spotify mark in the site's ink", async () => {
     vi.stubGlobal("fetch", answers({ isPlaying: false }));
     await mount(<NowPlayingDisc />);
-    expect(polarity()).toBe("ink");
+    expect(tinted()).toBe(false);
   });
 
-  it("still reads ink while a track plays but its cover has not arrived", async () => {
-    /* The polarity follows what the field is holding, not what the route said.
-       Pinned to `playing` instead, the disc would invert the mark it is still
+  it("holds the site's ink while a track plays but its cover has not arrived", async () => {
+    /* The tint follows what the field is holding, not what the route said.
+       Pinned to `playing` instead, the disc would tint the mark it is still
        showing the moment a track started. */
     vi.stubGlobal("fetch", answers({ isPlaying: true, title: "A", artist: "B", artUrl: undefined }));
     await mount(<NowPlayingDisc />);
-    expect(polarity()).toBe("ink");
+    expect(tinted()).toBe(false);
   });
 
-  it("turns to luminance once the artwork is in the field", async () => {
+  it("takes the cover's own colours once the artwork is in the field", async () => {
     coverLoads();
     vi.stubGlobal(
       "fetch",
@@ -153,16 +154,17 @@ describe("what each face says a value means", () => {
     await act(async () => {
       await Promise.resolve();
     });
-    // A sleeve is a photograph: its values are brightness, and must flip.
-    expect(polarity()).toBe("luminance");
+    // A sleeve belongs to whoever made it, and arrives in its own colours.
+    expect(tinted()).toBe(true);
+    expect(seen.at(-1)!.tint).toHaveLength(GRID * GRID * 3);
   });
 
-  it("turns back to ink when the next track brings no cover", async () => {
-    /* The transition this mechanism exists for, and the half that was never
-       tested. Every other case here asserts "ink", which is also
-       `useState("ink")`'s initial value — so gutting `setPolarity` entirely
-       left them all green. Only a field that has actually been to luminance
-       and come back proves the wire is connected at both ends.
+  it("gives the colours back when the next track brings no cover", async () => {
+    /* The transition this mechanism exists for, and the half a one-sided test
+       cannot reach. Every other case here asserts "no tint", which is also the
+       initial state — so gutting `setTint` entirely would leave them all green.
+       Only a field that has actually held a cover and let it go proves the wire
+       is connected at both ends.
 
        This is reachable, not contrived: a track with no artwork following one
        that had it is an ordinary pair of songs, and it is the same path
@@ -185,13 +187,13 @@ describe("what each face says a value means", () => {
     await act(async () => {
       await Promise.resolve();
     });
-    expect(polarity()).toBe("luminance");
+    expect(tinted()).toBe(true);
 
     // Thirty seconds on, the next poll: playing still, but nothing to look at.
     await act(async () => {
       await vi.advanceTimersByTimeAsync(30_000);
     });
-    // The field is holding the mark again, and a mark is a mark on either skin.
-    expect(polarity()).toBe("ink");
+    // The field is holding the mark again, and the mark is the site's own.
+    expect(tinted()).toBe(false);
   });
 });

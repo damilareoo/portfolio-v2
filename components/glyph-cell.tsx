@@ -101,6 +101,23 @@ function skinFloor(style: CSSStyleDeclaration): number {
 }
 
 /**
+ * Three bytes a cell into the strings canvas will take, once.
+ *
+ * `fillStyle` is a string, so a per-cell colour is a per-cell string. Built here
+ * when the tint arrives rather than in `draw`, where a 64-cell field running at
+ * 60fps would allocate a quarter of a million of them a second to say the same
+ * four thousand things.
+ */
+function toInk(tint: Uint8ClampedArray): string[] {
+  const ink = new Array<string>(tint.length / 3);
+  for (let i = 0; i < ink.length; i++) {
+    const at = i * 3;
+    ink[i] = `rgb(${tint[at]} ${tint[at + 1]} ${tint[at + 2]})`;
+  }
+  return ink;
+}
+
+/**
  * A field of cells on a canvas, holding whatever frame it is given.
  *
  * The component owns only what a browser has to own: the canvas, the pointer,
@@ -123,7 +140,7 @@ export function GlyphCell({
   pixel = "square",
   unlit,
   migrate,
-  polarity = "luminance",
+  tint,
   pages,
   page = 0,
   onPageChange,
@@ -163,8 +180,23 @@ export function GlyphCell({
       rate; a caller animating a sequence says so here and gets a cut instead of
       a dissolve. See `VALUE_RATE` in lib/glyph/matrix.ts. */
   migrate?: number;
-  /** What a value *is*. See `draw`. */
-  polarity?: "luminance" | "ink";
+  /** One colour per cell — three bytes each, row-major, the same order `frame`
+      is in — or nothing, which is the usual case and means the field draws in
+      its own ink.
+
+      This is what lets a field hold something that belongs to somebody else.
+      An album cover is the only caller today, and the reasoning is the hero's:
+      a mark or a sleeve reproduced in the site's ink is a quotation the site
+      has recoloured to suit itself. `frame` still says how present each cell
+      is; `tint` says what a present cell is filled with.
+
+      It must arrive in the same commit as the frame it belongs to. See the
+      effect that reads it.
+
+      The array is not copied. A caller that mutates one it has already handed
+      over will find the field drawing the mutation on its next frame, which is
+      the same contract `frame` has. */
+  tint?: Uint8ClampedArray | null;
   /** How many faces this field wears. Paging is off entirely without it. */
   pages?: number;
   page?: number;
@@ -182,27 +214,26 @@ export function GlyphCell({
   const loopRef = useRef<Loop | null>(null);
   const lastRef = useRef(0);
   const reducedRef = useRef(false);
-  const invertRef = useRef(false);
   const pixelRef = useRef(pixel);
   const unlitRef = useRef(unlit);
   const migrateRef = useRef(migrate);
-  const polarityRef = useRef(polarity);
+  /* The tint, already turned into the strings canvas wants. Built once when the
+     tint arrives rather than per cell per frame: a field of this size would
+     otherwise allocate several hundred thousand short-lived strings a second to
+     say the same four thousand things. */
+  const inkRef = useRef<string[] | null>(null);
   const swipeRef = useRef<{ x: number; y: number } | null>(null);
   const sweepRef = useRef<number | null>(null);
 
   const { resolvedTheme } = useTheme();
-
-  /* Ink is light on a dark ground and dark on a light one, so "more ink" flips
-     with the skin. Without this the field reads as a negative. */
-  const invert = resolvedTheme === "light";
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
     /* A field that has never been handed a frame has nothing to say, and a
-       field of zeroes is not silence — on the light skin it inverts to full
-       ink, a solid disc. It stays blank until it is given something. */
+       field of zeroes is not the same statement as an empty one. It stays blank
+       until it is given something. */
     if (!primedRef.current) return;
 
     const cellSize = size / grid;
@@ -233,18 +264,22 @@ export function GlyphCell({
     const round = pixelRef.current === "round";
     const floor = unlitRef.current ?? skinFloor(skin);
 
-    /* And two meanings for the number itself. A luminance says how bright the
-       depicted thing is, so it has to flip with the ground: a photograph's
-       highlights are ink on white paper and bare screen on a dark one. Ink says
-       where the marks are, and a mark is a mark on either ground — a figure
-       drawn as a luminance would come out as a hole punched in a solid field
-       the moment the light skin inverted it. */
-    const flip = invertRef.current && polarityRef.current === "luminance";
+    /* What a lit cell is filled with, and the only thing that differs between a
+       field drawing itself and a field holding somebody else's picture.
+
+       There used to be a second axis here — a `polarity`, which said whether a
+       value meant "how bright the depicted thing is" or "where the marks are",
+       because a photograph read as brightness has to invert with the ground and
+       a figure must not. Every field on the site said "ink". The one that said
+       "luminance" was the album disc, and it does not read a brightness any
+       more: the cover arrives as colour and its own values are what a cell is
+       filled with, on either skin, with nothing to flip. A distinction with one
+       side left is not a distinction, so it went with the dither. */
+    const ink = inkRef.current;
 
     /* The arrival masks ink, not value. The field is already holding its real
-       frame — the sweep only says how much of it has surfaced yet — so it is
-       applied after the flip, where a zero means "no mark" on either skin
-       rather than "black". Reading the clock without owning it is deliberate:
+       frame — the sweep only says how much of it has surfaced yet. Reading the
+       clock without owning it is deliberate:
        `draw` is called from effects as well as from the loop, and a sweep that
        expired while the loop was stopped must resolve to a full field here
        rather than be cancelled on a frame nobody is counting. */
@@ -260,11 +295,15 @@ export function GlyphCell({
     const { side, radius } = pixelGeometry(cellSize);
 
     for (const cell of cellsRef.current) {
-      const lit = flip ? 1 - cell.v : cell.v;
-      const value = mask ? lit * mask[cellIndex(cell, grid, size)] : lit;
+      const at = mask || ink ? cellIndex(cell, grid, size) : 0;
+      const value = mask ? cell.v * mask[at] : cell.v;
       const alpha = floor + value * (1 - floor);
       if (alpha <= 0.004) continue;
       ctx.globalAlpha = alpha;
+      /* One state change per cell, and only where there is a picture to pay it
+         for. A tinted field cannot batch: every cell is its own colour, which
+         is what having the artwork's colour means. */
+      if (ink) ctx.fillStyle = ink[at];
       ctx.beginPath();
       if (round) {
         ctx.arc(cell.x + cell.ox, cell.y + cell.oy, side / 2, 0, Math.PI * 2);
@@ -411,13 +450,13 @@ export function GlyphCell({
      `resolvedTheme` reaches this component one commit before the skin reaches
      the document: next-themes writes the class on `<html>` from a
      `ThemeProvider` effect, and React flushes effects child-first, so this
-     effect runs while `<html>` still carries the *outgoing* class. `draw`
-     picks its ink out of `getComputedStyle(canvas).color`, so painting here
-     would stamp the old skin's ink into the bitmap with `invert` already
-     flipped to the new skin's meaning — and a bitmap is not re-derived from
-     CSS, so nothing would ever correct it. Measured: the paint landed 0.2-0.6
-     ms before the class, with zero frames between, and the dots then held
-     1.04 : 1 against their own card for as long as the field stayed still.
+     effect runs while `<html>` still carries the *outgoing* class. `draw` picks
+     both of its skin numbers — the ink and the unlit floor — out of
+     `getComputedStyle(canvas)`, so painting here would stamp the old skin's ink
+     into the bitmap, and a bitmap is not re-derived from CSS, so nothing would
+     ever correct it. Measured: the paint landed 0.2-0.6 ms before the class,
+     with zero frames between, and the dots then held 1.04 : 1 against their own
+     card for as long as the field stayed still.
 
      A frame callback cannot run inside the task that flushed these effects, so
      it is strictly ordered after the provider's class write and reads the
@@ -436,10 +475,9 @@ export function GlyphCell({
      on the path that was already correct, in exchange for the explicit toggle
      not freezing the wrong ink in place for good. */
   useEffect(() => {
-    invertRef.current = invert;
     const booked = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(booked);
-  }, [invert, draw]);
+  }, [resolvedTheme, draw]);
 
   /* Kept apart from the pair below on purpose. This one changes how fast the
      field travels rather than what it looks like when it arrives, so it has
@@ -451,23 +489,36 @@ export function GlyphCell({
   }, [migrate]);
 
   /* These two draw synchronously, and that is load-bearing beyond their own
-     props. They are flushed after the skin effect above, which now only books
-     its repaint rather than performing it — so on the very first commit these
-     are what paint the field with `invertRef` already set. Drop the `draw()`
-     from either as a "these are only refs, nothing to repaint" tidy-up and
-     mount will paint a one-frame inverted field before the booked frame
-     corrects it. The light skin's opening frame is a solid disc, which is the
-     thing the whole polarity distinction exists to prevent. */
+     props. They are flushed after the skin effect above, which only books its
+     repaint rather than performing it — so on the very first commit these are
+     what paint the field at all. Drop the `draw()` from either as a "these are
+     only refs, nothing to repaint" tidy-up and mount paints nothing until a
+     frame callback comes round, which the eye reads as the field arriving late
+     and the loop, if there is nothing else in flight, never wakes to fix. */
   useEffect(() => {
     pixelRef.current = pixel;
     unlitRef.current = unlit;
     draw();
   }, [pixel, unlit, draw]);
 
+  /* The tint, turned into canvas's own colour strings once and kept.
+
+     It has to arrive in the same commit as the frame it belongs to, and that is
+     a real constraint rather than a preference. This effect is flushed after the
+     one that takes the frame, so two setters batched into one commit leave the
+     frame drawn once against the *previous* tint before this redraws it
+     correctly. That is harmless only because both of those draws are
+     synchronous inside the same commit and the browser never gets a paint
+     between them. It stops being harmless the moment either is deferred, and
+     the failure would be one frame of an album cover wearing the last one's
+     colours. A caller that sets one without the other is asking for exactly
+     that.
+
+     `null` is the common case: a field with no tint draws in its own ink. */
   useEffect(() => {
-    polarityRef.current = polarity;
+    inkRef.current = tint ? toInk(tint) : null;
     draw();
-  }, [polarity, draw]);
+  }, [tint, draw]);
 
   const toLocal = (event: React.PointerEvent<HTMLElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();

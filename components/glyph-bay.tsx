@@ -407,7 +407,6 @@ export function Pedometer() {
               grid={GRID}
               size={SIZE}
               frame={frame}
-              polarity="ink"
               /* Round cells on a clean surface: the readings quote the LED
                  panel rather than imitate it, so there is no unlit lattice
                  behind them and a cell that is off is simply not there. */

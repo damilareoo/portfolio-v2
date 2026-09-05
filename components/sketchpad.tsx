@@ -196,7 +196,6 @@ export function Sketchpad() {
           grid={PAD_GRID}
           size={SIZE}
           frame={frame}
-          polarity="ink"
           label={`Sketchpad, ${lit} of ${PAD_CELLS} dots lit`}
           className="w-full text-ink"
         >
