@@ -10,6 +10,19 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.14.1",
+    date: "2026-09-05",
+    title: "ChessEver has a mark",
+    notes: [
+      "ChessEver supplied its logo, so the third name in the hero is the company's own artwork rather than the site's mono standing in for artwork that did not exist. The same mark draws on the About timeline, because a mark that reads two ways on two pages is two marks",
+      "It is a symbol, not a wordmark, and that is a different thing to draw. A symbol spells nothing, so shown on its own it would have left the sentence naming two companies and showing a shape for a third. It prints as a lockup — the artwork, then the name in the site's mono at the cap height the other two marks are scaled to",
+      "No tile and no border, which is a decision rather than an omission. Both exist to serve an opaque plate: the crop is what pulls a wordmark off 1200x630 of someone else's empty ground, and the hairline is what gives Endgame's #111111 an edge on a #090909 skin it otherwise measures 1.06 against. This file is the artwork edge to edge on a transparent ground, so a box drawn round it would be a box that is not in the logo",
+      "The symbol prints at 1.12em against a 0.725em cap, chosen by rendering seven sizes beside the other two on both skins and looking. A square set to the cap height of the type beside it reads smaller than a wordmark of that cap, and this one is five blocks with gutters rather than a solid field, so it has to run past the tallest wordmark's ink to stand level with it. It is also the step at which the king at its centre resolves as a notch rather than a smudge",
+      "Endgame's and HEX's tiles did not move. Their geometry and their rendered pixels were diffed against the previous version on both skins, rather than assumed",
+      "The type now says which kind of artwork a company brought instead of every mark declaring a cap height, since a symbol has not got one. The bare-type path is still there for the next company that arrives without a file; it just has no caller today",
+    ],
+  },
+  {
     version: "1.14.0",
     date: "2026-09-05",
     title: "The second pass",
