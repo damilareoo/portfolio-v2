@@ -21,6 +21,7 @@ export const changelog: ChangelogEntry[] = [
       "The picture is bigger and is now what absorbs a short screen: the crop went from 4:5 to 3:4 and its column from 20 to 28rem, with its height driven off the viewport rather than a fixed measure. On a tall screen it is the largest thing on the page; on a short one it gives way first",
       "The page fits the viewport without scrolling at every desktop and tablet size measured — 1280x800, 1440x900, 1512x982, 1440x1080 and 768x1024 all land at exactly the viewport height. A phone still scrolls, and should: fitting a record, a portrait and three roles into 812px means type nobody can read",
     ],
+    deployment: "https://portfolio-v2-bz8z3i7py-damilares-projects-fc682e5f.vercel.app",
   },
   {
     version: "1.16.0",
