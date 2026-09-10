@@ -456,7 +456,7 @@ export default function AboutPage() {
           <SheetHeading>At hand</SheetHeading>
 
           <div className="mt-5 grid gap-x-10 gap-y-10 md:grid-cols-2">
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+            <div className="grid grid-cols-4 gap-x-1.5 gap-y-3 sm:grid-cols-6">
               {AT_HAND.map((tool) => (
                 <div key={tool.name}>
                   {/* A tile's corner is not a frame's corner. `--radius-tile`
@@ -467,7 +467,7 @@ export default function AboutPage() {
                   <span className="flex aspect-square items-center justify-center rounded-[5px] border border-line">
                     <GlyphText text={tool.code} size="0.75rem" className="text-ink-3" />
                   </span>
-                  <span className="mt-1.5 block break-words text-center font-mono text-2xs leading-tight uppercase tracking-normal text-ink-3">
+                  <span className="mt-1.5 block break-words text-center font-mono text-2xs leading-tight uppercase tracking-tight text-ink-3">
                     {tool.name}
                   </span>
                 </div>

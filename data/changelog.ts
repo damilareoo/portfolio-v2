@@ -10,6 +10,26 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.15.0",
+    date: "2026-09-10",
+    title: "Less of everything, and the artwork in colour",
+    notes: [
+      "Subtraction, all the way through. Nothing here is a new feature: the hero says less, the footer holds less, the colophon is a colophon again, a case card opens onto one more frame instead of five, and About stopped being an essay",
+      "The hero is a sentence again. Three stacked rows of mark and role were a table wearing a sentence's clothes — three logos in a column say he was near three companies rather than what he was at them. The roles are carried by the grammar now, with the marks standing in the line, and the sentence is derived from the record so a fourth company does not need copy rewritten",
+      "The email left the hero. Book a call is the action and the email was the same action in a quieter voice",
+      "An album cover arrives in its own colours. The disc mapped every cell to a luminance and drew it in the site's ink, so a sleeve came out a grey dither; each cell now carries the artwork's own RGB. The site is monochrome because its tokens are, and a cover is not a token — no token moved for this, any more than one moved for the company marks",
+      "The disc's grid goes 48 to 64. Twelve real covers were rendered at six counts on both skins at the three widths the wall draws it: the phone decides it, because at 94px a 64-cell field still leaves 1.47 CSS pixels a cell and reads as dots, where 80 leaves 1.18 and the lattice stops existing",
+      "An instrument with nothing to report shows its field, and nothing on it. The four resting states shared nothing — a dithered Spotify logo, four faint dots, a grey wash at a value nobody could justify — and read as four different apologies rather than one panel at rest. They are all the lattice now, at whatever the skin says an unlit cell is worth. The clock keeps its filled face, because it is the one bay that always has a reading",
+      "The footer says where the site goes. Twelve links wrapping under four instruments was the thing being pointed at; the seven networks went, and the line is two ideas — the site on the left, contact on the right — rather than one queue a reader has to parse",
+      "About is a sheet. It is a filed record now, laid out as a single centred document: a header band with a bordered reference table, an identification string under the heaviest rule on the page, eight label-value fields, and the photograph standing beside them",
+      "Two of those fields are read live, from the same clock and the same Lagos forecast the footer's instruments read. A record that carries a live field is a record being kept rather than one typed once",
+      "The photograph stands against a graduated board. Lines cross it edge to edge with numerals outside on both sides, decreasing downward as a height chart does — and it measures the photograph, not the man. Each numeral is how many rows above the foot of the file that line sits, so a 1104-row file graduates itself and nothing on the page claiming to be a record was invented",
+      "The colophon is a colophon. The drawing pad, the wall of drawings, the comment list, the five glyph toys and the three draggable type specimens are gone, along with the routes and the moderation secret behind them. What is left is the value ladder, the stack, the provenance of the dot language, and the thanks",
+      "A case card opens onto one more frame, not five. Nothing left data/work.ts — every block each piece was authored with is still there, and one number decides how many a card draws",
+      "The inset plate now fits what it holds. A phone capture is held to 22rem however wide the page is, so a column-wide plate around one of them was 84% empty — air in a reel of seven, a card that gave up as one of three",
+    ],
+  },
+  {
     version: "1.14.2",
     date: "2026-09-05",
     title: "Shots return to the field",
