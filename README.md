@@ -29,7 +29,7 @@ Four, and the nav names all four.
 
 | Route | Holds |
 |---|---|
-| `/` | The work itself — a hero statement, then three numbered products, each unfolding in place, and the instrument wall at the foot |
+| `/` | The work itself — a hero statement, then four numbered products, each unfolding in place, and the instrument wall at the foot |
 | `/shots` | The gallery. `/feed` redirects here permanently |
 | `/about` | A filed record of him — a centred sheet of label-value fields, with the photograph standing against a graduated board |
 | `/colophon` | How the site is made: the value ladder, the stack, and what the dot language owes |
@@ -40,7 +40,9 @@ Four, and the nav names all four.
 
 There is no archive surface and no index. `/work` held a filtered restatement of a page the visitor had already read; the dated list beside the selected pieces made the same argument twice, once as an argument and once as an inventory. Both are gone, and so is the era layer that grouped the pieces by employer — it spent two of its five sections announcing it had nothing to show.
 
-What is left is the work itself: three products, numbered by position, each showing a title, a one-liner and the first two blocks of its reel, with the rest behind one control. Roles moved to `/about`, where they belong: they are a fact about the person, not a piece of work.
+What is left is the work itself: four products, numbered by position, each showing a title, a one-liner and the first two blocks of its reel, with the rest behind one control. Roles moved to `/about`, where they belong: they are a fact about the person, not a piece of work.
+
+Two of the four are iOS apps and open on an App Store card rather than on a frame of their own. See **The App Store card** below. The head of a product is a number and a title and nothing else — the year sits in the record inside the fold, because four products in a column repeat it four times while telling a reader almost nothing, and the card had to be paid for out of the surface everyone scans.
 
 ## The icon language
 
@@ -284,7 +286,8 @@ page's was the one that disagreed — mono uppercase labels, values ranged right
 read as foreign rather than as under-designed. It was not the layout.
 
 A product shows its title, one-liner and first two blocks, and holds the rest behind one full-width
-bar that names what it opens:
+bar that names what it opens (an app shows its store card and holds both of its snips behind the
+bar; the frame count is three either way):
 `intro`, the record rows, `approach`, then the tail of the reel, all in one centred `34rem` column.
 There is no rail and no second column — the home is a single column of products, and prose set
 beside a reel needs somewhere to sit. The fold collapses with grid rows rather than `hidden`, so every word
@@ -301,6 +304,40 @@ stays crawlable and findable by cmd-F; that is the one thing retiring the case p
 `inset` is what gives a reel rhythm: without a plate every frame is the same width and the page reads as a contact sheet. `text` and `quote` survive for anything that genuinely needs prose mid-reel, but the rail is where words go now.
 
 Blocks without a `src` consume the project's assets in filename order, so dropping files into `public/work/<slug>` fills a reel without editing data. A declared `ratio` only shapes a slot while it is empty — real art always carries its own dimensions — so placeholder ratios stay shallow rather than opening a portrait-sized void.
+
+## The App Store card
+
+`components/app-store-card.tsx`, fed by `lib/app-store.ts` and floored by `data/app-store.ts`.
+
+A literal embed is impossible: `apps.apple.com` answers with `x-frame-options: DENY` and a policy
+carrying `frame-ancestors 'none'`, and there is no widget and no oEmbed. What Apple serves to anyone
+is the unauthenticated iTunes Lookup API, so the card is the store's own product header drawn by this
+site — the icon, the listing's name, the seller, the genre, the rating with its count, a control that
+opens the listing, and the screens on a rail.
+
+- **Six hours.** `REVALIDATE_SECONDS` is 21600. A rating averaged over thirty votes moves in the
+  second decimal place when a vote lands, so re-asking on every visit would spend a request per
+  visitor to change nothing and would make the home page dynamic to do it.
+- **A floor, not a placeholder.** `data/app-store.ts` holds both listings as the repo last read them
+  and `public/apps/<slug>/` holds the icon and four screens. Every way the lookup can fail — a
+  refused connection, a 429, a body that will not parse, `resultCount: 0` — ends at that floor, and
+  the merge is field by field so a payload missing one key leaves one field recorded rather than
+  blank. `data-store="live"` or `"recorded"` rides on the card's root element so the fallback can be
+  read off the page instead of reasoned about.
+- **Artwork is proxied.** `app/api/app-store/art/[...src]` is the same shape as the Spotify proxy:
+  hostname allowlist, https only, content-type checked, 403 for anything off `mzstatic.com`. Nothing
+  was added to `images.remotePatterns`, which is still empty.
+- **Colour.** The icon and the screens keep their own; everything the site draws around them is in
+  the ink tokens, the five rating marks included. Marks round down — 4.73 prints four and the figure
+  4.7 — because a mark here is lit or it is not, and down is the only direction the site can round a
+  claim about its own work.
+- **The rail moves only when driven.** Touch, trackpad, two buttons, or the arrow keys with Home and
+  End. Nothing advances on its own, per Law 4, and a control with no rail left dims. A screen is
+  sized `min(26rem, 46svh)` with its width following the listing's shape: a fixed width put a 417px
+  screen on a 400px-tall viewport at 800x400.
+- **The card is the whole of an app's open reel.** The rail already carries every screen, so the
+  plate of the first two lives behind the case-study control rather than under the card, where it
+  was the same pictures twice. Frame count is unchanged: card, then two snips.
 
 ## The colophon
 
@@ -342,11 +379,11 @@ Environment: `KV_REST_API_URL` and `KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_*
 
 ## Status
 
-Four surfaces. The home is the work: a hero statement, then three numbered products, each unfolding in place behind a full-width bar, and the instrument wall in the footer. Both skins are tuned against a measured contrast floor that `lib/contrast.test.ts` holds, type comes from one six-step scale, and Shots is a band mosaic. The version record is `data/changelog.ts`, rendered at `/changelog`.
+Four surfaces. The home is the work: a hero statement, then four numbered products, each unfolding in place behind a full-width bar, and the instrument wall in the footer. Both skins are tuned against a measured contrast floor that `lib/contrast.test.ts` holds, type comes from one six-step scale, and Shots is a band mosaic. The version record is `data/changelog.ts`, rendered at `/changelog`.
 
 Outstanding, and worth being exact about:
 
 - **Two roles.** Endgame AI, ChessEver and HEX carry exact dates. SmallChess and an early-career role sit commented out in `data/experience.ts` — dates unknown, and the site does not invent them.
-- **Frames.** Hitman's Library has nine real captures. Sylvan has two: its site is a single near-empty viewport. ChessEver has one, its existing hero — `chessever.com` answers automated requests with a bot check rather than the product, so its reel is labelled empty frames until real art lands.
+- **Frames.** Hitman's Library has nine real captures. Sylvan has two: its site is a single near-empty viewport. Endgame AI and ChessEver draw theirs from their App Store listings, which is what closed ChessEver's two empty frames — `chessever.com` answers automated requests with a bot check rather than the product, and `public/work/chessever` still holds only its one committed hero.
 - Shots are still captures of the live products and of portfolio-v1, standing in until real artwork is dropped into `public/feed`. The directory keeps its old name; only the surface was renamed.
 - The handling layer from the 2026-08-13 spec — divider drag, tile reorder, reset — is still unbuilt.

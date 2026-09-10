@@ -10,6 +10,25 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.16.0",
+    date: "2026-09-10",
+    title: "Four products, and two of them are apps",
+    notes: [
+      "A fourth product. Endgame AI joins the work, second, in the order the owner named — Hitman's Library, Endgame AI, Sylvan, ChessEver. Its written entry is shorter than its neighbours because what is honestly known about the work is shorter, and padding it would have been the only alternative",
+      "Two of the four are iOS apps, and an app opens on a card instead of on a frame. A literal App Store embed cannot be built and no time was spent trying: apps.apple.com answers with x-frame-options: DENY and a policy carrying frame-ancestors 'none'. There is no widget and no oEmbed. So the card is the store's own product header, drawn by this site in this site's type — the icon, the listing's name, the seller, the genre, the rating with its count, and the way through to the listing",
+      "The figures are real, read from the public iTunes lookup, and six hours old at most. Six hours because the fastest-moving number on the card is a rating averaged over thirty votes, which moves in the second decimal place when a vote lands — asking Apple again on every visit would spend a request per visitor to change nothing and would make the home page dynamic to do it",
+      "It degrades to a whole card rather than a partial one, and that was verified rather than argued. The lookup was pointed at a host answering 429 and then at one refusing the connection; in both cases the two cards fell back to the icon, the four screens and the figures committed in data/app-store.ts, and nothing rendered empty. The merge is field by field, so a payload that answers with one key missing leaves that one field at the recorded value instead of printing a blank",
+      "Apple's artwork is proxied same-origin, the way Spotify's covers already are. next.config.ts still allowlists no external host to the image optimiser and Apple's CDN was not added to it. The proxy carries the same protections as the one it copies — a hostname allowlist, an https check, a content-type check — and answers 403 to a target that is not mzstatic.com, because a proxy without an allowlist is an SSRF and this repo already knew it",
+      "The icon and the screens arrive in their own colours; everything the site draws around them stays in the ink tokens. The five rating marks are drawn in ink and not in gold, and they round down — 4.73 prints four marks and the figure 4.7, because a mark in this language is lit or it is not, and down is the only direction the site can round a claim about its own work",
+      "The screens sit on a rail that moves only when it is driven: a finger, a trackpad, either of two buttons, or the arrow keys, with Home and End for a listing eight screens long. Nothing advances by itself. A control that has run out of rail dims rather than pretending",
+      "A screen on that rail is sized by height rather than by a width at a breakpoint — min(26rem, 46svh), with the width following the listing's own shape. One measurement answers three screens: at 800x400, the landscape phone this site is checked at, a fixed 192px-wide screen stood 417px tall on a 400px viewport and the rail alone was taller than the device; on a 375px phone the screens are 331px tall against the 209 a fixed width gave",
+      "The layout was the actual ask and the ask was for less on screen, not more compressed. The card ends in a rail carrying every screen the listing publishes, so the plate holding the first two of them directly underneath was the same pictures twice inside one screen — 1043px of repetition on a 375px phone. That plate is behind the case-study control now, where somebody who opened the case wants the screens at reading size",
+      "The year left the product head and went into the record below, next to Role and Stack. It is the one thing four products in a column repeat four times while telling a reader almost nothing, and the card had to be paid for out of the surface everyone scans",
+      "Four products read faster than three did, which is the test this phase set itself. At 375px the home was 4065px for three products and is 4808 for four — 1355px per product down to 1202. At 1440 it is 1863 down to 1505. An app entry stands at 849px against Sylvan's 751 and Hitman's Library's 1008; before the plate moved it was 1786, nearly twice the object either side of it",
+      "ChessEver's two empty frames are gone. It carried six authored blocks against one committed file, so a third of its card had been rendering 'Awaiting art' on the live home page. The store's own screens close it, and nothing was deleted from data/work.ts to arrange that",
+    ],
+  },
+  {
     version: "1.15.0",
     date: "2026-09-10",
     title: "Less of everything, and the artwork in colour",

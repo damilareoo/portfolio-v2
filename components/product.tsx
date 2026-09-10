@@ -24,7 +24,8 @@ import type { Asset } from "@/data/assets.generated";
  *
  * Two of the four are iOS apps and open on their App Store card instead of on
  * a frame. That is the only branch in here, and it is one question — does this
- * entry have a listing — rather than a switch on a slug.
+ * entry have a listing — rather than a switch on a slug. It decides two things
+ * and no more: where the frames come from, and how many of them stand open.
  *
  * The lede stands open; everything else — the rail prose the case page used to
  * carry, and the rest of the reel — waits behind one control. It waits in the
@@ -72,10 +73,10 @@ export function Product({
   const ordinal = String(index + 1).padStart(2, "0");
 
   /* An app's frames come from its listing, not from `public/work`. The reel it
-     is given replaces the authored one rather than joining it: the card below
-     stands where the entry's opening frame would, and the store's screens are
-     the frames after it. Nothing is deleted to arrange that — ChessEver's six
-     authored blocks and its one committed file are still in the repo.
+     is given replaces the authored one rather than joining it: the card is the
+     entry's open frame and the store's screens are what waits behind the
+     control. Nothing is deleted to arrange that — ChessEver's six authored
+     blocks and its one committed file are still in the repo.
 
      Art with no blocks authored for it is still worth showing: fall back to one
      full frame per asset, in filename order — as the case page did. */
@@ -85,15 +86,24 @@ export function Product({
       ? item.blocks
       : assets.map<CaseBlock>((asset) => ({ kind: "full", alt: asset.title }));
 
-  /* The card is a frame, so it spends one of the lede's two. An app entry is
-     card, then one plate open, then one more behind the control — three, the
-     same count phase 6 set for every other card. It is expressed as the
-     constant less one rather than as a literal, so raising or lowering how much
-     a card shows still moves all four products together. */
-  const { lede, rest, restAssetOffset } = splitBlocks(
-    blocks,
-    app ? LEDE_BLOCKS - 1 : LEDE_BLOCKS,
-  );
+  /* An app spends its whole lede on the card: zero blocks open, one plate
+     behind the control. That is the subtraction the card paid for, and it is
+     the one that mattered.
+
+     The card ends in a rail of every screen the listing publishes. A plate
+     holding the first two of those screens, set directly beneath it, was the
+     same two pictures twice inside one screen — 1043px of them on a 375px
+     phone, which made an app entry 1786px tall against 751 for Sylvan and put
+     two of the four products at nearly twice the height of the other two. Four
+     products cannot read as one series when half of them are double the object.
+     Moving the plate behind the fold takes an app entry to roughly Sylvan's
+     height, removes the repetition from the surface everyone scans, and loses
+     nothing: the screens are still on the rail, and they are still on the plate
+     for anybody who opens the case.
+
+     The frame count is unchanged — card, then two snips, exactly what phase 6
+     allows — and so is `LEDE_BLOCKS` for the two entries that are not apps. */
+  const { lede, rest, restAssetOffset } = splitBlocks(blocks, app ? 0 : LEDE_BLOCKS);
   const prose = (item.intro?.length ?? 0) + (item.approach?.length ?? 0) > 0;
   const more = rest.length > 0 || prose;
 
@@ -139,15 +149,12 @@ export function Product({
         {item.oneLiner}
       </p>
 
-      {/* The store's product header, where this entry's opening frame would
-          stand. See `components/app-store-card.tsx`: it is a plate in the
-          reel's own tokens, so an app entry and a website entry are still the
-          same kind of object on the same page. */}
-      {app && (
-        <div className="mb-[var(--pg-gap)]">
-          <AppStoreCard app={app} />
-        </div>
-      )}
+      {/* The store's product header, and the whole of this entry's open reel.
+          See `components/app-store-card.tsx`: it is a plate in the reel's own
+          tokens, so an app entry and a website entry are still the same kind of
+          object on the same page — a rule, a number, a title, a line, a
+          picture, a door. */}
+      {app && <AppStoreCard app={app} />}
 
       {lede.length > 0 && (
         /* No lead. A full-bleed frame is most of the viewport tall, so 220px of

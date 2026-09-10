@@ -20,13 +20,11 @@ const card = (shots: string[]): AppCard => ({
 const shots = (n: number) => Array.from({ length: n }, (_, i) => `/s/${i + 1}.jpg`);
 
 describe("the reel an app entry gets", () => {
-  it("spends four screens on two plates of two", () => {
+  it("spends two screens on one plate", () => {
     const reel = appReel(card(shots(8)));
-    expect(reel).toHaveLength(2);
-    for (const plate of reel) {
-      expect(plate.kind).toBe("inset");
-      if (plate.kind === "inset") expect(plate.items).toHaveLength(2);
-    }
+    expect(reel).toHaveLength(1);
+    expect(reel[0].kind).toBe("inset");
+    if (reel[0].kind === "inset") expect(reel[0].items).toHaveLength(2);
   });
 
   it("leaves the rest of the listing on the rail rather than on the page", () => {
@@ -63,22 +61,19 @@ describe("the reel an app entry gets", () => {
     }
   });
 
-  it("ends on the strong plate, as every other reel does", () => {
+  it("stands on the quiet ground, never the dark one", () => {
+    /* A reel ends on the strong tone or it just stops, and the plate took it
+       while it was the second of two. One plate is the whole of a reel rather
+       than the end of one, and a lone plate on the strong ground is a card that
+       opens dark for no reason anybody could name. */
     const reel = appReel(card(shots(4)));
     expect(reel[0].kind === "inset" && reel[0].tone).toBeUndefined();
-    expect(reel[1].kind === "inset" && reel[1].tone).toBe("strong");
   });
 
-  it("does not open a card on the dark plate when there is only one", () => {
-    const reel = appReel(card(shots(2)));
+  it("takes a listing that publishes one screen as a plate of one", () => {
+    const reel = appReel(card(shots(1)));
     expect(reel).toHaveLength(1);
-    expect(reel[0].kind === "inset" && reel[0].tone).toBeUndefined();
-  });
-
-  it("takes an odd last screen as a plate of one rather than dropping it", () => {
-    const reel = appReel(card(shots(3)));
-    expect(reel).toHaveLength(2);
-    expect(reel[1].kind === "inset" && reel[1].items).toHaveLength(1);
+    expect(reel[0].kind === "inset" && reel[0].items).toHaveLength(1);
   });
 
   it("draws nothing at all rather than an empty plate", () => {
@@ -87,14 +82,21 @@ describe("the reel an app entry gets", () => {
 
   it("fits the three frames a card is allowed, counting the store card as one", () => {
     /* Phase 6 cut an opened card to three frames and a test pins the tail at
-       one. The store card is the first of those three for an app entry, not a
-       fourth thing added in front of them — so the reel behind it is exactly
-       two blocks, and the split that `Product` performs leaves one open and one
-       behind the control. */
+       one. For an app entry the store card is the frame that stands open and
+       this plate is the two behind the control — three in all, the same count
+       every other product on the home is held to.
+
+       Nothing here is left over. The plate is exactly the tail's one block, so
+       an app entry with a lede of nothing renders every block this builds. A
+       reel longer than `TAIL_BLOCKS` would be screens assembled on every render
+       that no width of the page could ever draw. */
     const reel = appReel(card(shots(8)));
-    expect(reel).toHaveLength(LEDE_BLOCKS - 1 + TAIL_BLOCKS);
-    const { lede, rest } = splitBlocks(reel, LEDE_BLOCKS - 1);
-    expect(lede).toHaveLength(1);
-    expect(rest).toHaveLength(TAIL_BLOCKS);
+    expect(reel).toHaveLength(TAIL_BLOCKS);
+    const { lede, rest } = splitBlocks(reel, 0);
+    expect(lede).toHaveLength(0);
+    expect(rest).toEqual(reel);
+    /* The card, plus this plate's two screens: the same three frames a
+       product that is not an app is held to. */
+    expect(1 + SNIPS).toBe(LEDE_BLOCKS + TAIL_BLOCKS);
   });
 });

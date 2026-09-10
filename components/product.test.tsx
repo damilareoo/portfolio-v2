@@ -173,8 +173,9 @@ describe("Product", () => {
   });
 
   /* An app entry is the same object as the three around it with a different
-     first frame. These two hold that: the card stands where the opening frame
-     stands, and the count of frames behind it does not change. */
+     first frame. These three hold that: the card stands where the opening frame
+     stands, the count of frames does not change, and none of them is shown
+     twice. */
   const app: AppCard = {
     slug: "example",
     storeUrl: "https://apps.apple.com/us/app/example/id1",
@@ -197,19 +198,41 @@ describe("Product", () => {
     expect(host.textContent).not.toContain("Lede one.");
   });
 
-  it("still shows an app three frames — the card, one open, one behind the bar", () => {
+  it("still shows an app three frames — the card, and two behind the bar", () => {
     /* Phase 6 cut a card to three frames and this is the arithmetic that keeps
-       an app entry inside that: the card spends one of the two the lede has, so
-       one plate stands open and one waits behind the control. */
+       an app entry inside that: the card is the frame that stands open, and one
+       plate of two screens waits behind the control. */
     render(<Product item={item} assets={[]} index={0} app={app} />);
-    const plates = host.querySelectorAll("figure");
-    // Two plates of two screens each: four figures, three frames counting the card.
-    expect(plates).toHaveLength(4);
+    // One plate of two screens: two figures, three frames counting the card.
+    expect(host.querySelectorAll("figure")).toHaveLength(2);
     /* Found by its words, not by being the first button on the card: the rail's
        two controls are buttons too, and they come first in the document. */
     const bar = [...host.querySelectorAll("button")].find((b) =>
       /case study/i.test(b.textContent ?? ""),
     );
     expect(bar?.textContent).toMatch(/open case study/i);
+  });
+
+  it("does not show an app the same screens twice", () => {
+    /* The card ends in a rail carrying every screen the listing publishes, so
+       any screen a plate also draws is on the page twice. Under the card that
+       was 1043px of repetition on a 375px phone and made an app entry nearly
+       twice the height of the products either side of it. The plate is behind
+       the fold now, which is the whole of the fix: nothing above the control
+       draws a screen the rail is not already the place for. */
+    render(<Product item={item} assets={[]} index={0} app={app} />);
+    const bar = [...host.querySelectorAll("button")].find((b) =>
+      /case study/i.test(b.textContent ?? ""),
+    )!;
+    const before = (node: Element) =>
+      Boolean(bar.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_PRECEDING);
+    const figures = [...host.querySelectorAll("figure")];
+    expect(figures.filter(before)).toHaveLength(0);
+    expect(figures).toHaveLength(2);
+    /* And the one thing that does draw screens above the control is the rail,
+       which is where a listing shows them. */
+    expect(host.querySelector("[data-store] ul")!.querySelectorAll("li")).toHaveLength(
+      app.shots.length,
+    );
   });
 });

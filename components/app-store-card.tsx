@@ -34,6 +34,12 @@ import type { AppCard } from "@/lib/app-store";
  * The plate is the reel's plate: the same radius, the same hairline, the same
  * quiet ground a held frame stands on. That is what keeps four products reading
  * as one series when two of them open on a card and two open on a picture.
+ *
+ * It is the whole of an app entry's open reel, not the first of three frames.
+ * The rail below already carries every screen the listing publishes, so a plate
+ * repeating the first two of them under the card was the page showing the same
+ * pictures twice; they stand behind the entry's control instead. See the split
+ * in `components/product.tsx` for the measurements that settled it.
  */
 export function AppStoreCard({ app }: { app: AppCard }) {
   const rail = useRef<HTMLUListElement>(null);
@@ -70,8 +76,8 @@ export function AppStoreCard({ app }: { app: AppCard }) {
    * By one screen rather than by one viewport, because the rail is a row of
    * discrete pictures and a page-sized jump would leave one half-shown at both
    * ends. The step is measured off the first item and the row's own gap rather
-   * than written down, so the two breakpoints the item has do not need a
-   * matching pair of constants here to disagree with.
+   * than written down, because a screen's width is derived from the viewport's
+   * height — there is no constant to copy here even if copying one were wise.
    *
    * Smooth unless the visitor asked for less motion. This is motion under
    * touch — a press or a key — which is the first thing Law 4 admits; nothing
@@ -256,28 +262,52 @@ export function AppStoreCard({ app }: { app: AppCard }) {
             {app.shots.map((src, i) => (
               <li key={src} className="shrink-0 snap-start">
                 <div
-                  /* The shape is the listing's own, measured off its files —
-                     the lookup payload carries no dimensions, and the two
-                     listings' screens differ by a quarter of a percent. */
-                  style={{ aspectRatio: app.shotRatio }}
-                  /* 96px on a phone, 192 from `sm` up.
+                  style={{
+                    /* The shape is the listing's own, measured off its files —
+                       the lookup payload carries no dimensions, and the two
+                       listings' screens differ by a quarter of a percent. */
+                    aspectRatio: app.shotRatio,
+                    /* Sized by height, and the width follows the shape. That is
+                       the one measurement that answers all three screens at
+                       once, and two fixed widths at a breakpoint answered none
+                       of them.
 
-                     The top figure is set by the shortest listing rather than
-                     by taste. The card's inside measures about 1142px at the
-                     page's widest, and ChessEver publishes six screens: at
-                     144px they total 924 and the rail does not overflow, which
-                     leaves a row ending in 200px of nothing with two controls
-                     above it that cannot do anything. At 192 six screens run
-                     past the edge, so the rail is a rail at every width either
-                     listing can be, and a screen is large enough to be worth
-                     looking at rather than a stamp. */
-                  className="relative w-24 overflow-hidden rounded-[var(--radius-tile)] border border-line bg-surface sm:w-48"
+                       The cap is 46svh because this is a frame and the site
+                       already holds that a frame is bounded by the viewport it
+                       is being read on — see `--frame-cap`, which is the same
+                       rule at 78svh for a frame that has the column to itself.
+                       A rail item shares its row, so it takes less. Measured at
+                       800x400, the landscape phone this site is checked at, a
+                       192px-wide screen stood 417px tall on a 400px viewport:
+                       the rail alone was taller than the device. At 46svh it is
+                       184 and the whole card fits.
+
+                       The ceiling is 26rem so a tall desktop window does not
+                       hand a thumbnail rail half the screen, and it is what
+                       keeps the rail a rail: the card's inside measures about
+                       1144px at the page's widest and ChessEver publishes six
+                       screens, so a screen has to clear roughly 181px for that
+                       row to overflow and its two controls to have work to do.
+                       26rem of height is 191px of width, which clears it.
+
+                       And on a 375px phone it is 331px tall against the 209 two
+                       fixed widths gave — the screens are legible on the one
+                       surface where the card is now the entry's whole picture. */
+                    height: "min(26rem, 46svh)",
+                  }}
+                  className="relative overflow-hidden rounded-[var(--radius-tile)] border border-line bg-surface"
                 >
                   <Image
                     src={src}
                     alt={`${app.name} — screen ${i + 1}`}
                     fill
-                    sizes="(min-width: 640px) 192px, 96px"
+                    /* The widest this can ever be, from the ceiling above. A
+                       fixed figure rather than a `vh` expression because the
+                       optimiser picks a source file, not a layout: over-asking
+                       by a little at short viewports costs one size step, and
+                       an expression `sizes` cannot evaluate costs the whole
+                       image. */
+                    sizes="192px"
                     className="object-cover"
                   />
                 </div>
