@@ -18,9 +18,13 @@ import type { Asset } from "@/data/assets.generated";
  * One product, numbered, on the home.
  *
  * This is `EraSection` and `EraEntry` merged. Eras contained entries, so it
- * took two components to draw one piece of work; three flat products need one.
+ * took two components to draw one piece of work; four flat products need one.
  * The number is the era's — ordering made visible — and the head, the reel and
  * the fold are the entry's, unchanged.
+ *
+ * Two of the four are iOS apps and open on their App Store card instead of on
+ * a frame. That is the only branch in here, and it is one question — does this
+ * entry have a listing — rather than a switch on a slug.
  *
  * The lede stands open; everything else — the rail prose the case page used to
  * carry, and the rest of the reel — waits behind one control. It waits in the
@@ -106,19 +110,29 @@ export function Product({
       index={index}
       className="min-w-0 rule-t scroll-mt-6 pt-10"
     >
-      {/* Wraps rather than truncates. At 320px the title alone is most of the
-          column, so the year drops to its own line instead of colliding with
-          it — the head is three facts, not a fixed three-column grid. */}
-      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-        <div className="flex min-w-0 items-baseline gap-3">
-          {/* The matrix numeral is an SVG of dots and is `aria-hidden`: a
-              screen reader has no use for a picture of a number. The position
-              is still information, so it is spoken here and drawn there. */}
-          <span className="sr-only">{ordinal}</span>
-          <GlyphText text={ordinal} size="0.5rem" className="shrink-0 text-ink-3" />
-          <h2 className="min-w-0 text-xl font-medium tracking-tight">{item.title}</h2>
-        </div>
-        <SectionLabel>{item.year}</SectionLabel>
+      {/* A number and a title, and that is the whole head now.
+
+          The year used to sit at the right end of this row and it has gone
+          into the record below, where the other six facts about a piece
+          already live. This is the subtraction the App Store card paid for:
+          two of the four products now open on a card carrying an icon, a
+          seller, a rating and a rail of screens, which is more furniture per
+          entry than the page had before — so something on the scanned surface
+          had to leave, and the year is the one thing here that four products
+          in a column repeat four times while telling a reader almost nothing.
+          It is not lost; it is one row lower, next to Role and Stack, which is
+          where somebody who wants it goes to look.
+
+          One line at every width as a result. The row it replaces wrapped at
+          320px so the year could drop under the title, and it no longer has
+          anything to wrap. */}
+      <div className="flex min-w-0 items-baseline gap-3">
+        {/* The matrix numeral is an SVG of dots and is `aria-hidden`: a screen
+            reader has no use for a picture of a number. The position is still
+            information, so it is spoken here and drawn there. */}
+        <span className="sr-only">{ordinal}</span>
+        <GlyphText text={ordinal} size="0.5rem" className="shrink-0 text-ink-3" />
+        <h2 className="min-w-0 text-xl font-medium tracking-tight">{item.title}</h2>
       </div>
 
       <p className="mt-3 mb-6 max-w-[42rem] text-base leading-relaxed text-ink-2">
@@ -229,6 +243,9 @@ export function Product({
                 )}
 
                 <div className="mx-auto mt-7 max-w-[34rem]">
+                  {/* First, because it is the coarsest thing anybody asks about
+                      a piece of work and because the head no longer says it. */}
+                  <RecordRow label="Year">{item.year}</RecordRow>
                   {item.client && <RecordRow label="Client">{item.client}</RecordRow>}
                   {item.role && <RecordRow label="Role">{item.role}</RecordRow>}
                   {/* Rendered only when there are names. A case with none has

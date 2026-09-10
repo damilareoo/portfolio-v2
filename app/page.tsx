@@ -27,8 +27,11 @@ const article = (title: string) => (/^[aeiou]/i.test(title) ? "an" : "a");
 /**
  * The home is the work.
  *
- * There is no index and no selected grid: a lockup, a short record, then three
- * products, numbered, in the order `data/work.ts` lists them. The era layer
+ * There is no index and no selected grid: a lockup, a short record, then four
+ * products, numbered, in the order `data/work.ts` lists them. Two of the four
+ * are iOS apps and open on a card built from their App Store listing rather
+ * than on a frame of their own — the same kind of object, drawn from a
+ * different source. See `components/app-store-card.tsx`. The era layer
  * that used to group them by employer is gone — it spent two of its five
  * sections announcing it had nothing to show, which is furniture arguing with
  * itself. The reference this came from removes its nav for the same reason —
@@ -48,7 +51,8 @@ export default async function Home() {
   const apps = await readAppStore();
 
   /* Padded the same way each product numbers itself, so the count and the
-     three ordinals below it read as one system rather than two. */
+     ordinals below it read as one system rather than two. Derived from the
+     array, so a fifth piece changes the count without anybody editing it. */
   const featuredCount = String(work.length).padStart(2, "0");
 
   return (

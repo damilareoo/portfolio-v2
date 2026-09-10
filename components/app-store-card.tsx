@@ -168,8 +168,12 @@ export function AppStoreCard({ app }: { app: AppCard }) {
           <p className="mt-1 font-mono text-2xs uppercase tracking-wider text-ink-3">
             {app.seller} &middot; {app.genre}
           </p>
+          {/* Wraps as two whole things, never mid-phrase. At 320px the identity
+              column is 160px and the marks and the figure together measure
+              nearer 190, so one of them has to go to a second line — and "4.7 ·
+              30" with "RATINGS" alone underneath is a number broken in half. */}
           {rated && (
-            <p className="mt-2 flex items-center gap-2">
+            <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
               {/* Spoken once, as a sentence; drawn once, as marks and a figure.
                   The same split every number on this site makes — the matrix
                   numerals are a picture of a number and a screen reader has no
@@ -189,7 +193,7 @@ export function AppStoreCard({ app }: { app: AppCard }) {
               </span>
               <span
                 aria-hidden
-                className="font-mono text-2xs uppercase tracking-wider text-ink-3"
+                className="whitespace-nowrap font-mono text-2xs uppercase tracking-wider text-ink-3"
               >
                 {app.rating.toFixed(1)} &middot; {app.ratingCount.toLocaleString("en-US")}{" "}
                 ratings
@@ -256,18 +260,24 @@ export function AppStoreCard({ app }: { app: AppCard }) {
                      the lookup payload carries no dimensions, and the two
                      listings' screens differ by a quarter of a percent. */
                   style={{ aspectRatio: app.shotRatio }}
-                  /* 96px on a phone, 144 from `sm` up. Wide enough at the top
-                     end that a screen is worth looking at and narrow enough
-                     that eight of them still run past the card's edge — a rail
-                     whose contents all fit is a row with two dead controls on
-                     it. */
-                  className="relative w-24 overflow-hidden rounded-[var(--radius-tile)] border border-line bg-surface sm:w-36"
+                  /* 96px on a phone, 192 from `sm` up.
+
+                     The top figure is set by the shortest listing rather than
+                     by taste. The card's inside measures about 1142px at the
+                     page's widest, and ChessEver publishes six screens: at
+                     144px they total 924 and the rail does not overflow, which
+                     leaves a row ending in 200px of nothing with two controls
+                     above it that cannot do anything. At 192 six screens run
+                     past the edge, so the rail is a rail at every width either
+                     listing can be, and a screen is large enough to be worth
+                     looking at rather than a stamp. */
+                  className="relative w-24 overflow-hidden rounded-[var(--radius-tile)] border border-line bg-surface sm:w-48"
                 >
                   <Image
                     src={src}
                     alt={`${app.name} — screen ${i + 1}`}
                     fill
-                    sizes="(min-width: 640px) 144px, 96px"
+                    sizes="(min-width: 640px) 192px, 96px"
                     className="object-cover"
                   />
                 </div>

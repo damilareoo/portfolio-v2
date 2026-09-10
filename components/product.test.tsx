@@ -155,6 +155,18 @@ describe("Product", () => {
     expect(labelled("With")).toBeUndefined();
   });
 
+  it("keeps the year in the record, not in the head", () => {
+    /* The App Store card is more furniture per entry than the page carried
+       before, so something on the scanned surface had to leave. The year is the
+       one thing four products in a column repeat four times while telling a
+       reader almost nothing — and it is moved rather than dropped. */
+    render(<Product item={item} assets={[]} index={0} />);
+    const head = host.querySelector("h2")!.parentElement!;
+    expect(head.textContent).not.toContain("2025");
+    expect(labelled("Year")).toBeDefined();
+    expect(host.textContent).toContain("2025");
+  });
+
   it("offers no bar when there is nothing more to show", () => {
     render(<Product item={{ ...item, blocks: item.blocks!.slice(0, 2) }} assets={[]} index={1} />);
     expect(host.querySelector("button")).toBeNull();
