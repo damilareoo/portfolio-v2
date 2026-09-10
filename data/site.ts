@@ -5,7 +5,13 @@ export const site = {
   email: "dosofisan7@gmail.com",
   x: "https://x.com/damilareoo",
   github: "https://github.com/damilareoo",
-  // Printed under the email in the /about header. The home lockup says "Lagos".
+  /* Where he is, as a person says it. It was a literal in three places — the
+     home lockup, the /about sentence, the page description — and /about now
+     files it as a field on a record, so a fourth copy would be the first one
+     to go stale. The coordinates below say the same thing to a machine. */
+  city: "Lagos",
+  country: "Nigeria",
+  // Printed as a row on the /about record, beside the city it locates.
   coordinates: "6.5244° N, 3.3792° E",
   /* The same place the coordinates string names, as numbers. The string is a
      label; parsing it back would make a label load-bearing. */
