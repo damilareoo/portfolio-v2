@@ -10,6 +10,19 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.14.2",
+    date: "2026-09-05",
+    title: "Shots return to the field",
+    notes: [
+      "The band mosaic goes. It gave the feed a composition it had not earned: spans turned captures into a collage, and the page began deciding how each image should be read instead of letting the work make the rhythm",
+      "Shots is a field again: four independently balanced columns at the large breakpoint, two below it, their tops offset by whole cells. The offset breaks the grid's top edge; shortest-first packing brings its bottoms back into the same neighbourhood",
+      "The original column field had a real arithmetic bug. Drift was counted in cells and each image added a bare aspect ratio, so the first column remained shortest and took the entire ten-shot feed. Heights now convert to the same cell unit before they are compared",
+      "The test holds the failure in its smallest real form: ten landscape shots distribute 3, 2, 3, 2 across desktop, every image lands once, and the ragged edge stays under one landscape shot",
+      "The panel sweep and the frame cap remain. This is a layout correction, not a new entrance or a reason to let a photograph become taller than the screen that reads it",
+    ],
+    deployment: "https://portfolio-v2-fakfiuxno-damilares-projects-fc682e5f.vercel.app",
+  },
+  {
     version: "1.14.1",
     date: "2026-09-05",
     title: "ChessEver has a mark",

@@ -67,23 +67,19 @@ Nothing here animates. An icon neither reports nor arrives, so Law 4 leaves it s
 
 The gallery renamed from `/feed`, and the one surface where a photograph is put through the matrix.
 
-The layout is a **band mosaic**, and it is formless on purpose. `lib/mosaic.ts` deals the shots into
-bands that each span the full twelve-column measure, taking widths from a fixed vocabulary — `7 5`,
-`4 8`, `3 5 4`, `5 7`, `8 4`, `4 3 5`. Two-item bands are the feed's big moments; three-item bands
-are its rests. No band opens on the width the one above it closed on, which is what keeps the page
-reading as organic rather than as a repeating pattern. A shot's height is never authored: it is the
-shot's own aspect ratio, at whatever width its band gave it.
+The layout is a **staggered field**: four independently balanced columns at the large breakpoint,
+two below it. `lib/shots-layout.ts` puts each next shot in the shortest column, counting both the
+shot's aspect ratio and the column's opening offset in the same cell unit. That last detail matters:
+the first version compared a drift measured in cells with a bare aspect ratio, so the first column
+never stopped being shortest and swallowed the feed.
 
-Nothing about it is random. A shuffled mosaic would hydrate into a different page than the server
-rendered, so the composition is a function of position alone and the tests hold that composing twice
-gives the same answer. A lone shot at the end takes the whole measure rather than a fraction of one.
+The drift is `0 / 4 / 1 / 6` cells. It breaks the grid's top edge without turning the page into a
+collage; shortest-first packing brings the bottoms back within one shot of one another. The layout
+does not reorder the feed — newest first remains the reading order — and the tests hold the ten-shot
+case at `3 / 2 / 3 / 2` on desktop so the one-column failure cannot return.
 
-The reference this came from builds its mosaic by hand — every shot given a column and row span in
-the markup. That reads well and asks for a decision every time a shot is added. This asks for none:
-drop a file into `public/feed`, run `pnpm manifest`, and it is placed.
-
-Below the large breakpoint the grid is two columns and every shot takes one of them. Narrow gets its
-own arrangement rather than a squeezed twelve, and the feed stays read newest-first.
+Drop a file into `public/feed`, run `pnpm manifest`, and it is placed. Nothing is authored per shot.
+On narrow screens the same rule balances two columns rather than squeezing four together.
 
 Thirty shots means thirty panels, and one front crosses all the visible ones at once. A panel
 drives sixteen brightness levels and no more, so `paintPanel` collects every emitter at a level
