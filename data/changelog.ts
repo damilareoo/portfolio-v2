@@ -10,6 +10,19 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.16.1",
+    date: "2026-09-10",
+    title: "The record is the fields and the picture",
+    notes: [
+      "About held a header band, eight fields, a portrait, the roles, three tagged notes, twelve tool tiles, likes, dislikes and a closing line. It was a record with an essay attached to it",
+      "Gone: the header band — a mark, a tagline, the name set large, the address and a boxed reference table were five ways of saying who this is above a record whose first row says who this is. The name is still the page's heading; it is now read rather than displayed",
+      "Gone: the three tagged notes, the tool tiles, likes and dislikes, the standing line and the closing parenthetical. The standing line named a role the experience list beneath it already named",
+      "The sheet no longer centres. It takes the page's own measure, left-aligned like every other surface, so About stops being the one page that sits in a column of its own",
+      "The picture is bigger and is now what absorbs a short screen: the crop went from 4:5 to 3:4 and its column from 20 to 28rem, with its height driven off the viewport rather than a fixed measure. On a tall screen it is the largest thing on the page; on a short one it gives way first",
+      "The page fits the viewport without scrolling at every desktop and tablet size measured — 1280x800, 1440x900, 1512x982, 1440x1080 and 768x1024 all land at exactly the viewport height. A phone still scrolls, and should: fitting a record, a portrait and three roles into 812px means type nobody can read",
+    ],
+  },
+  {
     version: "1.16.0",
     date: "2026-09-10",
     title: "Four products, and two of them are apps",

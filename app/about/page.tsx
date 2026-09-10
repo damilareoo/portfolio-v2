@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Fragment, type ReactNode } from "react";
-import { GlyphText } from "@/components/glyph-text";
 import { Portrait } from "@/components/portrait";
 import { LocalTime, WeatherReading } from "@/components/record-readings";
 import { RoleList } from "@/components/role-list";
@@ -9,14 +8,11 @@ import { changelog } from "@/data/changelog";
 import { roles } from "@/data/experience";
 import { elsewhere, site } from "@/data/site";
 import { work } from "@/data/work";
-import { standing } from "@/lib/experience";
 
 export const metadata: Metadata = {
   title: "About — Damilare Osofisan",
   description: `Product designer and builder in ${site.city}.`,
 };
-
-const host = new URL(site.url).hostname.replace(/^www\./, "");
 
 /**
  * The disciplines, read off the work rather than restated.
@@ -32,19 +28,6 @@ const host = new URL(site.url).hostname.replace(/^www\./, "");
  */
 const practice = [...new Set(work.flatMap((item) => item.disciplines))];
 
-/**
- * The sheet's two machine-set identifiers.
- *
- * The reference carries a short code under its title block and one long string
- * across the head of the left column. Both are assembled here out of
- * `data/site.ts`, `data/work.ts` and the version at the head of the changelog,
- * so neither can say anything the rest of the record does not — and neither is
- * a serial number. A fabricated identifier is the one thing that would turn
- * this from design into costume: every token below is checkable against a file
- * in this repo.
- */
-const shortCode = `${host}/about`.toUpperCase();
-
 const recordId = [
   site.handle,
   site.name.replace(/\s+/g, "-"),
@@ -55,37 +38,6 @@ const recordId = [
 ]
   .join(" / ")
   .toUpperCase();
-
-/**
- * The stack, as twelve tiles.
- *
- * The reference closes on twelve small boxed tiles with a caption under each —
- * fingerprints, which are at least nominally its subject's. A row of decorative
- * squares here would be furniture, and this repo's README calls furniture out
- * by name, so the tiles carry the one true thing the site holds twelve of: what
- * he builds with. Every one of these is recorded somewhere else in the repo —
- * nine on the colophon's stack rows, two as `stack` on a case in
- * `data/work.ts`, and Suisse as the four font files in `app/fonts`.
- *
- * The two-letter code is authored rather than derived, and that is the one
- * place a slice of the caption would have been worse than a decision: React and
- * Redis both begin "RE", and two tiles with the same mark in one strip reads as
- * a bug. Naming a thing is not inventing a fact about him.
- */
-const AT_HAND: { code: string; name: string }[] = [
-  { code: "NX", name: "Next.js" },
-  { code: "RE", name: "React" },
-  { code: "TS", name: "TypeScript" },
-  { code: "TW", name: "Tailwind" },
-  { code: "RD", name: "Redis" },
-  { code: "VC", name: "Vercel" },
-  { code: "SP", name: "Spotify" },
-  { code: "HC", name: "Health" },
-  { code: "OM", name: "Open-Meteo" },
-  { code: "SU", name: "Suisse" },
-  { code: "IO", name: "iOS" },
-  { code: "AN", name: "Android" },
-];
 
 /**
  * A section heading, and the one place on this sheet that is not the mono.
@@ -168,77 +120,6 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 }
 
 /**
- * One row of the bordered reference table in the header band.
- *
- * Boxed, ruled above the first row as well as under every row, and split by a
- * vertical divider between the two columns — the reference's header table is
- * drawn rather than merely aligned, and an edge round it is what makes it read
- * as a stamp on a document. These are facts about the *sheet* rather than about
- * him, which is what makes them a header rather than three more fields.
- */
-function Ref({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="grid grid-cols-[4.5rem_minmax(0,1fr)] rule-b last:bg-none font-mono text-2xs uppercase tracking-wider">
-      <dt className="py-1.5 pr-3 font-medium text-ink-2">{label}</dt>
-      <dd className="truncate border-l border-line py-1.5 pl-3 text-ink-3">{children}</dd>
-    </div>
-  );
-}
-
-/**
- * One of the three tagged notes in the middle band.
- *
- * Three columns of small type across the sheet's full width, each opening on a
- * hash-prefixed tag in the heavier weight. The note itself stays in the sans:
- * the mono on this sheet carries what the site says about itself, and these are
- * his own words about his own work. Layout from the reference, voice from the
- * site.
- *
- * The rule stays at every width, on all three, and there is no `last:bg-none`
- * as there is everywhere else on the sheet. At three columns the notes are grid
- * items and stretch to the row, so the three rules land on one baseline and
- * read as a single line broken by the gutters — clearing the last one would
- * leave two thirds of a rule.
- *
- * At 320px the three columns become three record rows: the tag in the label
- * column, the note beside it. That is the answer to the width rather than three
- * stacked paragraphs — stacked, this block stops being dense type on a sheet
- * and becomes an essay, which is the exact thing the page was asked to stop
- * being.
- */
-function Note({ tag, children }: { tag: string; children: ReactNode }) {
-  return (
-    <div className="grid gap-x-4 gap-y-1 rule-b py-3 sm:grid-cols-[7.5rem_minmax(0,1fr)] md:block md:pt-0 md:pb-4">
-      <p className="font-mono text-2xs font-medium uppercase tracking-wider text-ink">{tag}</p>
-      <p className="text-sm leading-[1.6] text-ink-2 md:mt-2">{children}</p>
-    </div>
-  );
-}
-
-/**
- * A heading with two lines under it, at the foot of the sheet.
- *
- * The reference stacks two of these in the right half beside its tile strip:
- * the same face as the section headings, a step smaller, two lines of text
- * beneath. See the report for which of the lines under them are his own words
- * and which are standing in until he writes his.
- */
-function Pair({ label, lines }: { label: string; lines: string[] }) {
-  return (
-    <div className="rule-t pt-4">
-      <SheetHeading size="sm">{label}</SheetHeading>
-      <div className="mt-2 space-y-1.5">
-        {lines.map((line) => (
-          <p key={line} className="text-sm leading-snug text-ink-2">
-            {line}
-          </p>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/**
  * About, as a filed record.
  *
  * **The page is a sheet.** One centred document with ground either side, not a
@@ -299,55 +180,23 @@ function Pair({ label, lines }: { label: string; lines: string[] }) {
  * board keeps its lines and drops the right-hand numerals.
  */
 export default function AboutPage() {
-  const current = changelog[0];
-  const now = standing(roles);
 
   return (
-    <main className="mx-auto w-full max-w-[1240px] px-5 py-4 pb-12 sm:px-6">
+    <main className="mx-auto w-full max-w-[1240px] px-5 py-4 pb-8 sm:px-6">
       <SiteNav current="/about" />
 
       {/* The sheet. Roughly A4 at a browser's 96dpi, which is what makes a
           document read as one sheet rather than as a page that happens to be
           narrow. */}
-      <div className="mx-auto mt-12 w-full max-w-[50rem]">
-        {/* 1 — The header band, in two halves. */}
-        <header className="grid gap-6 md:grid-cols-[minmax(0,1fr)_16rem] md:items-start md:gap-10">
-          <div className="flex gap-4">
-            {/* The mark: his initials, set in the matrix's own 3x5 alphabet.
-                It is the only mark this site has and the one it draws
-                everything else in. Derived from the name, so it cannot come to
-                disagree with the line beside it. */}
-            <GlyphText
-              text={site.name
-                .split(/\s+/)
-                .map((part) => part[0])
-                .join("")}
-              size="1.5rem"
-              className="mt-1 shrink-0 text-ink-3"
-            />
-            <div className="min-w-0">
-              {/* A lighter line above the heavier one, as the reference has
-                  it: what he is, then who. First person, because a record of a
-                  person written in the third person about himself is a CV. */}
-              <p className="text-sm leading-snug text-ink-2">
-                I&rsquo;m a product designer and builder creating 0&ndash;1
-                experiences.
-              </p>
-              <h1 className="mt-0.5 text-xl font-medium leading-tight tracking-tight">
-                {site.name}
-              </h1>
-              <p className="mt-1.5 font-mono text-2xs uppercase tracking-wider text-ink-3">
-                {shortCode}
-              </p>
-            </div>
-          </div>
-
-          <dl className="rounded-[var(--radius-tile)] border border-line px-3 py-1">
-            <Ref label="Record">About</Ref>
-            <Ref label="Source">{host}</Ref>
-            <Ref label="Revision">v{current.version}</Ref>
-          </dl>
-        </header>
+      <div className="mt-8 w-full [--frame-cap:46svh]">
+        {/* The name is the page's heading and nothing on the sheet needs to
+            print it twice: the NAME field below carries it for a reader, and
+            this carries it for a screen reader and for a crawler. The header
+            band that used to stand here — a mark, a tagline, the name set
+            large, the address, and a boxed reference table — was five ways of
+            saying who this is above a record whose first row says who this
+            is. */}
+        <h1 className="sr-only">{site.name}</h1>
 
         {/* 2, 3 and 4 — The identification string and the heavy rule head the
             left column; the spine runs under them; the portrait stands beside
@@ -364,7 +213,7 @@ export default function AboutPage() {
             `--rule-cell` sets a dotted rule's pitch, so raising it thickens
             both the dash and the line and the rule stays the same kind of
             object as every other rule on the sheet. */}
-        <div className="mt-10 grid gap-10 md:grid-cols-[minmax(0,1fr)_20rem] md:items-start md:gap-8">
+        <div className="mt-8 grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] md:items-start md:gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)]">
           <div>
             <p className="break-words font-mono text-2xs uppercase tracking-wider text-ink-3">
               {recordId}
@@ -408,98 +257,13 @@ export default function AboutPage() {
 
         {/* 5 — The first section heading, the short list under it, and the
             underlined sub-label with its run of text. */}
-        <section className="mt-14">
+        <section className="mt-10">
           <SheetHeading>Experience</SheetHeading>
           <div className="mt-4">
             <RoleList roles={roles} />
           </div>
-          {now.roles.length > 0 && (
-            <p className="mt-4 text-sm leading-snug text-ink-2">
-              <span className="mr-2 font-mono text-2xs font-medium uppercase tracking-wider text-ink underline decoration-line underline-offset-4">
-                Standing
-              </span>
-              {now.open ? "Currently " : "Most recently "}
-              {now.roles.map((role, i) => (
-                <Fragment key={role.company}>
-                  {i > 0 && <span>{i === now.roles.length - 1 ? " and " : ", "}</span>}
-                  {role.role.toLowerCase()} at <Out href={role.url}>{role.company}</Out>
-                </Fragment>
-              ))}
-              .
-            </p>
-          )}
         </section>
 
-        {/* 6 — The three tagged notes. One paragraph became three, and it was
-            already three claims: what he works on, that he builds it, and why
-            what he makes is quiet. Set as three tagged columns each claim is
-            legible on its own, which is the whole reason a record beats a
-            paragraph. Nothing here is new copy. */}
-        <div className="mt-12 md:grid md:grid-cols-3 md:gap-x-8">
-          <Note tag="#0–1">
-            I work on 0&ndash;1 products &mdash; the part where the shape of the
-            thing is still an open question.
-          </Note>
-          <Note tag="#Build">
-            I build enough of them myself that the answer has to survive a real
-            implementation.
-          </Note>
-          <Note tag="#Quiet">
-            Most of what I make is quiet on purpose: restraint is not the absence
-            of an idea, it is what makes the one idea legible.
-          </Note>
-        </div>
-
-        {/* 7 and 8 — The second section heading, the tile strip in the sheet's
-            left half, and the two pairs beside it. */}
-        <section className="mt-12">
-          <SheetHeading>At hand</SheetHeading>
-
-          <div className="mt-5 grid gap-x-10 gap-y-10 md:grid-cols-2">
-            <div className="grid grid-cols-4 gap-x-1.5 gap-y-3 sm:grid-cols-6">
-              {AT_HAND.map((tool) => (
-                <div key={tool.name}>
-                  {/* A tile's corner is not a frame's corner. `--radius-tile`
-                      is 12px, which on a 50px square is a lozenge; this is the
-                      one literal radius on the sheet, and it is literal because
-                      it describes a smaller object than any token was measured
-                      for. */}
-                  <span className="flex aspect-square items-center justify-center rounded-[5px] border border-line">
-                    <GlyphText text={tool.code} size="0.75rem" className="text-ink-3" />
-                  </span>
-                  <span className="mt-1.5 block break-words text-center font-mono text-2xs leading-tight uppercase tracking-tight text-ink-3">
-                    {tool.name}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-6">
-              <Pair
-                label="Likes"
-                lines={[
-                  "Chess, basketball, running.",
-                  "Websites worth studying, which is the whole reason Hitman’s Library exists.",
-                ]}
-              />
-              <Pair
-                label="Dislikes"
-                lines={[
-                  "Copy that narrates instead of saying the thing.",
-                  "Mobile designed as a squeezed desktop.",
-                ]}
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* 9 — The sheet closes on one line in parentheses, which is the
-            reference's own last gesture and the only place on this page the
-            site speaks about the page. It says the one thing that separates
-            this from a CV. */}
-        <p className="mt-16 text-center font-mono text-2xs uppercase tracking-wider text-ink-3">
-          (End of record. The time and the weather keep reading.)
-        </p>
       </div>
     </main>
   );

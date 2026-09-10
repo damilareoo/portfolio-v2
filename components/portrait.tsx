@@ -11,20 +11,25 @@ const FILE = { src: "/about/portrait.png", width: 621, height: 1104 };
 /**
  * The slot the picture is cropped into, and where the crop is taken from.
  *
- * 4:5 rather than the file's own 9:16, and this is the one number here chosen
- * by the layout rather than by the file. The sheet stands the portrait beside
- * the label-value rows and the reference has the two ending together; a 9:16
- * column tall enough to be worth looking at is half again the height of those
- * rows, and one narrow enough to match them is under 190px of picture. 4:5 is
- * the shape that fits the height the rows occupy while leaving the picture a
- * width.
+ * 3:4 rather than the file's own 9:16, and this is the one number here chosen
+ * by the layout rather than by the file.
+ *
+ * It was 4:5, picked so the picture and the label-value rows ended together
+ * when the sheet carried eight fields, a header band above them and four
+ * sections below. Those are gone: the record is the fields and the roles now,
+ * and the instruction that removed the rest also said to make the picture
+ * bigger. A taller crop is how a fixed column gets bigger without taking width
+ * from the page — it keeps more of the file rather than more of the screen, so
+ * the head sits larger in the frame at the same column width. 3:4 is as far as
+ * that goes before the crop starts eating into the empty ground under him that
+ * the file's lower third is mostly made of.
  *
  * `POSITION` is a CSS `object-position` fraction: 0 takes the band off the top
  * of the file, 1 off the bottom. 0.3 puts his head at roughly a quarter to
  * three-fifths of the frame — cap to chest, the part of a portrait a reader
  * came for — where the middle would have taken the top of the cap off.
  */
-const RATIO: [number, number] = [4, 5];
+const RATIO: [number, number] = [3, 4];
 const POSITION = 0.3;
 
 /** The band the crop actually shows, in the file's own pixel rows. */
@@ -175,7 +180,7 @@ export function Portrait({ className = "" }: { className?: string }) {
       <div
         className="mx-auto grid grid-cols-[var(--sl)_minmax(0,1fr)_var(--sr)] [--sl:2rem] [--sr:2rem]"
         style={{
-          maxWidth: `calc(min(24rem, var(--frame-cap) * ${RATIO[0]} / ${RATIO[1]}) + var(--sl) + var(--sr))`,
+          maxWidth: `calc(min(30rem, var(--frame-cap) * ${RATIO[0]} / ${RATIO[1]}) + var(--sl) + var(--sr))`,
         }}
       >
         <Scale side="left" />
@@ -191,7 +196,7 @@ export function Portrait({ className = "" }: { className?: string }) {
                slot 9:16, and there would be no crop for the board to measure. */
             ratio={`${RATIO[0]} / ${RATIO[1]}`}
             position={`50% ${POSITION * 100}%`}
-            sizes="(min-width: 768px) 17rem, (min-width: 640px) 24rem, 74vw"
+            sizes="(min-width: 768px) 24rem, (min-width: 640px) 26rem, 74vw"
             preload
             panel
           />
