@@ -28,6 +28,7 @@ export const changelog: ChangelogEntry[] = [
       "A case card opens onto one more frame, not five. Nothing left data/work.ts — every block each piece was authored with is still there, and one number decides how many a card draws",
       "The inset plate now fits what it holds. A phone capture is held to 22rem however wide the page is, so a column-wide plate around one of them was 84% empty — air in a reel of seven, a card that gave up as one of three",
     ],
+    deployment: "https://portfolio-v2-jyjg5q0u5-damilares-projects-fc682e5f.vercel.app",
   },
   {
     version: "1.14.2",
