@@ -113,9 +113,17 @@ export type WorkItem = {
 /**
  * The work, in the order the home shows it.
  *
- * Authored rather than derived: all three are 2025, so a date cannot order
- * them and a `sort` field invented to justify a hand-picked sequence would be
- * a field that exists to be overridden. The array is the order.
+ * Authored rather than derived, and the arrival of a 2026 piece is what proves
+ * it: three of the four are 2025, so a date sorts one entry and leaves the
+ * other three in a tie it cannot break. The owner named this sequence —
+ * Hitman's Library, Endgame AI, Sylvan, ChessEver — and a `sort` field
+ * invented to justify a hand-picked order would be a field that exists to be
+ * overridden. The array is the order.
+ *
+ * Two of the four are iOS apps and open on their App Store card rather than on
+ * a frame of their own. Nothing in this file says so: which entries are apps is
+ * `data/app-store.ts`'s business, because the record here is the site's own
+ * words about the work and that file is Apple's words about the product.
  */
 export const work: WorkItem[] = [
   {
@@ -170,6 +178,34 @@ export const work: WorkItem[] = [
         items: [{ frame: "phone", caption: "Still one column, all the way down" }],
       },
     ],
+  },
+  {
+    slug: "endgame-ai",
+    title: "Endgame AI",
+    oneLiner:
+      "A chess platform on iOS — bullet through classical, daily tournaments, and a free review of every game you play.",
+    year: "2026",
+    disciplines: ["Product Design", "Interaction"],
+    href: "https://endgame.ai",
+    role: "Product Design",
+    stack: "iOS",
+    intro: [
+      "Endgame is a free chess platform. Bullet, blitz and classical against people or against a bot, daily tournaments, and a global playzone that is open whenever you are.",
+      "The part that is not standard is what happens after the game. Every game gets a review — accuracy, performance, the moves that won it and the ones that lost it — and the deep evaluation runs on the device's own engine rather than on somebody's server.",
+    ],
+    /* No `approach`, and no `blocks`.
+       Two absences, for two different reasons, both of them the same rule.
+       He was product designer here on a four-month contract, April to August
+       2026, and that is the whole of what the record holds — see
+       `data/experience.ts`. An approach section says what somebody decided and
+       why, and nothing on file says which decisions were his. A paragraph
+       written to match the length of the three entries around it would be
+       three sentences of invention on a public portfolio, so this entry is
+       shorter than its neighbours and that is what honest looks like here.
+       The frames are absent for a happier reason: they come from the App
+       Store. See `data/app-store.ts` — an app entry opens on its store card
+       and carries the store's own screenshots, so there is no
+       `public/work/endgame-ai` to author against. */
   },
   {
     slug: "sylvan",
