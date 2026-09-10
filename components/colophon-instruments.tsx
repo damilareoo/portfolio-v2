@@ -8,6 +8,11 @@ import { useEffect, useRef, useState } from "react";
  * The hex is not typed into the page — it is read back off the live computed
  * value, so the colophon cannot drift out of date with the stylesheet. Click
  * copies it.
+ *
+ * The last instrument left in this file. `TypeSpecimen` stood beside it and
+ * went with the specimens: three draggable samples of a face the whole site is
+ * already set in is a demonstration of the type rather than a statement of it,
+ * and the colophon's job is the statement.
  */
 export function TokenRow({ token }: { token: string }) {
   const swatchRef = useRef<HTMLSpanElement | null>(null);
@@ -32,7 +37,7 @@ export function TokenRow({ token }: { token: string }) {
     };
 
     read();
-    // The value field and the theme dial both rewrite these underneath us.
+    // The theme control rewrites these underneath us.
     const observer = new MutationObserver(read);
     observer.observe(document.documentElement, {
       attributes: true,
@@ -72,100 +77,5 @@ export function TokenRow({ token }: { token: string }) {
         {copied ? "Copied" : (value ?? "····")}
       </span>
     </button>
-  );
-}
-
-/**
- * A specimen you can set rather than read.
- *
- * Weight and size are dragged directly on the sample — the colophon documents
- * the type by handing you the two axes that define it, rather than printing a
- * picture of them.
- */
-export function TypeSpecimen({
-  sample,
-  face,
-  role,
-  mono = false,
-  weights,
-}: {
-  sample: string;
-  face: string;
-  role: string;
-  mono?: boolean;
-  weights: number[];
-}) {
-  const [weight, setWeight] = useState(weights[Math.floor(weights.length / 2)]);
-  const [size, setSize] = useState(28);
-
-  return (
-    <div className="rule-b py-6 last:bg-none">
-      <p
-        style={{
-          fontWeight: weight,
-          fontSize: `${size}px`,
-          lineHeight: 1.15,
-        }}
-        className={`select-none break-words tracking-tight ${mono ? "font-mono" : "font-sans"}`}
-      >
-        {sample}
-      </p>
-
-      <div className="mt-5 grid gap-x-8 gap-y-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <dl className="space-y-1">
-          <div className="flex gap-4">
-            <dt className="w-14 shrink-0 font-mono text-[0.625rem] text-ink-3">Face</dt>
-            <dd className="font-mono text-[0.625rem] text-ink-2">{face}</dd>
-          </div>
-          <div className="flex gap-4">
-            <dt className="w-14 shrink-0 font-mono text-[0.625rem] text-ink-3">Role</dt>
-            <dd className="font-mono text-[0.625rem] text-ink-2">{role}</dd>
-          </div>
-        </dl>
-
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <span className="w-14 shrink-0 font-mono text-[0.625rem] text-ink-3">Weight</span>
-            <div className="flex items-baseline gap-2">
-              {weights.map((w) => (
-                <button
-                  key={w}
-                  type="button"
-                  onClick={() => setWeight(w)}
-                  aria-pressed={weight === w}
-                  style={{ fontWeight: w }}
-                  className={`font-mono text-[0.6875rem] transition-colors ${
-                    weight === w ? "text-ink" : "text-ink-3 hover:text-ink-2"
-                  }`}
-                >
-                  {w}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <label className="flex items-center gap-3">
-            <span className="w-14 shrink-0 font-mono text-[0.625rem] text-ink-3">Size</span>
-            <input
-              type="range"
-              min={12}
-              max={72}
-              value={size}
-              onChange={(event) => setSize(Number(event.target.value))}
-              /* min-w-0 or the row runs off the page: a range input carries a
-                 UA intrinsic width of ~129px, and flex-1 alone cannot shrink a
-                 flex item below that. In the two-column layout at 1024px the
-                 specimen row is 212px wide against 249px of content, and the
-                 px readout was pushed 37px past the column — a 13px sideways
-                 scroll on /colophon at exactly that one width. */
-              className="h-1 min-w-0 flex-1 cursor-ew-resize appearance-none rounded-full bg-surface-2 accent-ink"
-            />
-            <span className="w-10 shrink-0 text-right font-mono text-[0.625rem] tabular-nums text-ink-2">
-              {size}px
-            </span>
-          </label>
-        </div>
-      </div>
-    </div>
   );
 }

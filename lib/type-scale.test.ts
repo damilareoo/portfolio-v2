@@ -56,15 +56,15 @@ const GOVERNED = [
      so. Governed from the rewrite that shortened it.
 
      Precisely the page, and not everything on it. `colophon-instruments.tsx`
-     and `glyph-toys.tsx` still set their controls at 0.625rem, which is between
-     two steps and belongs to a specimen row measured in fixed column widths.
-     Moving those is a retune of the instruments, not of the page's type, and
-     claiming them here would be claiming a tidiness that is not there yet. */
+     still sets its token rows at 0.625rem, which is between two steps and
+     belongs to a row measured in fixed column widths. Moving it is a retune of
+     the instrument, not of the page's type, and claiming it here would be
+     claiming a tidiness that is not there yet.
+
+     The pad and the toys were governed here too and are gone — the drawing
+     field, the register wall and the five games went in the same pass that cut
+     this page back to a colophon. */
   "app/colophon/page.tsx",
-  /* The game. Both are new, which is the cheapest moment to say a surface is
-     on the scale — nothing has had time to drift off it. */
-  "components/sketchpad.tsx",
-  "components/pad-register.tsx",
 ];
 
 const STEPS = ["2xs", "xs", "sm", "base", "lg", "xl"] as const;

@@ -31,8 +31,8 @@ Four, and the nav names all four.
 |---|---|
 | `/` | The work itself — a hero statement, then three numbered products, each unfolding in place, and the instrument wall at the foot |
 | `/shots` | The gallery. `/feed` redirects here permanently |
-| `/about` | Him, one photograph dissolved through the glyph engine, and the roles behind the work |
-| `/colophon` | How the site is made, the instruments, and a field anyone can draw on |
+| `/about` | A filed record of him — a centred sheet of label-value fields, with the photograph standing against a graduated board |
+| `/colophon` | How the site is made: the value ladder, the stack, and what the dot language owes |
 
 `/work/[slug]` is gone. The home carries the case studies now, and the three URLs that existed redirect to the product that holds them — `/#<slug>`, the anchor on the product's own section. Written out one per line rather than patterned: slug and anchor are now identical, so `/work/:slug -> /#:slug` would resolve correctly and would also send every slug that never existed to the top of the home page. A URL that was never real should 404, and three explicit lines say which three were. `/system` and `/changelog` stay live and stay out of the nav; the colophon links to both.
 
@@ -147,7 +147,6 @@ One engine draws every dot field on the site: a matrix of cells with a spring ap
 |---|---|
 | The disc | The track playing, as dithered album artwork, with a ring struck on the playhead's period |
 | The pedometer | Three faces of one field — the walk, the record, and the month |
-| The forge | Nothing. It is the one field the visitor drives, on `/colophon` |
 
 ### The three faces
 
@@ -172,11 +171,9 @@ The month face is a display, not a control. A day used to open a page of its own
 
 Today wears a pill. Today is never red: a day still being walked has not been missed, which is the same rule as an unreported day not being a day of no walking, applied to the one day still happening.
 
-The pulse is arithmetic on playback position, not beat detection: Spotify answers 403 for the `audio-features` and `audio-analysis` endpoints for this application, so there is no tempo to be had. The colophon's Provenance section states this, along with what the dot language owes Nothing's interface and what it uses of theirs — none of their code, assets, or trademarks.
+The pulse is arithmetic on playback position, not beat detection: Spotify answers 403 for the `audio-features` and `audio-analysis` endpoints for this application, so there is no tempo to be had. The colophon's Provenance section states what the dot language owes Nothing's interface and what it uses of theirs — none of their code, assets, or trademarks.
 
 Steps come from a phone automation posting to a guarded route. Setup is documented at `docs/steps-setup.md`; until it is configured the reading degrades to placeholder dots, because a day nobody reported is not a day of no walking.
-
-A glyph drawn in the forge is kept on the visitor's own device and never sent here. Only the fact that one was drawn is counted, once per browser.
 
 ## Token system
 
@@ -213,8 +210,6 @@ pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
-
-`PAD_CLIENT_SALT` in `.env.local` is what makes the colophon's field writable locally; without it the pad renders and refuses every write. `docs/pad-setup.md` explains why it has no default.
 
 ## Two links, one codebase
 
@@ -309,15 +304,9 @@ Blocks without a `src` consume the project's assets in filename order, so droppi
 
 ## The colophon
 
-The page carries a 12×12 field anyone can draw on, a wall of the last forty drawings, and a flat list of the last thirty comments. It is the only place on the site a stranger may write to, and it is guarded accordingly: writes are rate-limited per visitor, text is capped server-side, and a secret-checked route can take any drawing or comment down. Nothing about a visitor is stored beyond what they typed and a salted hash of their address — see `docs/pad-setup.md` for the two environment variables it needs and how moderation works. It stores its lists in the Redis already attached to the project; no new store and no new dependency.
+A colophon is a statement of how the thing was made, and the page is four things: the value ladder, the stack, the provenance of the dot language, and the thanks. Token rows read their own live computed value — so the page cannot drift out of date with the stylesheet — and copy the hex on click.
 
-Nothing else on `/colophon` is a screenshot of the system. Token rows read their own live computed value — so the page cannot drift out of date with the stylesheet — and copy the hex on click. Type specimens are set, not shown: pick a weight, drag the size. The live readouts sit here too.
-
-## The value field
-
-The colophon carries one instrument beyond the specimens. Its scatter plots eight named landmarks on **weight × contrast**; the cursor blends the nearest of them by inverse-distance weighting and writes the result into `--body-weight`, `--text-2`, `--text-3`, and `--border`. Click commits. The blend holds across client-side navigation and resets on refresh.
-
-The blending is left to CSS — each token becomes a `color-mix()` against `var(--bg)` and `var(--text-1)` — so switching skin under a held blend re-derives the ladder for free.
+What it used to carry, and no longer does: a 12×12 field anyone could draw on, a wall of the last forty drawings, a comment list, five glyph toys on one button, and three draggable type specimens. Five features on a page whose job is two tables and four paragraphs. The pad went with `app/api/pad/`, its moderation route, `lib/pad.ts`, `lib/pad-field.ts` and their tests; `PAD_CLIENT_SALT` and `PAD_MODERATION_SECRET` are unused as of v1.15.0 and can be removed from Vercel whenever the owner wants. All of it is in git if it comes back.
 
 ## Readouts
 
@@ -326,7 +315,9 @@ The site reports on itself with real data, so it is never identical twice.
 | Readout | Source | Behaviour |
 |---|---|---|
 | Now playing | Spotify, refreshed every 30s | The dithered disc, third reading on the instrument wall |
-| Build | `VERCEL_GIT_COMMIT_SHA` at build time | Version and short commit |
+| Local time | `Intl` on `Africa/Lagos`, on the second | A field on the `/about` record, and the first reading on the wall |
+| Weather | Open-Meteo, one shared reading per document | A field on the `/about` record, and the second reading on the wall |
+| Build | `VERCEL_GIT_COMMIT_SHA` at build time | Version and short commit, in the colophon's Stack table |
 
 A third row counted dial turns, shared across every visitor through Upstash. It went with the dial and the count was not kept. The store adapter in `lib/counters.ts` stays: the steps card asks it whether a store is configured at all.
 
