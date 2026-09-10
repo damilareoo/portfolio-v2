@@ -20,6 +20,14 @@ const GOVERNED = [
      that can put it off the scale. */
   "components/footer-line.tsx",
   "components/product.tsx",
+  /* The App Store card. Every size on it is a step — the listing name at
+     `base`, the seller, genre and rating figure at `2xs`, the control at `xs`
+     — and that is the only reason a card carrying somebody else's product
+     header reads as part of this page rather than as a paste from another
+     site. It is exactly the kind of surface that grows a literal: a store
+     header has a house size for each of its four lines, and none of them is
+     one of these six. */
+  "components/app-store-card.tsx",
   "components/instrument-card.tsx",
   "components/instrument-wall.tsx",
   "components/clock-face.tsx",

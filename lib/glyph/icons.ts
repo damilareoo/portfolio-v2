@@ -20,7 +20,8 @@ export type IconName =
   | "arrow-out"
   | "arrow-left"
   | "arrow-right"
-  | "chevron-down";
+  | "chevron-down"
+  | "star";
 
 /**
  * Which reflections an icon claims. Declared rather than inferred, so the test
@@ -113,6 +114,30 @@ export const ICONS: Record<IconName, Icon> = {
       0,0,0,0,0,1,0,
       0,0,0,0,1,0,0,
       0,0,0,1,0,0,0,
+    ],
+  },
+
+  /* A rating mark, and the only icon here that quotes somebody else's shape.
+     Five of these carry an App Store rating, drawn in the site's ink rather
+     than in the store's gold: the marks are the site's drawing of a number
+     Apple supplies, and a gold star would be the one gold thing on a
+     monochrome page for no reason the design system could give.
+
+     A five-pointed star is the hardest shape on this grid, because at seven
+     cells the arms have one cell each and the notches between them have one
+     cell each. Row 2 is the full width — the arms — and rows 5 and 6 are the
+     legs stepping outward with the gap between them held open at the centre
+     column. Take a cell out of either and it reads as a cross. */
+  star: {
+    symmetry: "leftRight",
+    bits: [
+      0,0,0,1,0,0,0,
+      0,0,1,1,1,0,0,
+      1,1,1,1,1,1,1,
+      0,1,1,1,1,1,0,
+      0,0,1,1,1,0,0,
+      0,1,1,0,1,1,0,
+      1,1,0,0,0,1,1,
     ],
   },
 
