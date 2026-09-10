@@ -48,8 +48,17 @@ describe("the artwork URLs", () => {
     // The optimiser allowlists no external host, and the fix for that is this
     // proxy rather than opening `remotePatterns` onto Apple's CDN.
     const url = proxied("https://is1-ssl.mzstatic.com/image/thumb/x/512x512bb.jpg");
-    expect(url.startsWith("/api/app-store/art?u=")).toBe(true);
-    expect(url).toContain(encodeURIComponent("https://is1-ssl.mzstatic.com"));
+    expect(url).toBe("/api/app-store/art/is1-ssl.mzstatic.com/image/thumb/x/512x512bb.jpg");
+  });
+
+  it("carries the target in the path, never in a query string", () => {
+    /* Next 16 refuses to optimise a local image whose src has a search string
+       unless the config names an exact one to match, and the search here would
+       be the artwork itself. A proxied URL with a `?` in it is a card whose
+       pictures 400. */
+    for (const app of appSnapshots) {
+      expect(proxied(`https://is1-ssl.mzstatic.com/${app.slug}.jpg`)).not.toContain("?");
+    }
   });
 
   it("asks for a screen at reading width, not at thumbnail width", () => {

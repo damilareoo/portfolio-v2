@@ -4,6 +4,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Product } from "@/components/product";
 import type { WorkItem } from "@/data/work";
+import type { AppCard } from "@/lib/app-store";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -157,5 +158,46 @@ describe("Product", () => {
   it("offers no bar when there is nothing more to show", () => {
     render(<Product item={{ ...item, blocks: item.blocks!.slice(0, 2) }} assets={[]} index={1} />);
     expect(host.querySelector("button")).toBeNull();
+  });
+
+  /* An app entry is the same object as the three around it with a different
+     first frame. These two hold that: the card stands where the opening frame
+     stands, and the count of frames behind it does not change. */
+  const app: AppCard = {
+    slug: "example",
+    storeUrl: "https://apps.apple.com/us/app/example/id1",
+    name: "Example: On the Store",
+    seller: "Example LLC",
+    genre: "Games",
+    rating: 4.5,
+    ratingCount: 12,
+    icon: "/apps/example/icon.jpg",
+    shots: ["/a.jpg", "/b.jpg", "/c.jpg", "/d.jpg"],
+    shotRatio: "626 / 1354",
+    source: "live",
+  };
+
+  it("opens an app entry on its store card, not on its authored frames", () => {
+    render(<Product item={item} assets={[]} index={0} app={app} />);
+    expect(host.querySelector("[data-store]")).not.toBeNull();
+    expect(host.textContent).toContain("Example LLC");
+    // The entry's own blocks are replaced, not joined: the reel is the store's.
+    expect(host.textContent).not.toContain("Lede one.");
+  });
+
+  it("still shows an app three frames — the card, one open, one behind the bar", () => {
+    /* Phase 6 cut a card to three frames and this is the arithmetic that keeps
+       an app entry inside that: the card spends one of the two the lede has, so
+       one plate stands open and one waits behind the control. */
+    render(<Product item={item} assets={[]} index={0} app={app} />);
+    const plates = host.querySelectorAll("figure");
+    // Two plates of two screens each: four figures, three frames counting the card.
+    expect(plates).toHaveLength(4);
+    /* Found by its words, not by being the first button on the card: the rail's
+       two controls are buttons too, and they come first in the document. */
+    const bar = [...host.querySelectorAll("button")].find((b) =>
+      /case study/i.test(b.textContent ?? ""),
+    );
+    expect(bar?.textContent).toMatch(/open case study/i);
   });
 });

@@ -79,6 +79,10 @@ export type AppCard = Omit<AppSnapshot, "trackId" | "recorded"> & {
   source: "live" | "recorded";
 };
 
+/** Where the artwork proxy lives. See its route for why the target rides in
+    the path rather than in a query parameter. */
+export const ART_ROUTE = "/api/app-store/art";
+
 /**
  * A same-origin URL for a piece of Apple's artwork.
  *
@@ -87,9 +91,17 @@ export type AppCard = Omit<AppSnapshot, "trackId" | "recorded"> & {
  * and widening it to Apple's CDN would hand every future component permission
  * to load anything from `mzstatic.com`. The proxy is the narrower door, and it
  * is the same door `/api/now-playing/art` already opens for Spotify's covers.
+ *
+ * The scheme is dropped and the rest of the URL becomes path segments, host
+ * first. That is not decoration: Next 16 will not optimise a local image whose
+ * src carries a query string unless the config names an exact `search` to
+ * match, and the search here *is* the artwork, so there is no exact value to
+ * name. Each segment is escaped on the way in and Next unescapes it on the way
+ * out, so the route gets back the URL that was put in.
  */
 export function proxied(url: string): string {
-  return `/api/app-store/art?u=${encodeURIComponent(url)}`;
+  const rest = url.replace(/^https:\/\//, "");
+  return `${ART_ROUTE}/${rest.split("/").map(encodeURIComponent).join("/")}`;
 }
 
 /**

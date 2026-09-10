@@ -1,13 +1,16 @@
 "use client";
 
 import { Fragment, useId, useState } from "react";
+import { AppStoreCard } from "@/components/app-store-card";
 import { CaseReel } from "@/components/case-reel";
 import { GlyphIcon } from "@/components/glyph-icon";
 import { GlyphText } from "@/components/glyph-text";
 import { PanelField } from "@/components/panel-field";
 import { RecordRow, SectionLabel, Tags } from "@/components/ui";
-import { splitBlocks } from "@/lib/case-blocks";
+import { appReel } from "@/lib/app-reel";
+import { LEDE_BLOCKS, splitBlocks } from "@/lib/case-blocks";
 import { Reveal } from "@/lib/reveal";
+import type { AppCard } from "@/lib/app-store";
 import type { CaseBlock, WorkItem } from "@/data/work";
 import type { Asset } from "@/data/assets.generated";
 
@@ -34,12 +37,23 @@ export function Product({
   item,
   assets,
   index,
+  app,
 }: {
   item: WorkItem;
   assets: Asset[];
   /** Position on the page. Drives the number, the arrival stagger, and the one
       preload — only the first product is above the fold on a cold load. */
   index: number;
+  /**
+   * The App Store listing, for the two entries that are iOS apps.
+   *
+   * Handed in rather than looked up. The lookup is a server fetch on a six-hour
+   * cache and this component is `"use client"`, so the page reads the store once
+   * for the whole document and each app entry is given its own card. Absent for
+   * everything that is not an app, which is what makes the branch below a
+   * question about this entry rather than a switch on its slug.
+   */
+  app?: AppCard;
 }) {
   const [open, setOpen] = useState(false);
   /* Sticky, never a toggle. The tail's `PanelField` is keyed to this, and a
@@ -53,14 +67,29 @@ export function Product({
   const panelId = useId();
   const ordinal = String(index + 1).padStart(2, "0");
 
-  /* Art with no blocks authored for it is still worth showing: fall back to one
+  /* An app's frames come from its listing, not from `public/work`. The reel it
+     is given replaces the authored one rather than joining it: the card below
+     stands where the entry's opening frame would, and the store's screens are
+     the frames after it. Nothing is deleted to arrange that — ChessEver's six
+     authored blocks and its one committed file are still in the repo.
+
+     Art with no blocks authored for it is still worth showing: fall back to one
      full frame per asset, in filename order — as the case page did. */
-  const blocks: CaseBlock[] =
-    item.blocks && item.blocks.length > 0
+  const blocks: CaseBlock[] = app
+    ? appReel(app)
+    : item.blocks && item.blocks.length > 0
       ? item.blocks
       : assets.map<CaseBlock>((asset) => ({ kind: "full", alt: asset.title }));
 
-  const { lede, rest, restAssetOffset } = splitBlocks(blocks);
+  /* The card is a frame, so it spends one of the lede's two. An app entry is
+     card, then one plate open, then one more behind the control — three, the
+     same count phase 6 set for every other card. It is expressed as the
+     constant less one rather than as a literal, so raising or lowering how much
+     a card shows still moves all four products together. */
+  const { lede, rest, restAssetOffset } = splitBlocks(
+    blocks,
+    app ? LEDE_BLOCKS - 1 : LEDE_BLOCKS,
+  );
   const prose = (item.intro?.length ?? 0) + (item.approach?.length ?? 0) > 0;
   const more = rest.length > 0 || prose;
 
@@ -95,6 +124,16 @@ export function Product({
       <p className="mt-3 mb-6 max-w-[42rem] text-base leading-relaxed text-ink-2">
         {item.oneLiner}
       </p>
+
+      {/* The store's product header, where this entry's opening frame would
+          stand. See `components/app-store-card.tsx`: it is a plate in the
+          reel's own tokens, so an app entry and a website entry are still the
+          same kind of object on the same page. */}
+      {app && (
+        <div className="mb-[var(--pg-gap)]">
+          <AppStoreCard app={app} />
+        </div>
+      )}
 
       {lede.length > 0 && (
         /* No lead. A full-bleed frame is most of the viewport tall, so 220px of

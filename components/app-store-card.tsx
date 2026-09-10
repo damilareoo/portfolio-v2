@@ -147,6 +147,14 @@ export function AppStoreCard({ app }: { app: AppCard }) {
           alt=""
           width={512}
           height={512}
+          /* Declared, or the optimiser sizes a 64px tile off the 512px source
+             and fetches a 1080-wide icon for it. */
+          sizes="80px"
+          /* An app icon's mask is 22.4% of its side. That is the shape iOS
+             draws this artwork in, and a token radius here would be the site
+             restating somebody else's mark in its own corner — the same reason
+             the marks keep their own colours. It is a percentage rather than a
+             length because the tile has two sizes. */
           className="size-16 rounded-[22.4%] border border-line object-cover sm:size-20"
         />
 
@@ -248,13 +256,18 @@ export function AppStoreCard({ app }: { app: AppCard }) {
                      the lookup payload carries no dimensions, and the two
                      listings' screens differ by a quarter of a percent. */
                   style={{ aspectRatio: app.shotRatio }}
-                  className="relative w-24 overflow-hidden rounded-[var(--radius-tile)] border border-line bg-surface sm:w-30"
+                  /* 96px on a phone, 144 from `sm` up. Wide enough at the top
+                     end that a screen is worth looking at and narrow enough
+                     that eight of them still run past the card's edge — a rail
+                     whose contents all fit is a row with two dead controls on
+                     it. */
+                  className="relative w-24 overflow-hidden rounded-[var(--radius-tile)] border border-line bg-surface sm:w-36"
                 >
                   <Image
                     src={src}
                     alt={`${app.name} — screen ${i + 1}`}
                     fill
-                    sizes="(min-width: 640px) 120px, 96px"
+                    sizes="(min-width: 640px) 144px, 96px"
                     className="object-cover"
                   />
                 </div>

@@ -6,6 +6,7 @@ import { GlyphText } from "@/components/glyph-text";
 import { InstrumentWall } from "@/components/instrument-wall";
 import { Product } from "@/components/product";
 import { SiteNav } from "@/components/site-nav";
+import { readAppStore } from "@/lib/app-store";
 import { workAssets } from "@/data/assets.generated";
 import { site } from "@/data/site";
 import { roles } from "@/data/experience";
@@ -34,7 +35,18 @@ const article = (title: string) => (/^[aeiou]/i.test(title) ? "an" : "a");
  * if the work is the page, there is nowhere else it could be. The nav stays
  * here only because /shots, /about and /colophon still exist.
  */
-export default function Home() {
+export default async function Home() {
+  /* One read of the App Store for the whole document, six hours old at most.
+     Two of the four products are iOS apps and open on their listing's card;
+     `readAppStore` returns a card for both of them whatever Apple says, so
+     there is no failure path to branch on here. See `lib/app-store.ts`.
+
+     It is awaited at the top of the page rather than fetched per product
+     because `Product` is a client component and because two entries asking the
+     same endpoint for the same two rows is one request too many even when Next
+     would have deduped it. */
+  const apps = await readAppStore();
+
   /* Padded the same way each product numbers itself, so the count and the
      three ordinals below it read as one system rather than two. */
   const featuredCount = String(work.length).padStart(2, "0");
@@ -178,7 +190,13 @@ export default function Home() {
 
       <div className="space-y-20">
         {work.map((item, i) => (
-          <Product key={item.slug} item={item} assets={workAssets[item.slug] ?? []} index={i} />
+          <Product
+            key={item.slug}
+            item={item}
+            assets={workAssets[item.slug] ?? []}
+            index={i}
+            app={apps[item.slug]}
+          />
         ))}
       </div>
 
