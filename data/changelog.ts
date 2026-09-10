@@ -27,6 +27,7 @@ export const changelog: ChangelogEntry[] = [
       "Four products read faster than three did, which is the test this phase set itself. At 375px the home was 4065px for three products and is 4808 for four — 1355px per product down to 1202. At 1440 it is 1863 down to 1505. An app entry stands at 849px against Sylvan's 751 and Hitman's Library's 1008; before the plate moved it was 1786, nearly twice the object either side of it",
       "ChessEver's two empty frames are gone. It carried six authored blocks against one committed file, so a third of its card had been rendering 'Awaiting art' on the live home page. The store's own screens close it, and nothing was deleted from data/work.ts to arrange that",
     ],
+    deployment: "https://portfolio-v2-rmkjai2z7-damilares-projects-fc682e5f.vercel.app",
   },
   {
     version: "1.15.0",
