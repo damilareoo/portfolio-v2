@@ -33,6 +33,24 @@ const PHONE_HOLD = "mx-auto w-full max-w-[22rem]";
 const holdFor = (frame?: CaseMedia["frame"]) => (frame === "phone" ? PHONE_HOLD : undefined);
 
 /**
+ * How wide a plate is allowed to get when everything on it is a phone.
+ *
+ * The plate is the reel's rhythm break: generous ground around held frames, so
+ * that a run of full-width captures has somewhere to breathe. That argument was
+ * made for a reel of seven blocks and it does not survive a card of three. A
+ * phone capture is held to 22rem however wide the page is, so a column-wide
+ * plate around one of them is 1192px of ground holding 352px of picture —
+ * measured on Sylvan at 1440, a block 84% empty. In a long reel that reads as
+ * air; as one of three frames on a card it reads as a card that gave up.
+ *
+ * So a plate carrying nothing but phones is held to a phone's measure instead.
+ * Two of them get roughly twice the room, because the grid inside puts them
+ * side by side from `sm` up. Any other plate — a browser capture, a crop, a
+ * pair of stills — is unchanged: those fill the ground they are given.
+ */
+const PHONE_PLATE = ["max-w-[30rem]", "max-w-[30rem]", "max-w-[52rem]"] as const;
+
+/**
  * Wrap a frame in its device treatment, or hand it back untouched.
  *
  * Untouched is the common case on purpose. Presentation is authored per frame
@@ -124,14 +142,18 @@ export function CaseReel({
         }
 
         if (block.kind === "inset") {
-          /* The plate carries generous padding so the frames inside it read as
-             held rather than cropped — the rhythm break the reel needs. */
+          /* The plate carries padding so the frames inside it read as held
+             rather than cropped — the rhythm break the reel needs. It is a
+             third less than it was: a card shows three blocks now, and 64px of
+             ground above and below one of three is a pause where there is
+             nothing to pause between. */
+          const phonesOnly = block.items.every((media) => media.frame === "phone");
           return (
             <Reveal key={i} index={i}>
               <div
-                className={`rounded-[var(--radius-tile)] px-6 py-10 sm:px-12 sm:py-16 ${
-                  block.tone === "strong" ? "bg-strong" : "bg-surface-2"
-                }`}
+                className={`mx-auto rounded-[var(--radius-tile)] px-6 py-8 sm:px-12 sm:py-12 ${
+                  phonesOnly ? PHONE_PLATE[block.items.length] : ""
+                } ${block.tone === "strong" ? "bg-strong" : "bg-surface-2"}`}
               >
                 <div
                   className={`mx-auto grid max-w-[80%] gap-6 ${
