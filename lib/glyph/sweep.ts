@@ -44,10 +44,14 @@ function measure(frame: HTMLElement): PanelBox {
 /**
  * How early a frame is told to arrive.
  *
- * The shots grid's own value, and its default: a tile that begins resolving a
- * little before it is on screen is settled by the time it is read, which is
- * what a grid of small tiles wants. A single full-bleed frame wants the
- * opposite — see `rootMargin` on the options.
+ * This was the shots grid's value when the shots grid was four columns of
+ * 302px tiles: a small tile that begins resolving a little before it is on
+ * screen is settled by the time it is read, and a batch of them shares one
+ * front that is on screen even though every member started early. No caller
+ * asks for it any more — /shots is composed of full-measure and half-measure
+ * frames now and passes "0px" like the rest — so it stands as the default a
+ * field of small tiles would want, not as a value in use. See `rootMargin` on
+ * the options for why every large frame overrides it.
  */
 const LEAD = "220px 0px";
 
@@ -74,17 +78,18 @@ export function runPanelSweep(
     /**
      * How far outside the viewport a frame starts arriving.
      *
-     * The default is the shots grid's, and the shots grid is why it exists: a
-     * batch of small tiles shares one front that crosses all of them, so the
-     * wave is on screen even though each tile started early.
+     * The default is a field of small tiles': a batch of them shares one front
+     * that crosses all of them, so the wave is on screen even though each tile
+     * started early.
      *
-     * A lone full-bleed frame has no such batch. Its front spans only its own
-     * box, so the whole 620ms dissolve fits inside the 220px of lead plus the
-     * frame's own height — measured on the home at a 700px/s scroll, the
-     * photograph was already at full opacity when 60px of the frame had
-     * entered the viewport, and the panel was never seen. Such a caller passes
-     * "0px" and the frame arrives when it is actually somewhere a reader is
-     * looking.
+     * A large frame has no such batch. Its front spans only its own box, so the
+     * whole 620ms dissolve fits inside the 220px of lead plus the frame's own
+     * height — measured on the home at a 700px/s scroll, the photograph was
+     * already at full opacity when 60px of the frame had entered the viewport,
+     * and the panel was never seen. Such a caller passes "0px" and the frame
+     * arrives when it is actually somewhere a reader is looking. Every caller
+     * on the site now does, /shots included, since its frames stopped being
+     * tiles.
      */
     rootMargin = LEAD,
     /**

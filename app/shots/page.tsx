@@ -16,8 +16,15 @@ export default function ShotsPage() {
     <main className="mx-auto w-full max-w-[1320px] px-5 py-4 pb-28 sm:px-6">
       <SiteNav current="/shots" />
       {/* No labels on the page: a shot's name lives in its alt text, where it
-          serves the reader who needs it without being drawn over the work. */}
-      <div className="mt-8">
+          serves the reader who needs it without being drawn over the work.
+
+          `short:mt-4` for the same reason the home's header carries it. A
+          landscape phone spends 126px on the header and this margin before the
+          first frame begins, and the first frame is now most of what is left —
+          measured at 800x400 it is 553x310 against a 78svh cap of 312. Half
+          the margin is the only part of that a page can give back without
+          moving the cap. */}
+      <div className="mt-8 short:mt-4">
         <ShotsField shots={shots} />
       </div>
     </main>

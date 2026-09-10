@@ -15,9 +15,11 @@ import { runPanelSweep } from "@/lib/glyph/sweep";
  * observer mid-collapse and sweep arrived frames a second time. A revision
  * moves in one direction, or it is not an arrival.
  *
- * `rootMargin` is passed straight to the sweep's observer, and only a caller
- * whose frames are full-bleed has any business setting it. Omitted, it is the
- * shots field's 220px lead, unchanged.
+ * `rootMargin` is passed straight to the sweep's observer, and a caller whose
+ * frames are large — full-bleed, or the full measure — sets it to "0px" so the
+ * dissolve does not finish before the frame is on screen. Omitted, it is the
+ * sweep's own 220px lead, which is the value a field of small tiles wants and
+ * which nothing on the site currently asks for.
  *
  * `tone` goes to the sweep the same way and is the same kind of thing: an
  * escape hatch for one photograph, not a new default. It is a function, so a
