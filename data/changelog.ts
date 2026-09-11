@@ -23,6 +23,7 @@ export const changelog: ChangelogEntry[] = [
       "The shots field was four balanced columns packed shortest-first. The packing was right and the page was quiet: every photograph drew 302px wide, and a screenshot of an interface at 302px is a grey rectangle shaped like an interface",
       "It is composed now rather than packed — runs that alternate a shot across the whole measure with two sharing it. The widest image went from 302px to 1246px, and the feed is read rather than surveyed",
     ],
+    deployment: "https://portfolio-v2-ke8n38zqc-damilares-projects-fc682e5f.vercel.app",
   },
   {
     version: "1.16.1",
