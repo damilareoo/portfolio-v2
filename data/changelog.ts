@@ -10,6 +10,21 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.17.0",
+    date: "2026-09-11",
+    title: "One screen, and ten shots worth looking at",
+    notes: [
+      "About is two columns on one screen: the record at the top left, the words and the roles sitting on the floor of the column, and the picture in its own column running off the bottom edge",
+      "It does not scroll at any size. The page was a viewport tall and the bar above it was not counted, so every screen was exactly one header too long — 1280x800, 1440x900, 1512x982, 1440x1080, 768x1024 and a phone now all land on the viewport",
+      "The picture stays in the matrix. Every other photograph on the site arrives through the dot field and resolves into itself, which makes the treatment a transition rather than a language; this one is painted once and held, so what the page shows is the field",
+      "That also settles what it is made of. A resolved photograph would be the only full-colour thing here that is not a quotation of somebody else's artwork — album covers and company marks keep their colours because they belong to other people. Painted as emitters it is drawn in the page's own ink and needs no exception",
+      "Two constants are local to it and nothing shared moved. The panel caps every emitter at 62% because it was written for a field that fades away, and stands its dots 7px apart, which across a face is under a hundred cells. A picture that stays is entitled to the whole ramp and to twice the resolution",
+      "Gone from About: the header band, the tagged notes, the tool tiles, likes and dislikes, the standing line and the closing parenthetical. What is left is a record, two paragraphs, three roles and a photograph",
+      "The shots field was four balanced columns packed shortest-first. The packing was right and the page was quiet: every photograph drew 302px wide, and a screenshot of an interface at 302px is a grey rectangle shaped like an interface",
+      "It is composed now rather than packed — runs that alternate a shot across the whole measure with two sharing it. The widest image went from 302px to 1246px, and the feed is read rather than surveyed",
+    ],
+  },
+  {
     version: "1.16.1",
     date: "2026-09-10",
     title: "The record is the fields and the picture",
