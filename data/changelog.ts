@@ -21,6 +21,7 @@ export const changelog: ChangelogEntry[] = [
       "A rule under each heading rather than a box around each block. Three boxes would be three cards, and the site has no cards; a rule is a mark, which is what every other surface already draws",
       "Still one screen with no scroll at any size, and the picture still holds its own column",
     ],
+    deployment: "https://portfolio-v2-nw2vis5br-damilares-projects-fc682e5f.vercel.app",
   },
   {
     version: "1.17.0",
