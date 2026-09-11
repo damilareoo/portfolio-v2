@@ -10,6 +10,19 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.17.1",
+    date: "2026-09-11",
+    title: "The left column is numbered, not borrowed",
+    notes: [
+      "About's left column was the reference's arrangement — links pinned at the top, a long emptiness, the words and roles resting on the floor. That stacking is the reference's idea, and copying it made this page a translation of another page",
+      "It is a numbered sequence now, and the numbering comes from here. The home sets its four product ordinals in the matrix's own numerals; nothing else on the site is numbered. Practice, roles, reach — 01, 02, 03, in the same alphabet at the same size",
+      "The device is not borrowable in the other direction, which is the point: it needs the dot alphabet, and the dot alphabet is the site's",
+      "Top-aligned and evenly spaced rather than pushed to the floor. A numbered sequence that starts halfway down the page is a list that has lost its first item",
+      "A rule under each heading rather than a box around each block. Three boxes would be three cards, and the site has no cards; a rule is a mark, which is what every other surface already draws",
+      "Still one screen with no scroll at any size, and the picture still holds its own column",
+    ],
+  },
+  {
     version: "1.17.0",
     date: "2026-09-11",
     title: "One screen, and ten shots worth looking at",

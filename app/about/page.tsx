@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fragment, type ReactNode } from "react";
 import { CompanyMark } from "@/components/company-marks";
+import { GlyphText } from "@/components/glyph-text";
 import { Portrait } from "@/components/portrait";
 import { LocalTime, WeatherReading } from "@/components/record-readings";
 import { SiteNav } from "@/components/site-nav";
@@ -60,60 +61,41 @@ export default function AboutPage() {
       <SiteNav current="/about" />
 
       <div className="mt-8 grid flex-1 gap-10 md:mt-10 md:min-h-0 md:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] md:gap-12 lg:grid-cols-[minmax(0,28rem)_minmax(0,1fr)] lg:gap-16">
-        {/* The words. A column, not a stack: the links sit at the top, the
-            paragraphs and the roles sit on the floor, and `mt-auto` is the whole
-            of the bottom alignment. Below `md` there is no floor to sit on and
-            the column is simply read in order, which is why the alignment is a
-            breakpoint's business rather than the flex container's. */}
-        <div className="flex min-w-0 flex-col">
-          {/* Pinned at the top, one per line, quiet. The reference has four and
-              so does this: the address he answers on, and the three places a
-              reader is most likely to already be. `elsewhere` holds seven — the
-              rest are on the colophon, and seven links is a directory rather
-              than a way to reach somebody. */}
-          <dl>
-            <Field label="Email">
-              <Out href={`mailto:${site.email}`}>{site.email}</Out>
-            </Field>
-            <Field label="Elsewhere">
-              {elsewhere.slice(0, 3).map((place, i) => (
-                <Fragment key={place.label}>
-                  {i > 0 && <span className="text-ink-3"> &middot; </span>}
-                  <Out href={place.href}>{place.label}</Out>
-                </Fragment>
-              ))}
-            </Field>
-            {/* Two readings, and they are the reason this page is on this site
-                rather than any site. Law 4's reporting clause: they move
-                because the state does, and they stop when it stops. A record
-                carrying a live field is one being kept rather than one typed
-                once. */}
-            <Field label="Local time">
-              <LocalTime />
-            </Field>
-            <Field label="Weather">
-              <WeatherReading />
-            </Field>
-          </dl>
+        {/* The words, as a numbered sequence.
 
-          <div className="mt-10 md:mt-auto md:pt-10">
-            {/* First person, and a greeting rather than a title card — the
-                reference opens the same way, and a record of a person written in
-                the third person about himself is a CV. */}
-            <h1 className="max-w-[34rem] text-base leading-relaxed text-ink">
+            The reference stacks its left column one way — contact links pinned
+            at the top, a long emptiness, the paragraphs and the roles resting
+            on the floor — and that arrangement is *its* idea. Copying it would
+            make this page a translation of another page, which is the one thing
+            the owner has asked twice that it not be.
+
+            So the sequence comes from this site instead. The home numbers its
+            four products in the matrix's own numerals, small and quiet, set
+            beside each title; nothing else on the site is numbered. Numbering
+            the three things this page says the same way ties About to the work
+            rather than to a reference, and it is a device nobody else can use,
+            because nobody else has the alphabet.
+
+            Three blocks, in the order somebody reads them: who he is, what he
+            has done, and how to reach him. Top-aligned and evenly spaced rather
+            than pushed to the floor — a numbered sequence that starts halfway
+            down the page is a list that has lost its first item. */}
+        <div className="flex min-w-0 flex-col gap-8">
+          <Block index={0} label="Practice">
+            {/* First person, and a greeting rather than a title card. A record
+                of a person written in the third person about himself is a CV. */}
+            <h1 className="text-base leading-relaxed text-ink">
               Hey &mdash; I&rsquo;m {site.name}, a product designer and builder
               creating 0&ndash;1 experiences. I work on the part where the shape
               of the thing is still an open question, and I build enough of them
               myself that the answer has to survive a real implementation.
             </h1>
-
-            {/* The second paragraph is the reference's "currently" sentence, and
-                it is derived rather than written: `standing` reads the periods
-                and decides both the tense and which roles it names. A
-                hand-written line here is what said "Currently: ChessEver, Hex"
-                for four months after both had ended. */}
+            {/* Derived, not written: `standing` reads the periods and decides
+                both the tense and which roles it names. A hand-written line
+                here is what said "Currently: ChessEver, Hex" for four months
+                after both had ended. */}
             {now.roles.length > 0 && (
-              <p className="mt-4 max-w-[34rem] text-base leading-relaxed text-ink-2">
+              <p className="mt-3 text-base leading-relaxed text-ink-2">
                 {now.open ? "Currently " : "Most recently "}
                 {now.roles.map((role, i) => (
                   <Fragment key={role.company}>
@@ -125,8 +107,10 @@ export default function AboutPage() {
                 absence of an idea, it is what makes the one idea legible.
               </p>
             )}
+          </Block>
 
-            <ul role="list" className="mt-10">
+          <Block index={1} label="Roles">
+            <ul role="list">
               {roles.map((role) => (
                 <li key={role.company} className="rule-b last:bg-none">
                   <a
@@ -135,11 +119,9 @@ export default function AboutPage() {
                     rel="noopener noreferrer"
                     /* Two columns, and the mark is the second, so every mark
                        lands on one right edge however long the company's name
-                       is — the reference's arrangement, and the reason it reads
-                       as a list of companies rather than three separate facts.
-                       `items-center` rather than baseline: a mark is a picture,
-                       and a picture aligns to the block beside it. */
-                    className="group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 py-3"
+                       is. `items-center` rather than baseline: a mark is a
+                       picture, and a picture aligns to the block beside it. */
+                    className="group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 py-2.5"
                   >
                     <span className="min-w-0">
                       <span className="block truncate text-sm text-ink transition-colors group-hover:text-ink-2">
@@ -152,9 +134,7 @@ export default function AboutPage() {
                     {/* The one thing on the page in anybody's colours, and it
                         stays for the reason the album art stays: a company's
                         mark is a quotation, not the design system spending a
-                        hue. `CompanyMark` sizes it off the type beside it and
-                        knows which companies have a wordmark and which have a
-                        symbol. */}
+                        hue. */}
                     <span className="shrink-0 text-sm">
                       <CompanyMark role={role} />
                     </span>
@@ -162,7 +142,34 @@ export default function AboutPage() {
                 </li>
               ))}
             </ul>
-          </div>
+          </Block>
+
+          <Block index={2} label="Reach">
+            <dl>
+              <Field label="Email">
+                <Out href={`mailto:${site.email}`}>{site.email}</Out>
+              </Field>
+              <Field label="Elsewhere">
+                {elsewhere.slice(0, 3).map((place, i) => (
+                  <Fragment key={place.label}>
+                    {i > 0 && <span className="text-ink-3"> &middot; </span>}
+                    <Out href={place.href}>{place.label}</Out>
+                  </Fragment>
+                ))}
+              </Field>
+              {/* Two readings, and they are the reason this page is on this
+                  site rather than any site. Law 4's reporting clause: they move
+                  because the state does, and stop when it stops. A record
+                  carrying a live field is one being kept rather than typed
+                  once. */}
+              <Field label="Local time">
+                <LocalTime />
+              </Field>
+              <Field label="Weather">
+                <WeatherReading />
+              </Field>
+            </dl>
+          </Block>
         </div>
 
         {/* The picture, and it is the largest thing on the site. Its own column
@@ -221,5 +228,41 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
       <dt className="font-mono text-2xs uppercase tracking-wider text-ink-3">{label}</dt>
       <dd className="min-w-0 text-sm text-ink-2">{children}</dd>
     </div>
+  );
+}
+
+/**
+ * One numbered block of the sequence.
+ *
+ * The numeral is drawn in the matrix's own alphabet at the size the home draws
+ * its product ordinals, and it is `aria-hidden` there for the same reason: a
+ * screen reader has no use for a picture of a number. The position is still
+ * information, so it is spoken in the label and drawn in the dots.
+ *
+ * The rule under the heading rather than around the block: a box would make
+ * three cards, and three cards is a layout the site does not otherwise have.
+ * A rule is a mark, which is the vocabulary every other surface already uses.
+ */
+function Block({
+  index,
+  label,
+  children,
+}: {
+  index: number;
+  label: string;
+  children: ReactNode;
+}) {
+  const ordinal = String(index + 1).padStart(2, "0");
+  return (
+    <section>
+      <div className="rule-b flex items-baseline gap-3 pb-2">
+        <span className="sr-only">
+          {ordinal} {label}
+        </span>
+        <GlyphText text={ordinal} size="0.5rem" className="shrink-0 text-ink-3" aria-hidden />
+        <h2 className="font-mono text-2xs uppercase tracking-wider text-ink-3">{label}</h2>
+      </div>
+      <div className="mt-4">{children}</div>
+    </section>
   );
 }
