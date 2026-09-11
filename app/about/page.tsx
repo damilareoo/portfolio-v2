@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { Fragment, type ReactNode } from "react";
+import { CompanyMark } from "@/components/company-marks";
 import { Portrait } from "@/components/portrait";
 import { LocalTime, WeatherReading } from "@/components/record-readings";
-import { RoleList } from "@/components/role-list";
 import { SiteNav } from "@/components/site-nav";
-import { changelog } from "@/data/changelog";
 import { roles } from "@/data/experience";
 import { elsewhere, site } from "@/data/site";
-import { work } from "@/data/work";
+import { standing } from "@/lib/experience";
 
 export const metadata: Metadata = {
   title: "About — Damilare Osofisan",
@@ -15,77 +14,189 @@ export const metadata: Metadata = {
 };
 
 /**
- * The disciplines, read off the work rather than restated.
+ * About: two paragraphs, the roles, and a photograph that holds the page.
  *
- * Already recorded, once, per piece of work: `disciplines` is what a case's own
- * tag row prints. A hand-written list here would be a second copy of the work,
- * and a second copy is what went stale on this page before — it said
- * "Currently: ChessEver, Hex" for four months after both ended.
+ * The reference is `bruce-cao.com/#about`, and what is taken from it is the
+ * arrangement rather than anything else. Its shape, measured off the rendered
+ * page at 1440:
  *
- * Order is the record's, deduplicated on first appearance. Sorting them would
- * be the page ranking his own practice, which is a claim the data does not
- * make.
+ *   - Two columns on one screen. Words on the left in a narrow column, one
+ *     large portrait on the right taking a little under half the width, and a
+ *     wide gutter between them.
+ *   - The left column is **bottom-aligned**, and that is the move that makes
+ *     the page: contact links pinned at the top, a long empty stretch, then the
+ *     paragraphs and the roles sitting on the floor of the column. The
+ *     emptiness is most of the page and it is deliberate.
+ *   - Roles as company over title, with the company's mark right-aligned in its
+ *     own column so every mark lands on a common edge whatever the name's
+ *     length. No dates, no locations, no blurbs.
+ *   - It never scrolls. The owner named that last part specifically.
+ *
+ * What is *not* taken is how it looks. The owner's instruction, twice, and the
+ * thing he called his major pain point: it has to be in his own aesthetic. So
+ * the reference's full-colour particle canvas is this site's dot-matrix
+ * dissolve; its plain links are this site's mono; the rules are the dotted
+ * vocabulary every other surface draws; and the two live readings under the
+ * links are here because a page about a person, on a site that takes readings,
+ * should take one. None of that is in the reference and all of it is his.
+ *
+ * The record sheet this replaces came from a different reference. What survives
+ * of it is the part that was always his: the marks, the dissolve, and the mono.
  */
-const practice = [...new Set(work.flatMap((item) => item.disciplines))];
+export default function AboutPage() {
+  const now = standing(roles);
 
-const recordId = [
-  site.handle,
-  site.name.replace(/\s+/g, "-"),
-  `${site.city}-${site.country}`,
-  site.coordinates.replace(/[°\s]/g, "").replace(",", "-"),
-  practice.join("-").replace(/\s+/g, ""),
-  `rev-${changelog[0].version}`,
-]
-  .join(" / ")
-  .toUpperCase();
-
-/**
- * A section heading, and the one place on this sheet that is not the mono.
- *
- * The reference sets its body in monospace throughout and then breaks it twice,
- * for two headings in a heavier, wider, letterspaced face. That contrast — one
- * machine-set sheet with a handful of headings in a second face — is a large
- * part of why the design reads as a document rather than as a printout, and it
- * is the one device that cannot be carried by size alone.
- *
- * The site already owns both halves of it: Suisse Int'l Mono sets everything
- * the site says about itself, and Suisse Int'l sets everything a person reads.
- * So the sheet is the mono and the headings are the sans, bold, uppercase and
- * opened up. No typeface was added.
- *
- * `size` is the only variable: the two section headings stand at `lg`, and the
- * pair headings at the foot are the same face and treatment a step smaller,
- * exactly as the reference has them. The trailing ellipsis is the device that
- * makes a heading announce something rather than label it, and it costs
- * nothing.
- */
-function SheetHeading({
-  size = "lg",
-  children,
-}: {
-  size?: "lg" | "sm";
-  children: ReactNode;
-}) {
-  const Tag = size === "lg" ? "h2" : "h3";
   return (
-    <Tag
-      className={`font-bold uppercase tracking-widest text-ink ${
-        size === "lg" ? "text-lg" : "text-sm"
-      }`}
-    >
-      {children}
-      <span className="text-ink-3">&hellip;</span>
-    </Tag>
+    /* The page is one screen. `svh` rather than `vh` because a phone's toolbars
+       make `vh` taller than the glass — the one unit that means what it says on
+       the device this is most read on.
+
+       `overflow-hidden` is what lets the picture run off the bottom edge rather
+       than lengthening the page to contain it. Scoped to this main, so nothing
+       else on the site inherits a rule written for one photograph. Both are
+       held to `md`: a phone has no room for a two-column screenful, and forcing
+       one there would mean type nobody can read. */
+    <main className="mx-auto flex h-[calc(100svh-var(--bar))] w-full max-w-[1240px] flex-col overflow-hidden px-5 py-4 [--bar:54px] sm:px-6">
+      <SiteNav current="/about" />
+
+      <div className="mt-8 grid flex-1 gap-10 md:mt-10 md:min-h-0 md:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] md:gap-12 lg:grid-cols-[minmax(0,28rem)_minmax(0,1fr)] lg:gap-16">
+        {/* The words. A column, not a stack: the links sit at the top, the
+            paragraphs and the roles sit on the floor, and `mt-auto` is the whole
+            of the bottom alignment. Below `md` there is no floor to sit on and
+            the column is simply read in order, which is why the alignment is a
+            breakpoint's business rather than the flex container's. */}
+        <div className="flex min-w-0 flex-col">
+          {/* Pinned at the top, one per line, quiet. The reference has four and
+              so does this: the address he answers on, and the three places a
+              reader is most likely to already be. `elsewhere` holds seven — the
+              rest are on the colophon, and seven links is a directory rather
+              than a way to reach somebody. */}
+          <dl>
+            <Field label="Email">
+              <Out href={`mailto:${site.email}`}>{site.email}</Out>
+            </Field>
+            <Field label="Elsewhere">
+              {elsewhere.slice(0, 3).map((place, i) => (
+                <Fragment key={place.label}>
+                  {i > 0 && <span className="text-ink-3"> &middot; </span>}
+                  <Out href={place.href}>{place.label}</Out>
+                </Fragment>
+              ))}
+            </Field>
+            {/* Two readings, and they are the reason this page is on this site
+                rather than any site. Law 4's reporting clause: they move
+                because the state does, and they stop when it stops. A record
+                carrying a live field is one being kept rather than one typed
+                once. */}
+            <Field label="Local time">
+              <LocalTime />
+            </Field>
+            <Field label="Weather">
+              <WeatherReading />
+            </Field>
+          </dl>
+
+          <div className="mt-10 md:mt-auto md:pt-10">
+            {/* First person, and a greeting rather than a title card — the
+                reference opens the same way, and a record of a person written in
+                the third person about himself is a CV. */}
+            <h1 className="max-w-[34rem] text-base leading-relaxed text-ink">
+              Hey &mdash; I&rsquo;m {site.name}, a product designer and builder
+              creating 0&ndash;1 experiences. I work on the part where the shape
+              of the thing is still an open question, and I build enough of them
+              myself that the answer has to survive a real implementation.
+            </h1>
+
+            {/* The second paragraph is the reference's "currently" sentence, and
+                it is derived rather than written: `standing` reads the periods
+                and decides both the tense and which roles it names. A
+                hand-written line here is what said "Currently: ChessEver, Hex"
+                for four months after both had ended. */}
+            {now.roles.length > 0 && (
+              <p className="mt-4 max-w-[34rem] text-base leading-relaxed text-ink-2">
+                {now.open ? "Currently " : "Most recently "}
+                {now.roles.map((role, i) => (
+                  <Fragment key={role.company}>
+                    {i > 0 && <span>{i === now.roles.length - 1 ? " and " : ", "}</span>}
+                    {role.role.toLowerCase()} at <Out href={role.url}>{role.company}</Out>
+                  </Fragment>
+                ))}
+                . Most of what I make is quiet on purpose: restraint is not the
+                absence of an idea, it is what makes the one idea legible.
+              </p>
+            )}
+
+            <ul role="list" className="mt-10">
+              {roles.map((role) => (
+                <li key={role.company} className="rule-b last:bg-none">
+                  <a
+                    href={role.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    /* Two columns, and the mark is the second, so every mark
+                       lands on one right edge however long the company's name
+                       is — the reference's arrangement, and the reason it reads
+                       as a list of companies rather than three separate facts.
+                       `items-center` rather than baseline: a mark is a picture,
+                       and a picture aligns to the block beside it. */
+                    className="group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 py-3"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm text-ink transition-colors group-hover:text-ink-2">
+                        {role.company}
+                      </span>
+                      <span className="mt-0.5 block truncate font-mono text-2xs uppercase tracking-wider text-ink-3">
+                        {role.role}
+                      </span>
+                    </span>
+                    {/* The one thing on the page in anybody's colours, and it
+                        stays for the reason the album art stays: a company's
+                        mark is a quotation, not the design system spending a
+                        hue. `CompanyMark` sizes it off the type beside it and
+                        knows which companies have a wordmark and which have a
+                        symbol. */}
+                    <span className="shrink-0 text-sm">
+                      <CompanyMark role={role} />
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* The picture, and it is the largest thing on the site. Its own column
+            because the reference gives it one, and because a photograph beside a
+            paragraph is an illustration of that paragraph — this is not that.
+
+            It runs off the bottom of the screen rather than ending on a caption:
+            a portrait that finishes inside the fold is an object on the page,
+            and one that leaves it is the page. `min-h-0` is what lets the grid
+            row hand it the height the column has left rather than the height the
+            image would like. */}
+        <div className="min-w-0 md:min-h-0">
+          <Portrait className="h-full" />
+        </div>
+      </div>
+    </main>
   );
 }
 
+/**
+ * A link that leaves, in the site's own mono.
+ *
+ * Underlined on the hairline rather than on the ink, so a column of them reads
+ * as a list before it reads as a set of links. The reference's carry no
+ * decoration at all, which on a page with this little on it made them hard to
+ * find; this is the smallest amount of affordance that fixes it.
+ */
 function Out({ href, children }: { href: string; children: ReactNode }) {
+  const external = href.startsWith("http");
   return (
     <a
       href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="underline decoration-line underline-offset-4 transition-colors hover:decoration-ink-3"
+      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      className="font-mono text-2xs uppercase tracking-wider text-ink-2 underline decoration-line underline-offset-4 transition-colors hover:text-ink hover:decoration-ink-3"
     >
       {children}
     </a>
@@ -93,178 +204,22 @@ function Out({ href, children }: { href: string; children: ReactNode }) {
 }
 
 /**
- * One row of the spine.
+ * One row of the record: an uppercase mono label in a fixed column, its value
+ * beside it, a dotted rule under the pair.
  *
- * The sheet's own row rather than `components/ui.tsx`'s `RecordRow`, and the
- * difference is the whole reason for it: on this sheet both halves are uppercase
- * mono and the label is the heavier weight, where a record row elsewhere on the
- * site is a quiet sans label against a sentence. Pushing this treatment into the
- * shared component would have set the colophon's "Tailwind CSS on CSS custom
- * properties" in shouting capitals to make one page's grid work.
+ * This is the report language the page is written in, and it is the reason the
+ * left column reads as a record rather than as a list of links. The label
+ * column is fixed so every value starts on one edge — a label column that sizes
+ * to its content puts four values at four indents and the rows stop being rows.
  *
- * **Two columns, but not at 320px.** A fixed label column on a 280px screen
- * leaves 188px for the value, and the longest values here are a list of
- * disciplines and seven links. Below `sm` the label goes above its value
- * instead. That is still a record — a field name, its value, a rule under the
- * pair — and a label column squeezed to nothing was never one.
+ * Below `sm` the pair stacks: a 7rem label column inside a 320px screen leaves
+ * the value nine characters, and a record nobody can read is not a record.
  */
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="grid gap-x-4 gap-y-0.5 rule-b py-2 last:bg-none sm:grid-cols-[7.5rem_minmax(0,1fr)]">
-      <dt className="font-mono text-xs font-medium uppercase tracking-wider text-ink">
-        {label}:
-      </dt>
-      <dd className="font-mono text-xs uppercase tracking-wider text-ink-2">{children}</dd>
+    <div className="rule-b grid gap-x-4 py-2 last:bg-none sm:grid-cols-[7rem_minmax(0,1fr)]">
+      <dt className="font-mono text-2xs uppercase tracking-wider text-ink-3">{label}</dt>
+      <dd className="min-w-0 text-sm text-ink-2">{children}</dd>
     </div>
-  );
-}
-
-/**
- * About, as a filed record.
- *
- * **The page is a sheet.** One centred document with ground either side, not a
- * full-bleed web page, and every device below is a device of the reference the
- * owner sent — in its order, at its proportions. The page measure
- * (`max-w-[1240px]`) still governs the nav, because the nav is the site's
- * chrome and the sheet is the document lying on it.
- *
- * Read top to bottom, and each numbered slot is the reference's:
- *
- *   1. A header band in two halves — a mark and a three-part title block on the
- *      left, a bordered three-row reference table on the right.
- *   2. A long identification string, and under it the heaviest rule on the
- *      page. The rule stops at the right edge of the label column rather than
- *      crossing the sheet, and that termination is what sets up the two-column
- *      body under it.
- *   3. The spine: eight label-value fields, uppercase mono throughout, the
- *      label in the heavier weight, a rule under every row.
- *   4. Beside them, level with the first field: the portrait, standing in front
- *      of a graduated board — see `components/portrait.tsx`.
- *   5. A section heading in the sans, a short list one item to a line, and a
- *      small underlined sub-label with a run of text following it.
- *   6. A three-column block of small tagged paragraphs, full sheet width.
- *   7. A second section heading.
- *   8. Twelve boxed tiles, six across and two down, in the sheet's left half.
- *      Beside them: two heading-and-text pairs.
- *   9. One centred line in parentheses, with clear space above it.
- *
- * **Every value is checkable.** The name, the city, the coordinates, the
- * practice, the roles, the handles, the stack tiles and both identification
- * strings are read out of `data/site.ts`, `data/experience.ts`,
- * `data/work.ts`, `data/changelog.ts` and `app/fonts`. Two fields are not
- * filed at all — they are read live, from the same clock and the same Lagos
- * forecast the footer's instruments read, which is what makes this a record
- * being *kept* rather than one typed once.
- *
- * **What is standing in.** Two slots of the reference ask for his own words and
- * the repo does not hold them in a form a page can print: the lines under LIKES
- * and DISLIKES. What is there now is the truest thing available — LIKES is his
- * own statement of what he enjoys, DISLIKES is drawn from positions he has
- * argued for repeatedly on this project — and both are listed in the report as
- * lines for him to replace. The layout does not depend on the sentence.
- *
- * **The boundaries the 1:1 instruction does not lift.** No seal, no agency, no
- * case number, no law-enforcement framing. The mark in the header is his own
- * initials set in the site's matrix alphabet. The reference's own field names —
- * AGE, SEXUALITY, MBTI — are not ours to publish and were never in the repo to
- * publish; a record of a product designer in Lagos holds where he is, what he
- * practises, where else he is, and what the time and the weather are where he
- * is sitting.
- *
- * **Widths.** The sheet takes the full measure on a phone and centres above it.
- * Each two-column device resolves on its own: the header band stacks below
- * `md`, the spine and the portrait stack below `md`, the tagged notes become
- * record rows below `md`, the tile strip runs four across below `sm` and six
- * above, and the two pairs sit under the tiles rather than beside them. The
- * spine's own label column goes above its value below `sm`, and the portrait's
- * board keeps its lines and drops the right-hand numerals.
- */
-export default function AboutPage() {
-
-  return (
-    <main className="mx-auto w-full max-w-[1240px] px-5 py-4 pb-8 sm:px-6">
-      <SiteNav current="/about" />
-
-      {/* The sheet. Roughly A4 at a browser's 96dpi, which is what makes a
-          document read as one sheet rather than as a page that happens to be
-          narrow. */}
-      <div className="mt-8 w-full [--frame-cap:46svh]">
-        {/* The name is the page's heading and nothing on the sheet needs to
-            print it twice: the NAME field below carries it for a reader, and
-            this carries it for a screen reader and for a crawler. The header
-            band that used to stand here — a mark, a tagline, the name set
-            large, the address, and a boxed reference table — was five ways of
-            saying who this is above a record whose first row says who this
-            is. */}
-        <h1 className="sr-only">{site.name}</h1>
-
-        {/* 2, 3 and 4 — The identification string and the heavy rule head the
-            left column; the spine runs under them; the portrait stands beside
-            all three.
-
-            The heavy rule stopping at the label column's right edge is the
-            reference's, and it is load-bearing rather than decorative: it is
-            the mark that declares where the sheet divides, so the two-column
-            body under it reads as a consequence of the rule rather than as a
-            second layout. That is why the string and the rule live inside this
-            grid instead of above it.
-
-            Heavy in the site's own vocabulary rather than as a solid bar:
-            `--rule-cell` sets a dotted rule's pitch, so raising it thickens
-            both the dash and the line and the rule stays the same kind of
-            object as every other rule on the sheet. */}
-        <div className="mt-8 grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] md:items-start md:gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)]">
-          <div>
-            <p className="break-words font-mono text-2xs uppercase tracking-wider text-ink-3">
-              {recordId}
-            </p>
-            <div className="mt-2 h-1 rule-b [--rule-cell:5px]" />
-
-            <dl className="mt-4">
-              <Field label="Name">{site.name}</Field>
-              <Field label="Based">
-                {site.city}, {site.country}
-              </Field>
-              <Field label="Coordinates">{site.coordinates}</Field>
-              <Field label="Local time">
-                <LocalTime />
-              </Field>
-              <Field label="Weather">
-                <WeatherReading />
-              </Field>
-              <Field label="Practice">{practice.join(" · ")}</Field>
-              <Field label="Elsewhere">
-                {elsewhere.map((place, i) => (
-                  <Fragment key={place.label}>
-                    {i > 0 && <span className="text-ink-3"> · </span>}
-                    <Out href={place.href}>{place.label}</Out>
-                  </Fragment>
-                ))}
-              </Field>
-              {/* The one value on the sheet that is not uppercased. An address
-                  is a string somebody has to be able to read back and type,
-                  and shouting it makes it harder to do both. */}
-              <Field label="Email">
-                <span className="normal-case tracking-normal">
-                  <Out href={`mailto:${site.email}`}>{site.email}</Out>
-                </span>
-              </Field>
-            </dl>
-          </div>
-
-          <Portrait />
-        </div>
-
-        {/* 5 — The first section heading, the short list under it, and the
-            underlined sub-label with its run of text. */}
-        <section className="mt-10">
-          <SheetHeading>Experience</SheetHeading>
-          <div className="mt-4">
-            <RoleList roles={roles} />
-          </div>
-        </section>
-
-      </div>
-    </main>
   );
 }

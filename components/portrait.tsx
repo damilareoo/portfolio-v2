@@ -1,215 +1,276 @@
 "use client";
 
-import { Frame } from "@/components/frame";
-import { GlyphText } from "@/components/glyph-text";
-import { PanelField } from "@/components/panel-field";
-import { centreMidtone } from "@/lib/glyph/tone";
+import { useEffect, useRef, useState } from "react";
+import { BAND, CEIL, paintPanel, type Panel } from "@/lib/glyph/panel";
+import { autoLevel, centreMidtone } from "@/lib/glyph/tone";
 
-/** The file, as it is on disk. Every number below is derived from these three. */
 const FILE = { src: "/about/portrait.png", width: 621, height: 1104 };
 
 /**
- * The slot the picture is cropped into, and where the crop is taken from.
+ * How much of the file the field is sampled from, as a fraction of its width.
  *
- * 3:4 rather than the file's own 9:16, and this is the one number here chosen
- * by the layout rather than by the file.
- *
- * It was 4:5, picked so the picture and the label-value rows ended together
- * when the sheet carried eight fields, a header band above them and four
- * sections below. Those are gone: the record is the fields and the roles now,
- * and the instruction that removed the rest also said to make the picture
- * bigger. A taller crop is how a fixed column gets bigger without taking width
- * from the page — it keeps more of the file rather than more of the screen, so
- * the head sits larger in the frame at the same column width. 3:4 is as far as
- * that goes before the crop starts eating into the empty ground under him that
- * the file's lower third is mostly made of.
- *
- * `POSITION` is a CSS `object-position` fraction: 0 takes the band off the top
- * of the file, 1 off the bottom. 0.3 puts his head at roughly a quarter to
- * three-fifths of the frame — cap to chest, the part of a portrait a reader
- * came for — where the middle would have taken the top of the cap off.
+ * A `cover` crop of a 9:16 file into a column near square takes the whole width
+ * and a band of the height — which is his whole torso, the table, the chairs
+ * behind him and most of a restaurant. At the cell count a column this size
+ * gives, a figure that small is a texture rather than a person. This takes a
+ * little over half the width, centred on him, so the emitters spend themselves
+ * on the head and shoulders.
  */
-const RATIO: [number, number] = [3, 4];
-const POSITION = 0.3;
-
-/** The band the crop actually shows, in the file's own pixel rows. */
-const BAND = (FILE.width * RATIO[1]) / RATIO[0];
-const TOP = (FILE.height - BAND) * POSITION;
-const BOTTOM = TOP + BAND;
+const ZOOM = 0.68;
 
 /**
- * The board he is standing in front of, and what its lines mean.
+ * How far apart the emitters stand here, in CSS pixels.
  *
- * The reference's portrait is a height board: horizontal graduations run across
- * the photograph edge to edge, the subject stands in front of them, and the
- * numerals sit outside the picture on both sides, level with each line,
- * decreasing as they go down. That is the device, and it is a measurement, so
- * the numbers have to mean something. A scale of centimetres would not: nobody
- * measured him, and inventing a height on the one page claiming to be a record
- * is the single thing that would turn this from design into costume.
- *
- * So the board measures the photograph. Each line is a row of the file, and
- * each numeral is **how many rows above the foot of the file that line sits** —
- * which is what makes the sequence decrease downward, exactly as a height chart
- * does, without any of it being made up. `file public/about/portrait.png` says
- * 621 x 1104; every numeral below is that height minus a row, and the caption
- * prints the two figures a reader would need to check it.
- *
- * A graduation every 60 rows lands thirteen lines inside the crop — 240 at the
- * foot to 960 at the head — which is the reference's count, evenly spaced, and
- * every one of them a round multiple. It is derived rather than chosen: change
- * the crop and the board re-graduates itself.
+ * `lib/glyph/panel.ts` puts them 7px apart, which is right for the field it was
+ * written for: a page of shots, each read at a glance, where the lattice is a
+ * texture and the photograph underneath resolves a moment later. This picture
+ * has no photograph underneath to resolve into — the dots are the whole of it,
+ * and at 7px a face across this column is under a hundred cells wide, which is
+ * a texture rather than a likeness. Four and a half puts it near three hundred,
+ * where an eye is an eye. The constant is local for the same reason the ceiling
+ * is: nothing about the shots field changes.
  */
-const STEP = 60;
+const PITCH = 4.5;
 
-/** Rows above the foot of the file, tallest first, for every line in the crop. */
-const MARKS: number[] = [];
-for (
-  let above = Math.floor((FILE.height - TOP) / STEP) * STEP;
-  above >= FILE.height - BOTTOM;
-  above -= STEP
-) {
-  MARKS.push(above);
+/** Where that window sits in the file, as fractions of its width and height. */
+const FOCUS = { x: 0.575, y: 0.43 };
+
+/**
+ * What the panel's own ceiling costs a picture that stays.
+ *
+ * `emitter` never returns more than `CEIL` — 0.62 — because the panel it was
+ * written for is a *transition*: a field laid over a photograph that fades out
+ * as the photograph fades in, and one that reached full ink would black the
+ * picture out at the moment of handover. This field is not laid over anything.
+ * It is the picture, so it is entitled to the whole ramp, and the values are
+ * divided by the ceiling on the way in so `emitter`'s own multiplication puts
+ * them back. Nothing in `lib/glyph/panel.ts` changes: the shots field and the
+ * case reels keep the ceiling that is right for what they do.
+ */
+const UNCAP = 1 / CEIL;
+
+/**
+ * How hard the values are pushed away from their middle.
+ *
+ * Sampled and levelled, this photograph still lands most of its emitters in the
+ * middle third of the ramp, and a field with no darks and no lights reads as
+ * grey weather rather than as a face. The correction is a straight gain about
+ * the midpoint — it costs the extremes, which this file has few of, and buys
+ * the separation between his cap, his face and the ground behind him.
+ */
+const GAIN = 1.45;
+
+/**
+ * Luminance to ink, and **not** inverted.
+ *
+ * `panelFrom` inverts — a dark pixel lights an emitter — because the shots it
+ * was written for are daylight photographs on a pale ground, where the subject
+ * is the dark thing and the sky is the empty thing. This file is the opposite
+ * of that. It was taken at night: the ground behind him, his cap and his shirt
+ * are all dark, and the only bright things in the frame are his face, his
+ * forearms and the phone in his hand.
+ *
+ * Inverted, that fills the entire field — background and figure alike land near
+ * the top of the ramp and the picture reads as one dark mass with a hole in it.
+ * Read straight, the light falling on him is what lights the emitters and
+ * everything the light did not reach stays empty, so the figure is drawn rather
+ * than silhouetted. It is the same picture; it is the exposure that decides
+ * which way round the ink belongs.
+ *
+ * It holds on both skins for the same reason every other panel does: the ink is
+ * the page's own, so a lit emitter is dark on the light skin and light on the
+ * dark one, and the figure is what is lit either way.
+ */
+function readStraight(pixels: Uint8ClampedArray, count: number): Float32Array {
+  const raw = new Float32Array(count);
+  for (let i = 0; i < count; i++) {
+    const p = i * 4;
+    raw[i] = 1 - (0.299 * pixels[p] + 0.587 * pixels[p + 1] + 0.114 * pixels[p + 2]) / 255;
+  }
+  return autoLevel(raw);
 }
 
-/** Where a mark lands inside the frame, as a percentage of its height. */
-const at = (above: number) => ((FILE.height - above - TOP) / BAND) * 100;
-
-/**
- * The numerals for one edge of the board.
- *
- * Outside the picture on both sides in the reference, level with the line they
- * name and carrying no tick of their own — the line crossing the photograph is
- * the tick. Set in `GlyphText`, the 3x5 matrix alphabet the pedometer and the
- * case numbers use, so the scale is drawn in the site's own hand rather than in
- * the mono standing in for it.
- *
- * Below `sm` the right-hand column keeps its width but loses its numerals: two
- * columns of figures saying the same thing were taking a quarter of a 320px
- * measure. The lines still run the full width of the picture, so the board is
- * still a board; only the second reading goes.
- */
-function Scale({ side }: { side: "left" | "right" }) {
-  const left = side === "left";
-  return (
-    <div className="relative" aria-hidden>
-      {MARKS.map((above) => (
-        <span
-          key={above}
-          className={`absolute block ${left ? "right-1.5" : "left-1.5 hidden sm:block"}`}
-          style={{ top: `${at(above)}%`, transform: "translateY(-50%)" }}
-        >
-          <GlyphText text={String(above)} size="0.5625rem" className="text-ink-3" />
-        </span>
-      ))}
-    </div>
-  );
+function contrast(values: Float32Array): Float32Array {
+  const out = new Float32Array(values.length);
+  for (let i = 0; i < values.length; i++) {
+    const pushed = (values[i] - 0.5) * GAIN + 0.5;
+    out[i] = (pushed < 0 ? 0 : pushed > 1 ? 1 : pushed) * UNCAP;
+  }
+  return out;
 }
 
 /**
- * The lines themselves, drawn across the picture.
+ * Far enough past the field that every emitter is fully lit.
  *
- * They are part of the picture's field rather than a border beside it, which is
- * the whole difference between a height board and a framed photograph with
- * ticks next to it. So they sit inside the frame's box, over the photograph and
- * over the panel canvas that dissolves into it.
- *
- * White at a third, and not a token. Every colour token on this site is a value
- * on one grey ramp fitted against the page's own ground, and a line laid over a
- * photograph is not on the page's ground — it is on a night shot that is dark
- * on both skins. `--border` would be invisible over it on the light skin and
- * nearly so on the dark. This is the same reasoning that lets album art and
- * company marks keep their own colours: the mark has to hold against what is
- * actually behind it. Equal channels either way, so the monochrome law is
- * untouched.
+ * `paintPanel` takes a wavefront position and lights each emitter by how far
+ * behind the front it stands. That is what the arrival uses; here there is no
+ * arrival, so the front is put beyond the last cell and the whole field paints
+ * at its own values. One number is the difference between a picture dissolving
+ * and a picture standing still.
  */
-function Board() {
-  return (
-    <div className="pointer-events-none absolute inset-0" aria-hidden>
-      {MARKS.map((above) => (
-        <span
-          key={above}
-          className="absolute inset-x-0 block h-px"
-          style={{ top: `${at(above)}%`, background: "rgba(255, 255, 255, 0.34)" }}
-        />
-      ))}
-    </div>
-  );
-}
+const LIT = 1e6;
 
 /**
- * Him, resolved out of the matrix, and measured.
+ * Him, in the matrix, and staying there.
  *
- * The one photograph on /about, and the only image on it, so it arrives the way
- * every other photograph on this site arrives: as a dot-matrix panel that
- * dissolves into the picture. That is `lib/glyph/sweep.ts` driving
- * `lib/glyph/panel.ts` — the *panel* renderer, whose emitters are all one size
- * and carry tone in brightness. It is not `lib/glyph/pixel.ts`, which draws the
- * dot language behind GlyphCell, GlyphIcon and GlyphText. The two are
- * constantly mistaken for each other, and the only thing here that belongs to
- * the second is the numerals on the board.
+ * Every other photograph on this site *arrives* through the dot field and
+ * resolves into itself — `lib/glyph/sweep.ts` running a wavefront across a
+ * canvas and fading the photograph up behind it. This one does not resolve.
+ * The owner asked for the picture to carry the glyph language, and a treatment
+ * that is only visible for the second and a half of its entrance is not a
+ * language the page speaks; it is a transition it plays. So the field is
+ * painted once and held.
  *
- * **A field on the record, not a band across the sheet.** The last version ran
- * the picture the whole width of the page and argued for it at length; the page
- * it argued inside is gone. A record's portrait is one of its fields — sized,
- * placed, and measured against something — and a 1192px band is the opposite
- * gesture, a picture the page has been cleared to make room for. It stands in
- * the right-hand column of the sheet now, level with the label-value rows.
+ * That also settles what the picture is made of. A resolved photograph is the
+ * only full-colour thing this site would hold that is not a quotation of
+ * somebody else's artwork — album covers and company marks keep their colours
+ * because they belong to other people, and his own photograph belongs to the
+ * page. Painted as emitters it is drawn in the page's own ink, on the page's
+ * own ramp, and the monochrome law needs no exception for it.
  *
- * **The cap is applied here rather than left to the frame.** `.frame-cap` holds
- * every frame on the site under 78svh by narrowing it and centring it inside
- * whatever box it was given — which is right everywhere else and wrong here,
- * because a frame that narrows away from its own board leaves the numerals
- * pointing at nothing. On a short window the container takes the cap first and
- * the frame simply fills it, so the lines always meet their figures.
+ * Law 4 is satisfied by there being no motion at all: the field is painted on
+ * mount and repainted only when the box or the skin changes, so a page at rest
+ * holds a still picture. There is no loop here and nothing for reduced motion
+ * to withhold.
  *
- * **On the cell count, which the column decides.** The panel lays an emitter
- * every 7px whatever the box, so a 264px field is 38 emitters across where the
- * full-width band was 170. That is the right trade rather than a loss: the
- * lattice is only on screen for the length of the dissolve, and what is left
- * afterwards is the photograph at whatever resolution the browser fetched. A
- * coarser panel makes the arrival read as a matrix resolving rather than as a
- * photograph with a texture laid over it, which is the whole reason the
- * treatment exists. `centreMidtone` re-derives its exponent from whatever frame
- * it is handed, so the correction follows the new count and the new crop rather
- * than being fitted to the old ones.
+ * This is the *panel* renderer — `lib/glyph/panel.ts`, whose emitters are one
+ * size and carry tone in brightness. It is not `lib/glyph/pixel.ts`, which
+ * draws the dot language behind GlyphCell, GlyphIcon and GlyphText. The two are
+ * constantly mistaken for each other.
+ *
+ * `centreMidtone` is not optional here. The file is a night shot whose values
+ * pile onto a single step; without the correction a third of the emitters land
+ * on one level and the field reads as a slab rather than as a person.
  */
 export function Portrait({ className = "" }: { className?: string }) {
+  const hostRef = useRef<HTMLDivElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const panelRef = useRef<Panel | null>(null);
+  const [ready, setReady] = useState(false);
+
+  /* Sample the file once, at whatever cell count the box asks for, and keep
+     the values. Sampling reads the decoded image back out of a canvas, which
+     taints on a cross-origin source — this file is same-origin, and it has to
+     stay that way or `getImageData` throws and the picture never appears. */
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+
+    let live = true;
+    const image = new window.Image();
+    image.decoding = "async";
+
+    const sample = () => {
+      const box = host.getBoundingClientRect();
+      if (!live || box.width < 2 || box.height < 2) return;
+
+      const cols = Math.max(2, Math.round(box.width / PITCH));
+      const rows = Math.max(2, Math.round(box.height / PITCH));
+
+      /* The crop, done here rather than in CSS: the field is sampled from the
+         window of the file the box should show, so the emitters are the crop
+         rather than a squashed whole. Clamped to the file on both axes, so a
+         very wide or very tall column asks for a window that exists. */
+      const bandWidth = Math.min(FILE.width, FILE.width * ZOOM);
+      const bandHeight = Math.min(FILE.height, (bandWidth * box.height) / box.width);
+      const sx = Math.max(0, Math.min(FILE.width - bandWidth, FILE.width * FOCUS.x - bandWidth / 2));
+      const sy = Math.max(
+        0,
+        Math.min(FILE.height - bandHeight, FILE.height * FOCUS.y - bandHeight / 2),
+      );
+
+      const off = document.createElement("canvas");
+      off.width = cols;
+      off.height = rows;
+      const octx = off.getContext("2d", { willReadFrequently: true });
+      if (!octx) return;
+      octx.drawImage(image, sx, sy, bandWidth, bandHeight, 0, 0, cols, rows);
+
+      const pixels = octx.getImageData(0, 0, cols, rows).data;
+      const values = contrast(centreMidtone(readStraight(pixels, cols * rows)));
+      panelRef.current = { cols, rows, values };
+      setReady(true);
+    };
+
+    image.onload = sample;
+    image.src = FILE.src;
+
+    const observer = new ResizeObserver(() => {
+      if (image.complete && image.naturalWidth > 0) sample();
+    });
+    observer.observe(host);
+
+    return () => {
+      live = false;
+      observer.disconnect();
+    };
+  }, []);
+
+  /* Paint. Separate from sampling because the two change for different
+     reasons: the values change when the box or the file does, and the ink
+     changes when the visitor switches skin — and a skin switch must not
+     re-read the image. */
+  useEffect(() => {
+    const host = hostRef.current;
+    const canvas = canvasRef.current;
+    if (!host || !canvas || !ready) return;
+
+    const draw = () => {
+      const panel = panelRef.current;
+      if (!panel) return;
+      const box = host.getBoundingClientRect();
+      if (box.width < 2 || box.height < 2) return;
+
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(box.width * dpr);
+      canvas.height = Math.round(box.height * dpr);
+      canvas.style.width = `${box.width}px`;
+      canvas.style.height = `${box.height}px`;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      /* The ink is read off the element rather than named, so the field is
+         whatever the skin says the page's text is and a skin switch repaints
+         it without this file knowing which skins exist. */
+      const ink = getComputedStyle(host).color || "#0f0f0f";
+      paintPanel(
+        ctx,
+        panel,
+        { width: box.width, height: box.height, originX: 0, originY: 0 },
+        LIT,
+        BAND,
+        ink,
+      );
+    };
+
+    draw();
+
+    const observer = new ResizeObserver(draw);
+    observer.observe(host);
+
+    /* A skin switch changes `color` on the document, not on this element's own
+       style, so there is nothing to listen to but the class that carries it. */
+    const skin = new MutationObserver(draw);
+    skin.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+
+    return () => {
+      observer.disconnect();
+      skin.disconnect();
+    };
+  }, [ready]);
+
   return (
-    <figure className={className}>
-      <div
-        className="mx-auto grid grid-cols-[var(--sl)_minmax(0,1fr)_var(--sr)] [--sl:2rem] [--sr:2rem]"
-        style={{
-          maxWidth: `calc(min(30rem, var(--frame-cap) * ${RATIO[0]} / ${RATIO[1]}) + var(--sl) + var(--sr))`,
-        }}
-      >
-        <Scale side="left" />
-        <PanelField rootMargin="0px" tone={centreMidtone} className="relative">
-          <Frame
-            src={FILE.src}
-            /* Him, not the effect. A reader who cannot see the picture is owed
-               what is in it, and neither the dissolve nor the board is in it —
-               they are how the page chose to draw it. */
-            alt="Damilare in a cap and a dark polo shirt, leaning on a table at a restaurant at night."
-            /* A band, not the file's own shape. The intrinsic width and height
-               are deliberately not handed over: passing them would declare the
-               slot 9:16, and there would be no crop for the board to measure. */
-            ratio={`${RATIO[0]} / ${RATIO[1]}`}
-            position={`50% ${POSITION * 100}%`}
-            sizes="(min-width: 768px) 24rem, (min-width: 640px) 26rem, 74vw"
-            preload
-            panel
-          />
-          <Board />
-        </PanelField>
-        <Scale side="right" />
-      </div>
-      {/* What the board is counting. Without this the numerals are a mood; with
-          it they are a measurement of a named file, and a reader can check both
-          figures against the file itself. */}
-      <figcaption className="mt-3 text-center font-mono text-2xs uppercase tracking-wider text-ink-3">
-        {FILE.width} &times; {FILE.height} px &middot; rows above the foot
-      </figcaption>
-    </figure>
+    <div
+      ref={hostRef}
+      className={`relative overflow-hidden text-ink ${className}`}
+      /* The picture is the page's, and what a reader who cannot see it is owed
+         is what is in it — not how it was drawn. */
+      role="img"
+      aria-label="Damilare in a cap and a dark polo shirt, leaning on a table at a restaurant at night, drawn as a field of dots."
+    >
+      <canvas ref={canvasRef} className="block" />
+    </div>
   );
 }
