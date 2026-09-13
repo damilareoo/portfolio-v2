@@ -2,21 +2,51 @@
 
 import { useEffect, useRef, useState } from "react";
 import { BAND, CEIL, paintPanel, type Panel } from "@/lib/glyph/panel";
-import { autoLevel, centreMidtone } from "@/lib/glyph/tone";
+import { autoLevel, centreMidtone, unsharp } from "@/lib/glyph/tone";
 
 const FILE = { src: "/about/portrait.png", width: 621, height: 1104 };
 
 /**
- * How much of the file the field is sampled from, as a fraction of its width.
+ * The two ends of the window this field is sampled through, as fractions of the
+ * file's width, each against the grid it was measured at.
  *
  * A `cover` crop of a 9:16 file into a column near square takes the whole width
- * and a band of the height — which is his whole torso, the table, the chairs
- * behind him and most of a restaurant. At the cell count a column this size
- * gives, a figure that small is a texture rather than a person. This takes a
- * little over half the width, centred on him, so the emitters spend themselves
- * on the head and shoulders.
+ * and a band of the height — his whole torso, the table, the chairs behind him
+ * and most of a restaurant. At the cell count a column this size gives, a
+ * figure that small is a texture rather than a person: measured against the
+ * crop these replace, the head goes from about a quarter of the frame's width
+ * to about three-quarters of it, which is the difference between a cap, an ear
+ * and a jaw that resolve and a dark shape that does not. Everything the wider
+ * crop bought — the table, the mural, the room — was competing for emitters
+ * with the only thing the picture is of.
  */
-const ZOOM = 0.68;
+const CROP = { near: { cols: 80, zoom: 0.33 }, far: { cols: 150, zoom: 0.4 } };
+
+/**
+ * The crop the grid can actually carry, as a fraction of the file's width.
+ *
+ * A fixed crop is the obvious thing and it is wrong, because the two layouts
+ * hand this component two different grids. Beside the words it gets a column
+ * about a hundred and fifty cells across; above them on a phone it gets a band
+ * about eighty. The same window of the file, resolved into half as many cells,
+ * is not the same picture drawn smaller — it is a coarser picture, and the
+ * first thing a coarser picture loses is the face, which is the smallest thing
+ * in the frame that has to survive.
+ *
+ * So the window closes as the grid does, and the subject keeps roughly the
+ * number of cells it needs. Both ends were measured by rendering the file at
+ * that exact box and looking: at a hundred and fifty cells two-fifths of the
+ * width is head and shoulders with room around them, and at eighty anything
+ * wider than a third leaves the head too few cells to be a head. Between them
+ * it is a straight line, and outside them it is clamped — a grid finer than the
+ * far end gains nothing from a wider window, and one coarser than the near end
+ * cannot be rescued by a tighter one.
+ */
+function zoomFor(cols: number): number {
+  const t = (cols - CROP.near.cols) / (CROP.far.cols - CROP.near.cols);
+  const clamped = t < 0 ? 0 : t > 1 ? 1 : t;
+  return CROP.near.zoom + (CROP.far.zoom - CROP.near.zoom) * clamped;
+}
 
 /**
  * How far apart the emitters stand here, in CSS pixels.
@@ -32,8 +62,16 @@ const ZOOM = 0.68;
  */
 const PITCH = 4.5;
 
-/** Where that window sits in the file, as fractions of its width and height. */
-const FOCUS = { x: 0.575, y: 0.43 };
+/**
+ * Where that window sits in the file, as fractions of its width and height.
+ *
+ * On the cap rather than on the face. He is in profile looking down and to the
+ * left, so a window centred on the face puts the brim out of frame at the top
+ * and the shoulder out at the bottom — and the brim is the strongest edge in
+ * the photograph, the one line a reader has to see before any of the rest of it
+ * is a head.
+ */
+const FOCUS = { x: 0.47, y: 0.4 };
 
 /**
  * What the panel's own ceiling costs a picture that stays.
@@ -55,33 +93,53 @@ const UNCAP = 1 / CEIL;
  * Sampled and levelled, this photograph still lands most of its emitters in the
  * middle third of the ramp, and a field with no darks and no lights reads as
  * grey weather rather than as a face. The correction is a straight gain about
- * the midpoint — it costs the extremes, which this file has few of, and buys
- * the separation between his cap, his face and the ground behind him.
+ * the midpoint — it costs the extremes, which this file has few of.
+ *
+ * It is the blunt half of the pair. A gain cannot tell his cap from the wall
+ * behind it, because a global curve moves both by the same amount; that is
+ * `EDGE` below, and this is only what puts the result across the whole ramp
+ * afterwards.
  */
 const GAIN = 1.45;
 
 /**
- * Luminance to ink, and **not** inverted.
+ * How much of the local difference `unsharp` adds back, and at what size.
  *
- * `panelFrom` inverts — a dark pixel lights an emitter — because the shots it
- * was written for are daylight photographs on a pale ground, where the subject
- * is the dark thing and the sky is the empty thing. This file is the opposite
- * of that. It was taken at night: the ground behind him, his cap and his shirt
- * are all dark, and the only bright things in the frame are his face, his
- * forearms and the phone in his hand.
+ * The amount was chosen by rendering the file at the column's real size across
+ * a range of them and looking: below about 0.6 the cap and the wall behind it
+ * are still one mass, and above about 1.2 the shirt breaks into noise and every
+ * edge carries a halo. 0.9 is where the brim, the ear and the line of the jaw
+ * arrive and nothing else does.
  *
- * Inverted, that fills the entire field — background and figure alike land near
- * the top of the ramp and the picture reads as one dark mass with a hole in it.
- * Read straight, the light falling on him is what lights the emitters and
- * everything the light did not reach stays empty, so the figure is drawn rather
- * than silhouetted. It is the same picture; it is the exposure that decides
- * which way round the ink belongs.
+ * The radius is in cells, so it is written as a share of the grid rather than
+ * as a number. Fixed at two cells it would pick out a feature twice as large in
+ * a 380px column as in a 760px one, and the picture would change character with
+ * the width of the screen rather than staying the same picture drawn finer.
+ * The divisor is the grid the amount was judged against.
+ */
+const EDGE = { amount: 0.9, per: 55 };
+
+/**
+ * Luminance to ink, inverted: a dark pixel lights an emitter.
+ *
+ * The same direction `panelFrom` reads in, and it is worth saying why, because
+ * the argument for reading a night photograph the other way round is a good one
+ * and it is wrong. Read straight, the only lit emitters would be the light
+ * falling on his face and forearms — and since the cap, the shirt and the room
+ * behind him are all dark, the picture would be a handful of bright fragments
+ * floating on an empty field. Inverted, the mass of him is ink and the light on
+ * his face is the paper it is drawn on, which is what a reader recognises as a
+ * face.
+ *
+ * What makes that work here rather than turning the frame into one dark slab is
+ * `unsharp`. The ground behind him is dark too, and separating it from him is a
+ * local problem — not a question of which way up the ramp runs.
  *
  * It holds on both skins for the same reason every other panel does: the ink is
  * the page's own, so a lit emitter is dark on the light skin and light on the
  * dark one, and the figure is what is lit either way.
  */
-function readStraight(pixels: Uint8ClampedArray, count: number): Float32Array {
+function readInverted(pixels: Uint8ClampedArray, count: number): Float32Array {
   const raw = new Float32Array(count);
   for (let i = 0; i < count; i++) {
     const p = i * 4;
@@ -140,7 +198,10 @@ const LIT = 1e6;
  *
  * `centreMidtone` is not optional here. The file is a night shot whose values
  * pile onto a single step; without the correction a third of the emitters land
- * on one level and the field reads as a slab rather than as a person.
+ * on one level and the field reads as a slab rather than as a person. `unsharp`
+ * is what the slab still needs after that, and the crop is what neither of them
+ * could have fixed: the corrections decide how well the picture is drawn, and
+ * the window decides what it is a picture of.
  */
 export function Portrait({ className = "" }: { className?: string }) {
   const hostRef = useRef<HTMLDivElement | null>(null);
@@ -171,7 +232,7 @@ export function Portrait({ className = "" }: { className?: string }) {
          window of the file the box should show, so the emitters are the crop
          rather than a squashed whole. Clamped to the file on both axes, so a
          very wide or very tall column asks for a window that exists. */
-      const bandWidth = Math.min(FILE.width, FILE.width * ZOOM);
+      const bandWidth = Math.min(FILE.width, FILE.width * zoomFor(cols));
       const bandHeight = Math.min(FILE.height, (bandWidth * box.height) / box.width);
       const sx = Math.max(0, Math.min(FILE.width - bandWidth, FILE.width * FOCUS.x - bandWidth / 2));
       const sy = Math.max(
@@ -187,7 +248,13 @@ export function Portrait({ className = "" }: { className?: string }) {
       octx.drawImage(image, sx, sy, bandWidth, bandHeight, 0, 0, cols, rows);
 
       const pixels = octx.getImageData(0, 0, cols, rows).data;
-      const values = contrast(centreMidtone(readStraight(pixels, cols * rows)));
+      /* Levelled, then centred, then separated, then spread: extent, position,
+         local difference, global range — each correction taking the frame the
+         one before it left, and the local one done while the values still carry
+         the picture rather than the ink. */
+      const levelled = centreMidtone(readInverted(pixels, cols * rows));
+      const radius = Math.max(1, Math.round(cols / EDGE.per));
+      const values = contrast(unsharp(levelled, cols, rows, radius, EDGE.amount));
       panelRef.current = { cols, rows, values };
       setReady(true);
     };
@@ -268,7 +335,7 @@ export function Portrait({ className = "" }: { className?: string }) {
       /* The picture is the page's, and what a reader who cannot see it is owed
          is what is in it — not how it was drawn. */
       role="img"
-      aria-label="Damilare in a cap and a dark polo shirt, leaning on a table at a restaurant at night, drawn as a field of dots."
+      aria-label="Damilare in a camouflage cap and a dark polo shirt, in profile looking down at his phone, drawn as a field of dots."
     >
       <canvas ref={canvasRef} className="block" />
     </div>

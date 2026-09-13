@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fragment, type ReactNode } from "react";
+import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { CompanyMark } from "@/components/company-marks";
 import { GlyphText } from "@/components/glyph-text";
 import { Portrait } from "@/components/portrait";
@@ -8,6 +8,7 @@ import { SiteNav } from "@/components/site-nav";
 import { roles } from "@/data/experience";
 import { elsewhere, site } from "@/data/site";
 import { standing } from "@/lib/experience";
+import { isPortfolio } from "@/lib/site-mode";
 
 export const metadata: Metadata = {
   title: "About — Damilare Osofisan",
@@ -52,15 +53,39 @@ export default function AboutPage() {
        make `vh` taller than the glass — the one unit that means what it says on
        the device this is most read on.
 
+       `--bar` is what the layout spends above this page, and it is not a
+       constant: one codebase ships two deployments, and only the workshop wears
+       `SiteHeader` — the portfolio's only navigation is the row inside this
+       main. Subtracting a header the portfolio does not render is how this page
+       spent fifty-four pixels of a nine-hundred-pixel screen on nothing, with
+       the picture stopping short of the fold and a band of ground under both
+       columns. The height a page claims has to be the height it was given.
+
        `overflow-hidden` is what lets the picture run off the bottom edge rather
-       than lengthening the page to contain it. Scoped to this main, so nothing
-       else on the site inherits a rule written for one photograph. Both are
-       held to `md`: a phone has no room for a two-column screenful, and forcing
-       one there would mean type nobody can read. */
-    <main className="mx-auto flex h-[calc(100svh-var(--bar))] w-full max-w-[1240px] flex-col overflow-hidden px-5 py-4 [--bar:54px] sm:px-6">
+       than lengthening the page to contain it, and with the fixed height it is
+       held to `md` — because a phone is not a small desktop.
+
+       What that rule cost while it was unconditional is worth writing down: at
+       390 by 844 the three blocks fill the screen on their own, so the picture
+       was laid out below them and then clipped away, and the About page had no
+       photograph on it at all. One screen is a composition for a screen wide
+       enough to hold two columns. A phone scrolls, every phone has always
+       scrolled, and the picture goes first on it.
+
+       `lg` rather than `md` is where the two columns start, and the reason is
+       the picture rather than the words. At 768 the split leaves the portrait a
+       260-pixel slot nine hundred pixels tall, and a window that shape samples a
+       vertical strip of the file — an arm and a shirt, with the head above the
+       top edge. The words were legible at that width, which is what made `md`
+       look right; the photograph was a ribbon of noise. A column has to be wide
+       enough for what stands in it. */
+    <main
+      className="mx-auto flex w-full max-w-[1240px] flex-col px-5 pb-14 pt-4 sm:px-6 lg:h-[calc(100svh-var(--bar))] lg:overflow-hidden lg:pb-4"
+      style={{ "--bar": isPortfolio ? "0px" : "54px" } as CSSProperties}
+    >
       <SiteNav current="/about" />
 
-      <div className="mt-8 grid flex-1 gap-10 md:mt-10 md:min-h-0 md:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] md:gap-12 lg:grid-cols-[minmax(0,28rem)_minmax(0,1fr)] lg:gap-16">
+      <div className="mt-8 grid flex-1 gap-10 lg:mt-10 lg:min-h-0 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:gap-12 xl:grid-cols-[minmax(0,28rem)_minmax(0,1fr)] xl:gap-16">
         {/* The words, as a numbered sequence.
 
             The reference stacks its left column one way — contact links pinned
@@ -77,10 +102,18 @@ export default function AboutPage() {
             because nobody else has the alphabet.
 
             Three blocks, in the order somebody reads them: who he is, what he
-            has done, and how to reach him. Top-aligned and evenly spaced rather
-            than pushed to the floor — a numbered sequence that starts halfway
-            down the page is a list that has lost its first item. */}
-        <div className="flex min-w-0 flex-col gap-8">
+            has done, and how to reach him. Top-aligned rather than pushed to
+            the floor — a numbered sequence that starts halfway down the page is
+            a list that has lost its first item.
+
+            `justify-between` above `lg` is what makes the two columns end
+            together. The picture runs to the bottom edge of the screen and the
+            words, left at their natural height, stopped about a hundred pixels
+            short of it — which reads as a column that ran out rather than one
+            that was composed. Spreading the three blocks across the height they
+            were given resolves both columns on one line, and `gap-8` stays as
+            the floor for a screen too short to have any slack to spread. */}
+        <div className="flex min-w-0 flex-col gap-8 lg:justify-between">
           <Block index={0} label="Practice">
             {/* First person, and a greeting rather than a title card. A record
                 of a person written in the third person about himself is a CV. */}
@@ -181,8 +214,31 @@ export default function AboutPage() {
             and one that leaves it is the page. `min-h-0` is what lets the grid
             row hand it the height the column has left rather than the height the
             image would like. */}
-        <div className="min-w-0 md:min-h-0">
-          <Portrait className="h-full" />
+        {/* `order-first` below `lg` only. On one column the picture is the
+            first thing on the page, which is what a page about a person opens
+            with; in two columns the DOM order is already the reading order and
+            the property has nothing to do.
+
+            Stacked, the box is given a shape rather than a height. In the grid
+            row it takes whatever the row has left, and a single column has no
+            row to take anything from — so `h-full` there resolves against
+            nothing and the canvas collapses. A height in `svh` would fix that
+            and hand the picture a different shape at every device: on a short
+            wide screen it becomes a letterbox, and a letterbox window into a
+            standing figure is a band across his chest. Four to five is close to
+            the proportion the desktop column settles at, so the picture is
+            recognisably the same picture at every width.
+
+            The measure is the smaller of three things, and the third is what
+            makes the shape hold. A cap in rem stops it growing into a poster on
+            a tablet; a cap derived from the viewport's own height stops it
+            filling a short landscape screen end to end, which is what an 800 by
+            400 window did — a picture and nothing else until the visitor
+            scrolled. Constraining the width by the height is how a fixed ratio
+            stays a fixed ratio: `max-height` would have clamped the box and let
+            the aspect go, which is the letterbox by another route. */}
+        <div className="order-first min-w-0 lg:order-none lg:min-h-0">
+          <Portrait className="aspect-[4/5] w-[min(100%,30rem,calc(70svh*0.8))] lg:aspect-auto lg:h-full lg:w-full" />
         </div>
       </div>
     </main>

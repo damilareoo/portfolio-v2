@@ -144,3 +144,105 @@ export function centreMidtone(frame: Float32Array): Float32Array {
   }
   return out;
 }
+
+/**
+ * How many passes of the box make the blur read as a blur.
+ *
+ * One box pass is a rectangle, and subtracting a rectangle from a picture
+ * leaves the picture with square corners on every edge it sharpened. Two
+ * passes is a triangle, which is the cheapest kernel with no flat top, and on
+ * a grid this coarse it is indistinguishable from the Gaussian it approximates.
+ * Three would be closer and cost a third more for a difference no emitter can
+ * express, since the panel only drives sixteen levels.
+ */
+const BLUR_PASSES = 2;
+
+/**
+ * A separable box blur over a cell grid, clamped at the edges.
+ *
+ * Edge-clamped rather than wrapped or zero-padded: a panel's left column has
+ * no right column behind it, and padding with zero would darken every border
+ * cell — inventing a frame around the picture that is not in the picture.
+ *
+ * Separable because a box is: blurring along rows and then along columns gives
+ * the same answer as the square kernel at a fraction of the arithmetic, which
+ * matters on a field of twenty-odd thousand cells sampled on the main thread.
+ */
+function boxBlur(frame: Float32Array, cols: number, rows: number, radius: number): Float32Array {
+  const span = radius * 2 + 1;
+  /* Two scratch buffers, written alternately. The input is never one of them:
+     a caller's frame is not this routine's to overwrite. */
+  const pair = [new Float32Array(frame.length), new Float32Array(frame.length)];
+  let source = frame;
+
+  for (let pass = 0; pass < BLUR_PASSES * 2; pass++) {
+    /* Even passes run along rows, odd ones along columns — same routine, with
+       the stride and the run length swapped. */
+    const alongRow = pass % 2 === 0;
+    const runs = alongRow ? rows : cols;
+    const length = alongRow ? cols : rows;
+    const stride = alongRow ? 1 : cols;
+    const step = alongRow ? cols : 1;
+    const out = pair[pass % 2];
+
+    for (let run = 0; run < runs; run++) {
+      const base = run * step;
+      const at = (i: number) => source[base + Math.min(length - 1, Math.max(0, i)) * stride];
+
+      let sum = 0;
+      for (let i = -radius; i <= radius; i++) sum += at(i);
+      for (let i = 0; i < length; i++) {
+        out[base + i * stride] = sum / span;
+        sum += at(i + radius + 1) - at(i - radius);
+      }
+    }
+    source = out;
+  }
+  return source;
+}
+
+/**
+ * Separates a picture from the ground it was photographed against.
+ *
+ * `autoLevel` and `centreMidtone` are both *global* corrections: they move
+ * every cell by the same rule, which is the right instrument when a frame's
+ * problem is that the whole of it sits too dark or too flat. Neither can help
+ * a frame whose problem is local — a dark head against a dark wall stays one
+ * mass however the scale is stretched, because the head and the wall are
+ * genuinely the same value and a global curve has no way to know they are
+ * different things.
+ *
+ * What distinguishes them is the neighbourhood. A cell brighter than the
+ * average of the cells around it is on the lit side of an edge; one darker is
+ * on the shadowed side. Amplifying that difference — the picture, plus a share
+ * of the picture minus a blurred copy of itself — pushes the two sides of every
+ * edge apart while leaving a large even region exactly where it was. It is
+ * unsharp masking, which is the oldest trick in reproduction and still the one
+ * that works, and on a panel it buys the jaw, the brim of a cap and the line of
+ * a shoulder that a global curve leaves buried.
+ *
+ * `amount` is how much of that difference to add back, and `radius` is in
+ * cells, so a caller scaling its grid should scale the radius with it or the
+ * correction will pick out a different size of feature at every column width.
+ *
+ * Opt-in for the same reason `centreMidtone` is: the shots field and the case
+ * reels render exactly what they rendered before, and a caller with a
+ * photograph that needs this asks for it.
+ */
+export function unsharp(
+  frame: Float32Array,
+  cols: number,
+  rows: number,
+  radius: number,
+  amount: number,
+): Float32Array {
+  if (frame.length !== cols * rows || radius < 1 || amount === 0) return frame;
+
+  const blurred = boxBlur(frame, cols, rows, radius);
+  const out = new Float32Array(frame.length);
+  for (let i = 0; i < frame.length; i++) {
+    const v = frame[i] + amount * (frame[i] - blurred[i]);
+    out[i] = v < 0 ? 0 : v > 1 ? 1 : v;
+  }
+  return out;
+}

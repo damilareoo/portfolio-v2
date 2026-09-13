@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { autoLevel, centreMidtone, inkRadius } from "./tone";
+import { autoLevel, centreMidtone, inkRadius, unsharp } from "./tone";
 
 describe("autoLevel", () => {
   it("stretches a compressed range to fill 0..1", () => {
@@ -126,5 +126,60 @@ describe("centreMidtone", () => {
       for (const v of out) expect(Number.isFinite(v)).toBe(true);
     }
     expect(centreMidtone(new Float32Array(0)).length).toBe(0);
+  });
+});
+
+describe("unsharp", () => {
+  /* A grid with one edge down the middle and nothing else: the left half dark,
+     the right half light. Everything the operator is for shows up here. */
+  const edge = (cols: number, rows: number, low = 0.4, high = 0.6) => {
+    const f = new Float32Array(cols * rows);
+    for (let y = 0; y < rows; y++)
+      for (let x = 0; x < cols; x++) f[y * cols + x] = x < cols / 2 ? low : high;
+    return f;
+  };
+
+  it("pushes the two sides of an edge apart", () => {
+    const cols = 16;
+    const before = edge(cols, 8);
+    const after = unsharp(before, cols, 8, 2, 0.9);
+    const dark = after[4 * cols + (cols / 2 - 1)];
+    const light = after[4 * cols + cols / 2];
+    expect(before[4 * cols + cols / 2] - before[4 * cols + cols / 2 - 1]).toBeCloseTo(0.2, 5);
+    expect(light - dark).toBeGreaterThan(0.2);
+  });
+
+  it("leaves an even field exactly where it was", () => {
+    const flat = new Float32Array(64).fill(0.37);
+    const out = unsharp(flat, 8, 8, 2, 0.9);
+    for (const v of out) expect(v).toBeCloseTo(0.37, 5);
+  });
+
+  it("never leaves the range a panel can drive", () => {
+    const out = unsharp(edge(16, 8, 0.02, 0.98), 16, 8, 2, 3);
+    for (const v of out) expect(v).toBeGreaterThanOrEqual(0);
+    for (const v of out) expect(v).toBeLessThanOrEqual(1);
+  });
+
+  it("does not write into the frame it was given", () => {
+    const before = edge(16, 8);
+    const copy = Float32Array.from(before);
+    unsharp(before, 16, 8, 2, 0.9);
+    expect(Array.from(before)).toEqual(Array.from(copy));
+  });
+
+  it("clamps at the edges rather than padding with nothing", () => {
+    /* Zero-padding would darken the border of an even field; clamping cannot. */
+    const flat = new Float32Array(64).fill(0.8);
+    const out = unsharp(flat, 8, 8, 3, 1);
+    expect(out[0]).toBeCloseTo(0.8, 5);
+    expect(out[63]).toBeCloseTo(0.8, 5);
+  });
+
+  it("passes the frame through when there is nothing to do", () => {
+    const f = edge(8, 8);
+    expect(unsharp(f, 8, 8, 0, 0.9)).toBe(f);
+    expect(unsharp(f, 8, 8, 2, 0)).toBe(f);
+    expect(unsharp(f, 9, 8, 2, 0.9)).toBe(f);
   });
 });

@@ -10,6 +10,21 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.18.0",
+    date: "2026-09-14",
+    title: "The picture is of somebody",
+    notes: [
+      "The portrait was a field of grey noise. The window took a little over half the file and centred on his shoulder, so the emitters were spent on a table, a mural and a room, and the head came to about a quarter of the frame's width. It is head and shoulders now, and the head is about three-quarters",
+      "A crop alone would not have been enough. The photograph is a night shot: his cap, his shirt and the wall behind him are all dark, and a curve that moves the whole picture cannot tell one from another, because they are genuinely the same value",
+      "So the panel learned a local correction. `unsharp` compares each cell with the average of its neighbours and amplifies the difference, which separates two sides of an edge and leaves an even region where it was. That is what brings up the brim of the cap, the ear and the line of the jaw",
+      "The window closes as the grid does. A column beside the words is about 150 cells across and a band above them on a phone is about 80, and the same crop resolved into half as many cells is a coarser picture whose first casualty is the face",
+      "The page had no photograph on it at all on a phone. One screen is a composition for a screen wide enough for two columns; below that the three blocks filled the viewport, the picture was laid out under them, and `overflow-hidden` cut it off",
+      "Stacked, the picture comes first and the page scrolls, because every phone has always scrolled. Its shape is stated rather than its height, so a short landscape screen gets a portrait rather than a letterbox across his chest",
+      "Two columns start at 1024 rather than 768. At 768 the split left the picture a 260-pixel slot nine hundred pixels tall, and a window that shape samples a vertical strip of the file: an arm, a shirt, and the head above the top edge",
+      "Fifty-four pixels of every screen went to a header this deployment does not render. One codebase ships two sites and only the workshop wears the bar; the portfolio's navigation is the row inside the page. The picture reached the fold and both columns now end on the same line",
+    ],
+  },
+  {
     version: "1.17.1",
     date: "2026-09-11",
     title: "The left column is numbered, not borrowed",
