@@ -23,6 +23,7 @@ export const changelog: ChangelogEntry[] = [
       "Two columns start at 1024 rather than 768. At 768 the split left the picture a 260-pixel slot nine hundred pixels tall, and a window that shape samples a vertical strip of the file: an arm, a shirt, and the head above the top edge",
       "Fifty-four pixels of every screen went to a header this deployment does not render. One codebase ships two sites and only the workshop wears the bar; the portfolio's navigation is the row inside the page. The picture reached the fold and both columns now end on the same line",
     ],
+    deployment: "https://portfolio-v2-f1fcsq3f2-damilares-projects-fc682e5f.vercel.app",
   },
   {
     version: "1.17.1",
