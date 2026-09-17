@@ -133,9 +133,18 @@
 }
 
 .dark {
-  /* Near-black still reads as a surface, so an unlit dot needs far less here
-     than on the light skin to be present rather than absent. */
-  --pixel-floor: 0.05;
+  /* Near-black still reads as a surface, so an unlit dot needs less here than
+     on the light skin to be present rather than absent. Less, but not this
+     much less: at 0.05 an unlit dot stood at 1.14 against the card it sits on
+     while the light skin's stood at 1.23, so the same resting instrument was
+     visibly fainter in one skin than in the other — and two of the four bays
+     spend most of their time resting. 0.075 puts the dark pair at 1.23 as
+     well, which is the number this was always meant to be: the same distance
+     off the card, bought with whatever ink that skin's ground costs.
+
+     Measured as contrast against `--surface-2`, which is the tile every face
+     on the instrument wall is drawn on. */
+  --pixel-floor: 0.075;
 
   /* The dark skin moved for the same reason and kept the movement when the
      hue came back out. The ground went a shade darker and the inks a shade

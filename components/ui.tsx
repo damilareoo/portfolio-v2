@@ -27,16 +27,37 @@ export function SectionLabel({ children }: { children: ReactNode }) {
   );
 }
 
-export function Sheet({
+/**
+ * A labelled band, which is how this site divides a page.
+ *
+ * It replaces `Sheet` — a rounded, bordered, raised panel that two surfaces
+ * used and nothing else did. About's own note says why it had to go: "Three
+ * boxes would be three cards, and the site has no cards; a rule is a mark,
+ * which is what every other surface already draws." Measured, the sheet was
+ * not even raised: `--surface` stands at 1.026 against `--bg`, so what a
+ * visitor saw was a rounded border and nothing inside it. A border that
+ * contains rather than separates is an edge, and the page needed neither.
+ *
+ * Lifted out of `app/colophon/page.tsx`, which had been the only surface
+ * drawing it, at the point the changelog and the system page came onto the
+ * same structure. The three pages that carry a record now carry one.
+ */
+export function Section({
+  label,
+  note,
   className = "",
   children,
 }: {
+  label: string;
+  note?: string;
   className?: string;
   children: ReactNode;
 }) {
   return (
-    <section className={`rounded-2xl border border-line bg-surface ${className}`}>
-      {children}
+    <section className={`mt-12 ${className}`}>
+      <h2 className="text-xs text-ink-2">{label}</h2>
+      {note && <p className="mt-2 max-w-[34rem] text-xs leading-[1.6] text-ink-3">{note}</p>}
+      <div className="mt-4">{children}</div>
     </section>
   );
 }

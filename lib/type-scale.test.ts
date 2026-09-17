@@ -73,6 +73,19 @@ const GOVERNED = [
      field, the register wall and the five games went in the same pass that cut
      this page back to a colophon. */
   "app/colophon/page.tsx",
+  /* The last two surfaces off the scale, and the only two this list has ever
+     been incomplete by. Between them they set a dozen literals — 1.75rem,
+     1.0625rem, 0.9375rem, 0.875rem, 0.8125rem, 0.75rem, 0.6875rem — while
+     `/system` printed "Six type steps, and nothing sized outside them" as one
+     of the five rules the site holds itself to. A page publishing a law it is
+     exempt from is worse than a page with no law on it.
+
+     Governed from the pass that gave them the nav, the measure and the bands
+     every other surface already had. With these two the list is every route
+     and every component that sets type, so a size off the scale now has
+     nowhere on this site to land. */
+  "app/changelog/page.tsx",
+  "app/system/page.tsx",
 ];
 
 const STEPS = ["2xs", "xs", "sm", "base", "lg", "xl"] as const;

@@ -18,7 +18,13 @@ import { InstrumentWall } from "@/components/instrument-wall";
  */
 export function SiteFooter() {
   return (
-    <footer className="mx-auto w-full max-w-6xl px-4 pb-8 sm:px-6">
+    /* The page's measure, not a measure of its own. This was `max-w-6xl px-4`
+       — 1152 inside 32 — against the 1240 inside 40 every main on the site
+       sets, so the wall stood narrower than the words above it and started 8px
+       further in. Nobody could have seen it while the two routes that carry
+       this footer were themselves centred in a 768 column; with those on the
+       site's measure the wall had to join them. */
+    <footer className="mx-auto w-full max-w-[1240px] px-5 pb-8 sm:px-6">
       <InstrumentWall />
       <FooterLine />
     </footer>

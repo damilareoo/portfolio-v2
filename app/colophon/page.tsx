@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { SiteNav } from "@/components/site-nav";
 import { TokenRow } from "@/components/colophon-instruments";
-import { RecordRow } from "@/components/ui";
+import { RecordRow, Section } from "@/components/ui";
 import { changelog } from "@/data/changelog";
 import { isPortfolio } from "@/lib/site-mode";
 
@@ -23,28 +23,6 @@ const TOKENS = [
   "fill-strong",
   "miss",
 ];
-
-function Heading({ children }: { children: ReactNode }) {
-  return <h2 className="text-xs text-ink-2">{children}</h2>;
-}
-
-function Section({
-  label,
-  note,
-  children,
-}: {
-  label: string;
-  note?: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="mt-12">
-      <Heading>{label}</Heading>
-      {note && <p className="mt-2 max-w-[34rem] text-xs leading-[1.6] text-ink-3">{note}</p>}
-      <div className="mt-4">{children}</div>
-    </section>
-  );
-}
 
 function Out({ href, children }: { href: string; children: ReactNode }) {
   return (

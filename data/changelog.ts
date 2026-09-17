@@ -10,6 +10,23 @@ export type ChangelogEntry = {
 // Newest first. Every change to the site gets an entry before it ships.
 export const changelog: ChangelogEntry[] = [
   {
+    version: "1.19.0",
+    date: "2026-09-17",
+    title: "The pages that published the rules were exempt from them",
+    notes: [
+      "Two of the four instruments read empty. The steps bay showed a dash over an unlit field while the store was serving six days, a seven-day average and a month — because it opened on the walk, and the walk is drawn from today, and today does not exist until the phone syncs. An instrument holding a month of readings was leading with its one blank face",
+      "It opens on the first face that has anything on it now. Nothing invented and nothing hidden: the three faces are the same three in the same order, the dots still count them, the label still names which one this is. Only where the ring starts moves, once, when the reading arrives — and the moment the visitor turns it, it is theirs",
+      "The figure under the face follows. Today when today is known, the seven-day average marked as an average when it is not. A dash on that bay used to mean nothing reported yet today, which before the first sync was most of the day; it means nothing reported at all now",
+      "An unlit dot stood at 1.14 against its tile on the dark skin and 1.23 on the light one, so the same resting instrument was visibly fainter in one skin than the other — and two of the four bays spend most of their time resting. The dark floor went to 0.075, which is 1.23. The same distance off the card, bought with whatever ink that ground costs",
+      "/changelog and /system are the two surfaces the redesign never reached, and the same four things were wrong with both. Neither rendered the nav row, and this deployment renders no header either — so the only way off the changelog was a link thirty-five versions down",
+      "Both sat centred in a 768-pixel column of their own while every other surface is left-aligned on 1240. Both were the only two files missing from the list that holds a page to the six type steps, which is the only reason a dozen literal sizes could live on them — one of those pages printing 'Six type steps, and nothing sized outside them' as a rule of the house",
+      "And both were built out of cards, which this site does not have. `Sheet` — rounded, bordered, and raised by 1.026 against the ground, which is to say a border and nothing inside it — had two callers and now has none. A version is not an object on a page; it is a band of it, and a band is bounded by a rule",
+      "The changelog was printing its own backticks. Thirty-five entries of prose with `unsharp` and `overflow-hidden` in it, ticks and all. They are set as code now, by a splitter and not a parser: the notes are hand-written and a code span is the only markup any of them has ever used",
+      "The system page shows the six steps. It stated the rule about them and then demonstrated four typefaces instead, which is a specimen of the face rather than of the scale",
+      "The footer was on a third measure nobody else used — 1152 inside 32, against the 1240 inside 40 every main on the site sets. Invisible while the two routes carrying it were themselves centred in a narrower column; obvious the moment they were not",
+    ],
+  },
+  {
     version: "1.18.0",
     date: "2026-09-14",
     title: "The picture is of somebody",

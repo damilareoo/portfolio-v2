@@ -184,7 +184,9 @@ function RecordLabel({ top, name, value }: { top: string; name: string; value: s
  */
 export function Pedometer() {
   const [reading, setReading] = useState<StepsReading | null>(null);
-  const [page, setPage] = useState(0);
+  /* The face the visitor asked for, and null until they ask for one. See
+     `opening` below for what is shown meanwhile, and why it is not simply 0. */
+  const [turned, setTurned] = useState<number | null>(null);
   /* The walk starts when the instrument is seen, not when it mounts. The wall
      sits at the bottom of a page a visitor lands at the top of, so a walk keyed
      to the data arriving finished a second and a half after load, five thousand
@@ -231,6 +233,23 @@ export function Pedometer() {
   /* `average7` reads 0 when nothing has ever been reported, which is the very
      ambiguity `today` was made nullable to avoid. The days say which it is. */
   const average = reading && days.some((day) => day.steps !== null) ? reading.average7 : null;
+
+  /* Which face the instrument opens on: the first one that has anything on it.
+     It used to open on the walk, always, and the walk is drawn from `today` — a
+     figure that cannot be placed on the path until the phone has reported. So
+     before the first sync of the day the instrument opened on its one empty
+     face while holding a week of days and a month of them behind it: a dash on
+     the wall, and every reading it had one press away, where nobody presses.
+
+     Nothing is invented and nothing is hidden by this. The three faces are the
+     same three in the same order, the dots still count them, and the label
+     still names which one is in front of you; only where the ring starts moves.
+     It moves once, when the reading arrives, which is the law's own "arriving"
+     clause — after that `turned` holds whatever the visitor chose and the
+     opening face has no further say. */
+  const opening =
+    today !== null ? 0 : average !== null ? 1 : (reading?.month?.length ?? 0) > 0 ? 2 : 0;
+  const page = turned ?? opening;
 
   /* How far along the path the figure has walked, 0 to 1. Not the day's
      progress — it *travels* to the day's progress, from the start of the path,
@@ -347,13 +366,31 @@ export function Pedometer() {
   const turning = "Press the card, or use the arrow keys, to turn the page.";
   const label = `Steps, page ${page + 1} of ${PAGES}: ${FACES[page]}. ${said}. ${turning}`;
 
-  /* One press, one turn. */
-  const advance = () => setPage((current) => (current + 1) % PAGES);
+  /* The strongest reading the instrument holds, and it does not change with the
+     page — four captions in a row that rewrote themselves as you paged one of
+     them would make the wall's bottom line a thing to watch rather than read.
+
+     Today when today is known. The seven-day average when it is not, marked
+     with the one character that says a figure is an average and not a count;
+     the face carrying it labels it "7-day" in type, and the spoken block below
+     says it in words. A dash only when both are genuinely unknown, which is now
+     what a dash on this bay means — nothing reported, rather than nothing
+     reported *yet today*. */
+  const caption =
+    today !== null
+      ? groupDigits(today)
+      : average !== null
+        ? `~${groupDigits(average)}`
+        : undefined;
+
+  /* One press, one turn — from the face actually in front of the visitor,
+     which before the first press is the opening face rather than the walk. */
+  const advance = () => setTurned((page + 1) % PAGES);
 
   /* And back. A pager you can only step one way round is a worse instrument
      than one you can step both ways — a visitor who overshoots the record has
      to walk the whole ring to get back to it. */
-  const retreat = () => setPage((current) => (current + PAGES - 1) % PAGES);
+  const retreat = () => setTurned((page + PAGES - 1) % PAGES);
 
   return (
     <div
@@ -386,7 +423,7 @@ export function Pedometer() {
     >
       <InstrumentReading
         srLabel="Steps"
-        value={today === null ? undefined : groupDigits(today)}
+        value={caption}
         onPress={advance}
         /* The dots are `aria-hidden`, so "page 2 of 3" has to reach the button's
            own name — otherwise the one thing a screen-reader user cannot get at
