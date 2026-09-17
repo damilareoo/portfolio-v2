@@ -25,6 +25,7 @@ export const changelog: ChangelogEntry[] = [
       "The system page shows the six steps. It stated the rule about them and then demonstrated four typefaces instead, which is a specimen of the face rather than of the scale",
       "The footer was on a third measure nobody else used — 1152 inside 32, against the 1240 inside 40 every main on the site sets. Invisible while the two routes carrying it were themselves centred in a narrower column; obvious the moment they were not",
     ],
+    deployment: "https://portfolio-v2-e9qr56h0f-damilares-projects-fc682e5f.vercel.app",
   },
   {
     version: "1.18.0",
